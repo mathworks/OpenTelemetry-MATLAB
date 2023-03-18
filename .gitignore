@@ -1,2 +1,6 @@
 # build directory
 build
+
+# Autosave files
+*.asv
+*.swp
