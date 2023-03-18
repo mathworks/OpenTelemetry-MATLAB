@@ -3,7 +3,7 @@ classdef SimpleSpanProcessor
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=?opentelemetry.sdk.trace.TracerProvider)
+    properties (GetAccess=?opentelemetry.sdk.trace.TracerProvider)
         Proxy
     end
 

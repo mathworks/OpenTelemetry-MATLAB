@@ -8,6 +8,7 @@
 #include "libmexclass/proxy/method/Context.h"
 
 #include "opentelemetry/sdk/trace/processor.h"
+#include "opentelemetry/sdk/trace/batch_span_processor_options.h"
 
 namespace trace_sdk = opentelemetry::sdk::trace;
 
@@ -17,6 +18,8 @@ class BatchSpanProcessorProxy : public SpanProcessorProxy {
     BatchSpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<trace_sdk::SpanProcessor> getInstance();
+
+    void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
 
   private:
     trace_sdk::BatchSpanProcessorOptions CppOptions;

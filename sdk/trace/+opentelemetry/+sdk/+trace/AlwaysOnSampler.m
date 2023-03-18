@@ -3,7 +3,8 @@ classdef AlwaysOnSampler
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=private)
+    properties (GetAccess={?opentelemetry.sdk.trace.TracerProvider,...
+            ?opentelemetry.sdk.trace.ParentBasedSampler})
         Proxy
     end
 

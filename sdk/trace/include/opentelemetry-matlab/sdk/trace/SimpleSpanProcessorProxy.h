@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "opentelemetry-matlab/sdk/trace/SpanProcessorProxy.h"
+
 #include "libmexclass/proxy/Proxy.h"
 #include "libmexclass/proxy/method/Context.h"
 
@@ -12,7 +14,7 @@ namespace trace_sdk = opentelemetry::sdk::trace;
 namespace trace_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::sdk {
-class SimpleSpanProcessorProxy : public libmexclass::proxy::Proxy {
+class SimpleSpanProcessorProxy : public SpanProcessorProxy {
   public:
     SimpleSpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {}
 

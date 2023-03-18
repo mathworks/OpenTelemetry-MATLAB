@@ -6,7 +6,6 @@
 
 #include "opentelemetry/exporters/otlp/otlp_http_exporter_factory.h"
 #include "opentelemetry/sdk/trace/batch_span_processor_factory.h"
-#include "opentelemetry/sdk/trace/batch_span_processor_options.h"
 
 namespace trace_exporter = opentelemetry::exporter::otlp;
 
@@ -28,11 +27,25 @@ BatchSpanProcessorProxy::BatchSpanProcessorProxy(const libmexclass::proxy::Funct
     if (batchsize > 0) {
         CppOptions.max_export_batch_size = static_cast<size_t>(batchsize);
     }
+    REGISTER_METHOD(BatchSpanProcessorProxy, getDefaultOptionValues);
 }
 
 std::unique_ptr<trace_sdk::SpanProcessor> BatchSpanProcessorProxy::getInstance() {
     auto exporter = trace_exporter::OtlpHttpExporterFactory::Create();
-    return trace_sdk::BatchSpanProcessorFactory::Create(std::move(exporter, CppOptions));
+    return trace_sdk::BatchSpanProcessorFactory::Create(std::move(exporter), CppOptions);
 }
 
+void BatchSpanProcessorProxy::getDefaultOptionValues(libmexclass::proxy::method::Context& context) {
+    trace_sdk::BatchSpanProcessorOptions options;
+    matlab::data::ArrayFactory factory;
+    auto qsize_mda = factory.createScalar<double>(static_cast<double>(
+			    options.max_queue_size));
+    auto delay_mda = factory.createScalar<double>(static_cast<double>(
+			    options.schedule_delay_millis.count()));
+    auto batchsize_mda = factory.createScalar<double>(static_cast<double>(
+			    options.max_export_batch_size));
+    context.outputs[0] = qsize_mda;
+    context.outputs[1] = delay_mda;
+    context.outputs[2] = batchsize_mda;
+}
 } // namespace libmexclass::opentelemetry

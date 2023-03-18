@@ -46,6 +46,9 @@ set(CUSTOM_PROXY_SOURCES
     ${TRACE_API_SOURCE_DIR}/SpanProxy.cpp
     ${TRACE_API_SOURCE_DIR}/SpanContextProxy.cpp
     ${TRACE_API_SOURCE_DIR}/attribute.cpp
+    ${TRACE_SDK_SOURCE_DIR}/TracerProviderProxy.cpp
+    ${TRACE_SDK_SOURCE_DIR}/BatchSpanProcessorProxy.cpp
+    ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp
 )
 
 set(DEBUG_OR_RELEASE $<$<CONFIG:Debug>:DEBUG>$<$<CONFIG:Release>:RELEASE>)

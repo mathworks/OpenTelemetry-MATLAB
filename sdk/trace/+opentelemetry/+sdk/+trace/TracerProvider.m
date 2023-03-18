@@ -8,11 +8,47 @@ classdef TracerProvider
         Proxy
     end
 
+    properties (SetAccess=private)
+        SpanProcessor
+        Sampler
+    end
+
     methods
-        function obj = TracerProvider()
+        function obj = TracerProvider(processor, optionnames, optionvalues)
+    	    arguments
+     	       processor {mustBeA(processor, ["opentelemetry.sdk.trace.SimpleSpanProcessor",...
+    		       "opentelemetry.sdk.trace.BatchSpanProcessor"])} = ...
+    		       opentelemetry.sdk.trace.SimpleSpanProcessor()
+            end
+
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+
+            validnames = "Sampler";
+            foundsampler = false;
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                if strcmp(namei, "Sampler")
+                    if ~(isa(valuei, "opentelemetry.sdk.trace.AlwaysOnSampler") || ...
+                            isa(valuei, "opentelemetry.sdk.trace.AlwaysOffSampler") || ...
+                            isa(valuei, "opentelemetry.sdk.trace.TraceIdRatioBasedSampler"))
+                        error("Sampler must be an instance of one of the sampler classes");
+                    end
+                    sampler = valuei;
+                    foundsampler = true;
+                end
+            end
+            if ~foundsampler
+                sampler = opentelemetry.sdk.trace.AlwaysOnSampler;
+            end
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.TracerProviderProxy", ...
-                "ConstructorArguments", {});
+                "ConstructorArguments", {processor.Proxy.ID, sampler.Proxy.ID});
+            obj.SpanProcessor = processor;
+            obj.Sampler = sampler;
         end
         
         function tracer = getTracer(obj, trname, trversion, trschema)
