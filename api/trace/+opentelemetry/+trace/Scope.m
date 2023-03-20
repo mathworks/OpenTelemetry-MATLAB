@@ -7,14 +7,9 @@ classdef Scope
         Proxy
     end
 
-    properties (Hidden)
-        Cleanup
-    end
-
     methods (Access=?opentelemetry.trace.Span)
         function obj = Scope(proxy)
             obj.Proxy = proxy;
-            obj.Cleanup = onCleanup(@()delete(obj.Proxy));
         end
     end
 

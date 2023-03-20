@@ -7,14 +7,9 @@ classdef Span
         Proxy
     end
 
-    properties (Hidden)
-        Cleanup
-    end
-
     methods (Access=?opentelemetry.trace.Tracer)
         function obj = Span(proxy)
             obj.Proxy = proxy;
-            obj.Cleanup = onCleanup(@()delete(obj.Proxy));
         end
     end
 

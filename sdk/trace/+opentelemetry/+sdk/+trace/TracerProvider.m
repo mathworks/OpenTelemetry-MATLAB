@@ -11,6 +11,7 @@ classdef TracerProvider
     properties (SetAccess=private)
         SpanProcessor
         Sampler
+        Resource
     end
 
     methods
@@ -26,19 +27,35 @@ classdef TracerProvider
                 optionvalues
             end
 
-            validnames = "Sampler";
+            validnames = ["Sampler", "Resource"];
             foundsampler = false;
+            resourcekeys = string.empty();
+            resourcevalues = {};
+            resource = dictionary(resourcekeys, resourcevalues);
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
                 if strcmp(namei, "Sampler")
                     if ~(isa(valuei, "opentelemetry.sdk.trace.AlwaysOnSampler") || ...
                             isa(valuei, "opentelemetry.sdk.trace.AlwaysOffSampler") || ...
-                            isa(valuei, "opentelemetry.sdk.trace.TraceIdRatioBasedSampler"))
+                            isa(valuei, "opentelemetry.sdk.trace.TraceIdRatioBasedSampler") || ...
+                            isa(valuei, "opentelemetry.sdk.trace.ParentBasedSampler"))
                         error("Sampler must be an instance of one of the sampler classes");
                     end
                     sampler = valuei;
                     foundsampler = true;
+                else  % "Resource"
+                    if ~isa(valuei, "dictionary")
+                        error("Attibutes input must be a dictionary.");
+                    end
+                    resource = valuei;
+                    resourcekeys = keys(valuei);
+                    resourcevalues = values(valuei,"cell");
+                    % collapse one level of cells, as this may be due to
+                    % a behavior of dictionary.values
+                    if all(cellfun(@iscell, resourcevalues))
+                        resourcevalues = [resourcevalues{:}];
+                    end
                 end
             end
             if ~foundsampler
@@ -46,9 +63,11 @@ classdef TracerProvider
             end
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.TracerProviderProxy", ...
-                "ConstructorArguments", {processor.Proxy.ID, sampler.Proxy.ID});
+                "ConstructorArguments", {processor.Proxy.ID, sampler.Proxy.ID, ...
+                resourcekeys, resourcevalues});
             obj.SpanProcessor = processor;
             obj.Sampler = sampler;
+            obj.Resource = resource;
         end
         
         function tracer = getTracer(obj, trname, trversion, trschema)
