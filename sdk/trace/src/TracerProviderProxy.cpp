@@ -47,7 +47,8 @@ TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArgum
     auto resource_default = resource::Resource::Create({ {"telemetry.sdk.language", "MATLAB"},
 		    {"telemetry.sdk.version", OTEL_MATLAB_VERSION} });
     auto resource_custom = resource::Resource::Create(common::KeyValueIterableView{resourceattrs});
-    auto resource_merged = resource_default.Merge(resource_custom);
+    // the order matters, default resource must come after custom. Otherwise the default resource will be overwritten.
+    auto resource_merged = resource_custom.Merge(resource_default);  
 
     CppTracerProvider = nostd::shared_ptr<trace_api::TracerProvider>(
 		    std::move(trace_sdk::TracerProviderFactory::Create(std::move(processor), resource_merged,
