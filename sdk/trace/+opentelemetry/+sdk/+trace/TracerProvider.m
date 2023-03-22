@@ -17,8 +17,7 @@ classdef TracerProvider
     methods
         function obj = TracerProvider(processor, optionnames, optionvalues)
     	    arguments
-     	       processor {mustBeA(processor, ["opentelemetry.sdk.trace.SimpleSpanProcessor",...
-    		       "opentelemetry.sdk.trace.BatchSpanProcessor"])} = ...
+     	       processor {mustBeA(processor, "opentelemetry.sdk.trace.SpanProcessor")} = ...
     		       opentelemetry.sdk.trace.SimpleSpanProcessor()
             end
 
@@ -36,10 +35,7 @@ classdef TracerProvider
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
                 if strcmp(namei, "Sampler")
-                    if ~(isa(valuei, "opentelemetry.sdk.trace.AlwaysOnSampler") || ...
-                            isa(valuei, "opentelemetry.sdk.trace.AlwaysOffSampler") || ...
-                            isa(valuei, "opentelemetry.sdk.trace.TraceIdRatioBasedSampler") || ...
-                            isa(valuei, "opentelemetry.sdk.trace.ParentBasedSampler"))
+                    if ~isa(valuei, "opentelemetry.sdk.trace.Sampler")
                         error("Sampler must be an instance of one of the sampler classes");
                     end
                     sampler = valuei;
