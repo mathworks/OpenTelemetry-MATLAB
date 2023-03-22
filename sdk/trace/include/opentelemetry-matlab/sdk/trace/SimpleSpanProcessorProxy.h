@@ -3,24 +3,23 @@
 #pragma once
 
 #include "opentelemetry-matlab/sdk/trace/SpanProcessorProxy.h"
+#include "opentelemetry-matlab/sdk/trace/SpanExporterProxy.h"
 
 #include "libmexclass/proxy/Proxy.h"
-#include "libmexclass/proxy/method/Context.h"
 
 #include "opentelemetry/sdk/trace/simple_processor_factory.h"
-#include "opentelemetry/exporters/otlp/otlp_http_exporter_factory.h"
 
 namespace trace_sdk = opentelemetry::sdk::trace;
-namespace trace_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::sdk {
 class SimpleSpanProcessorProxy : public SpanProcessorProxy {
   public:
-    SimpleSpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {}
+    SimpleSpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) 
+	    : SpanProcessorProxy(constructor_arguments) {}
+	    //: SpanProcessorProxy(constructor_arguments[0]) {}
 
     std::unique_ptr<trace_sdk::SpanProcessor> getInstance() {
-        auto exporter = trace_exporter::OtlpHttpExporterFactory::Create();
-        return trace_sdk::SimpleSpanProcessorFactory::Create(std::move(exporter));
+        return trace_sdk::SimpleSpanProcessorFactory::Create(std::move(SpanExporter->getInstance()));
     }
 };
 } // namespace libmexclass::opentelemetry

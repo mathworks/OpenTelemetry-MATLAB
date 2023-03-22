@@ -1,11 +1,7 @@
-classdef BatchSpanProcessor
+classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
 % Batch span processor creates batches of spans and passes them to an exporter.
 
 % Copyright 2023 The MathWorks, Inc.
-
-    properties (GetAccess=?opentelemetry.sdk.trace.TracerProvider)
-        Proxy
-    end
 
     properties (SetAccess=immutable)
         MaximumQueueSize (1,1) double
@@ -14,7 +10,11 @@ classdef BatchSpanProcessor
     end
 
     methods
-        function obj = BatchSpanProcessor(optionnames, optionvalues)
+        function obj = BatchSpanProcessor(spanexporter, optionnames, optionvalues)
+            arguments
+      	       spanexporter {mustBeA(spanexporter, "opentelemetry.exporters.otlp.OtlpHttpSpanExporter")} = ...
+                   opentelemetry.exporters.otlp.OtlpHttpSpanExporter()
+            end
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues
@@ -49,9 +49,9 @@ classdef BatchSpanProcessor
                 end
             end
             
-            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+            obj = obj@opentelemetry.sdk.trace.SpanProcessor(spanexporter, ...
                 "libmexclass.opentelemetry.sdk.BatchSpanProcessorProxy", ...
-                "ConstructorArguments", {qsize, delaymillis, batchsize});
+                qsize, delaymillis, batchsize);
 
             % populate immutable properties
             if qsize < 0 || delaymillis < 0 || batchsize < 0
