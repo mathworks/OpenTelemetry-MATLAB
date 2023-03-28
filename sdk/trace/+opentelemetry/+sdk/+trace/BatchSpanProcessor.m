@@ -12,7 +12,7 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
     methods
         function obj = BatchSpanProcessor(spanexporter, optionnames, optionvalues)
             arguments
-      	       spanexporter {mustBeA(spanexporter, "opentelemetry.exporters.otlp.OtlpHttpSpanExporter")} = ...
+      	       spanexporter {mustBeA(spanexporter, "opentelemetry.sdk.trace.SpanExporter")} = ...
                    opentelemetry.exporters.otlp.OtlpHttpSpanExporter()
             end
             arguments (Repeating)

@@ -6,7 +6,7 @@ classdef SimpleSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
     methods
         function obj = SimpleSpanProcessor(spanexporter)
             arguments
-      	       spanexporter {mustBeA(spanexporter, "opentelemetry.exporters.otlp.OtlpHttpSpanExporter")} = ...
+      	       spanexporter {mustBeA(spanexporter, "opentelemetry.sdk.trace.SpanExporter")} = ...
                    opentelemetry.exporters.otlp.OtlpHttpSpanExporter()
             end
 
