@@ -1,13 +1,9 @@
-classdef OtlpHttpSpanExporter
+classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
 % OtlpHttpSpanExporter exports spans in OpenTelemetry Protocol format via 
 % HTTP. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
 % Copyright 2023 The MathWorks, Inc.
-
-    properties (GetAccess=?opentelemetry.sdk.trace.SpanProcessor)
-        Proxy
-    end
 
     properties (SetAccess=immutable)
         Endpoint (1,1) string
@@ -71,16 +67,16 @@ classdef OtlpHttpSpanExporter
                 end
             end
             
-            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+            obj = obj@opentelemetry.sdk.trace.SpanExporter(...
                 "libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy", ...
-                "ConstructorArguments", {endpoint, dataformat, jsonbytesmapping, ...
-                usejsonname, timeout_millis, headerkeys, headervalues});
+                endpoint, dataformat, jsonbytesmapping, usejsonname, ...
+                timeout_millis, headerkeys, headervalues);
 
             % populate immutable properties
             if endpoint == "" || dataformat == "" || jsonbytesmapping == "" || ...
                     timeout_millis < 0
                 [defaultendpoint, defaultformat, defaultmapping, defaultmillis] = ...
-                    obj.Proxy.getDefaultOptionValues();
+                    getDefaultOptionValues(obj);
             end
             if endpoint == ""  % not specified, use default value
                 obj.Endpoint = defaultendpoint;
