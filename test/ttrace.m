@@ -1,4 +1,8 @@
 function tests = ttrace
+% tests for traces and spans
+%
+% Copyright 2023 The MathWorks, Inc.
+
 tests = functiontests(localfunctions);
 end
 
