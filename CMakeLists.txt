@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 cmake_policy(SET CMP0074 NEW)
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../Downloads/opentelemetry-cpp/opentelemetry-cpp/tools/vcpkg/scripts/buildsystems/vcpkg.cmake)
+#set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../../opentelemetry-cpp/opentelemetry-cpp/tools/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
 set(CLIENT_PROJECT_NAME otel-matlab)
 
@@ -38,8 +38,21 @@ FetchContent_MakeAvailable(
 set(OPENTELEMETRY_PROXY_LIBRARY_NAME "OtelMatlabProxy")
 
 # Specify location for find_package to locate opentelemetry-cpp-config.cmake
-set(opentelemetry-cpp_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../Downloads/opentelemetry-cpp/install/lib/cmake/opentelemetry-cpp)
+#set(opentelemetry-cpp_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../opentelemetry-cpp/install/lib/cmake/opentelemetry-cpp)
 find_package(opentelemetry-cpp CONFIG REQUIRED)
+find_package(Protobuf REQUIRED)
+find_package(CURL REQUIRED)
+find_package(gRPC REQUIRED)
+find_package(absl REQUIRED)
+find_package(c-ares REQUIRED)
+find_package(re2 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+if(WIN32)
+    find_package(openssl REQUIRED)
+    find_package(zlib REQUIRED)
+elseif(UNIX AND NOT APPLE AND NOT CYGWIN)
+    find_package(upb REQUIRED)
+endif()
 
 set(TRACE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/include)
 set(TRACE_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/include)
@@ -74,36 +87,38 @@ libmexclass_client_add_proxy_library(
 # link against OpenTelemetry-cpp libraries and their dependencies
 target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_CPP_LIBRARIES})
 
+# On Linux, when linking with certain static libraries, need to force include entire archive to avoid the linker mistakenly leaving out symbols
+if(UNIX AND NOT APPLE AND NOT CYGWIN)
+    set(OPENTELEMETRY_PROXY_LINK_OPTIONS -Wl,--whole-archive 
+        "${OPENTELEMETRY_CPP_LIBRARY_DIRS}/libopentelemetry_trace.a"
+        "${OPENTELEMETRY_CPP_LIBRARY_DIRS}/libopentelemetry_common.a"
+        ${ABSL_LIBRARIES}
+        ${UPB_LIBRARIES} -Wl,--no-whole-archive)
+    target_link_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_OPTIONS})
+endif()
+
 # Use C++17 
 target_compile_features(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE cxx_std_17)
 
-# run time dependent libraries
-find_package(Protobuf REQUIRED)
-find_package(CURL REQUIRED)
-find_package(gRPC REQUIRED)
-find_package(absl REQUIRED)
-find_package(c-ares REQUIRED)
-find_package(openssl REQUIRED)
-find_package(re2 REQUIRED)
-find_package(zlib REQUIRED)
-find_package(nlohmann_json REQUIRED)
+if(WIN32)
+    # run time dependent libraries
+    set(DEPENDS_BINDIR $<$<CONFIG:Debug>:debug/bin>$<$<CONFIG:Release>:bin>)
+    FILE(GLOB ABSEIL_RUNTIME ${ABSL_INCLUDE_DIRS}/../bin/*.dll)
+    FILE(GLOB C_ARES_RUNTIME ${C-ARES_INCLUDE_DIR}/../bin/*.dll)
+    FILE(GLOB CURL_RUNTIME ${CURL_INCLUDE_DIRS}/../bin/*.dll)
+    FILE(GLOB OPENSSL_RUNTIME ${OPENSSL_INCLUDE_DIR}/../bin/*.dll)
+    FILE(GLOB RE2_RUNTIME ${RE2_INCLUDE_DIR}/../bin/*.dll)
+    FILE(GLOB PROTOBUF_RUNTIME ${PROTOBUF_INCLUDE_DIRS}/../bin/*.dll)
+    FILE(GLOB ZLIB_RUNTIME ${ZLIB_INCLUDE_DIRS}/../bin/*.dll)
 
-set(DEPENDS_BINDIR $<$<CONFIG:Debug>:debug/bin>$<$<CONFIG:Release>:bin>)
-FILE(GLOB ABSEIL_RUNTIME ${ABSL_INCLUDE_DIRS}/../bin/*.dll)
-FILE(GLOB C_ARES_RUNTIME ${C-ARES_INCLUDE_DIR}/../bin/*.dll)
-FILE(GLOB CURL_RUNTIME ${CURL_INCLUDE_DIRS}/../bin/*.dll)
-FILE(GLOB OPENSSL_RUNTIME ${OPENSSL_INCLUDE_DIR}/../bin/*.dll)
-FILE(GLOB RE2_RUNTIME ${RE2_INCLUDE_DIR}/../bin/*.dll)
-FILE(GLOB PROTOBUF_RUNTIME ${PROTOBUF_INCLUDE_DIRS}/../bin/*.dll)
-FILE(GLOB ZLIB_RUNTIME ${ZLIB_INCLUDE_DIRS}/../bin/*.dll)
-
-set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${CURL_RUNTIME}
-    ${PROTOBUF_RUNTIME}
-    ${ZLIB_RUNTIME}
-    ${ABSEIL_RUNTIME}
-    ${C_ARES_RUNTIME}
-    ${OPENSSL_RUNTIME}
-    ${RE2_RUNTIME})
+    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${CURL_RUNTIME}
+        ${PROTOBUF_RUNTIME}
+        ${ZLIB_RUNTIME}
+        ${ABSEIL_RUNTIME}
+        ${C_ARES_RUNTIME}
+        ${OPENSSL_RUNTIME}
+        ${RE2_RUNTIME})
+endif()
 
 # ##############################
 # OpenTelemetry MEX Gateway
@@ -140,4 +155,6 @@ install(DIRECTORY ${TRACE_SDK_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${OTLP_EXPORTERS_MATLAB_SOURCES} DESTINATION .)
 
 # Install dependent runtime libraries
-install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION +libmexclass/+proxy)
+if(WIN32)
+    install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION +libmexclass/+proxy)
+endif()
