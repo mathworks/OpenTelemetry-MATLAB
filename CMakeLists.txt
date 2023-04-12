@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 cmake_policy(SET CMP0074 NEW)
-#set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../../opentelemetry-cpp/opentelemetry-cpp/tools/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
 set(CLIENT_PROJECT_NAME otel-matlab)
 
@@ -38,7 +37,6 @@ FetchContent_MakeAvailable(
 set(OPENTELEMETRY_PROXY_LIBRARY_NAME "OtelMatlabProxy")
 
 # Specify location for find_package to locate opentelemetry-cpp-config.cmake
-#set(opentelemetry-cpp_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../opentelemetry-cpp/install/lib/cmake/opentelemetry-cpp)
 find_package(opentelemetry-cpp CONFIG REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(CURL REQUIRED)
