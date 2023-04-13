@@ -8,9 +8,9 @@ end
 
 function setupOnce(testCase)
 % file definitions
-otelcolroot = fullfile("..", "..", "Downloads", "otelcol_0.74.0_windows_amd64");
-testCase.TestData.otelconfigfile = fullfile(otelcolroot, "config", "my_otelcol_config2.yaml");
-testCase.TestData.otelroot = fullfile("..", "..", "opentelemetry-matlab", "otel-matlab");
+otelcolroot = getenv("OPENTELEMETRY_COLLECTOR_INSTALL");
+testCase.TestData.otelconfigfile = "otelcol_config.yml";
+testCase.TestData.otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
 testCase.TestData.jsonfile = "myoutput.json";
 testCase.TestData.pidfile = "testoutput.txt";
 
@@ -20,8 +20,8 @@ if ispc
    testCase.TestData.list = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
    testCase.TestData.readlist = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
    testCase.TestData.extractPid = @(table)table.Var2;
-   testCase.TestData.sigint = @(id)fullfile("..", "..", "Downloads", "windows-kill_x64_1.1.4_lib_release", ...
-       "windows-kill_x64_1.1.4_lib_release", "windows-kill") + " -SIGINT " + id;
+   windows_killroot = string(getenv("WINDOWS_KILL_INSTALL"));
+   testCase.TestData.sigint = @(id)fullfile(windows_killroot,"windows-kill") + " -SIGINT " + id;
    testCase.TestData.sigterm = @(id)"taskkill /pid " + id;
 elseif isunix && ~ismac
    testCase.TestData.list = @(name)"ps -C " + name;
@@ -33,7 +33,6 @@ end
 
 % set up path
 addpath(testCase.TestData.otelroot);
-addpath(fullfile(testCase.TestData.otelroot, "libmexclass"));
 
 % remove temporary files if present
 if exist(testCase.TestData.jsonfile, "file")
@@ -47,6 +46,7 @@ end
 function setup(testCase)
 % start collector
 system(testCase.TestData.otelcol + " --config " + testCase.TestData.otelconfigfile + '&');
+pause(1);   % give a little time for Collector to start up
 end
 
 function teardown(testCase)

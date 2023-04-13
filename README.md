@@ -4,15 +4,17 @@ MATLAB interface to [OpenTelemetry](https://opentelemetry.io/), an observability
 
 ## DISCLAIMERS
 **NOTE**: `OpenTelemetry MATLAB`is **UNDER ACTIVE DEVELOPMENT**. It is **NOT** recommended for production use.
+- Currently only tracing is supported. Metrics and logs will be in the future.
+- This package is supported and has been tested on Windows and Linux. We will add Mac support in the future. 
 
 ### MathWorks Products (https://www.mathworks.com)
 
 Requires MATLAB release R2022b or newer
 - [MATLAB](https://www.mathworks.com/products/matlab.html)
-- [libmexclass](https://github.com/mathworks/libmexclass)
 
 ### 3rd Party Products:
 - [Opentelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
+- [vcpkg C/C++ dependency manager](https://vcpkg.io)
 
 ## Installation 
 Installation instructions
@@ -23,34 +25,34 @@ Before proceeding, ensure that the below products are installed:
 1. Download, build and install [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
 ```
 cd \<opentelemetry-cpp-root>\
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP=TRUE -DWITH_OTLP_HTTP=TRUE -DOPENTELEMETRY_INSTALL=ON
-cmake --build . --config Release --target ALL_BUILD
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP=TRUE -DWITH_OTLP_HTTP=TRUE -DWITH_OTLP_GRPC=TRUE -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=\<vcpkg_toolchain_file>\
+cmake --build build --config Release --target ALL_BUILD
 cmake --install . --prefix \<opentelemetry-cpp-installdir>\
 ```
-2. Download OpenTelemetry MATLAB and specify various build variables in CMakeLists.txt
-- OPENTELEMTRY_CPP_INSTALL
-- opentelemetry-cpp_DIR
-- CURL_INSTALL
-- PROTOBUF_INSTALL
-3. Build and install OpenTelemetry MATLAB
+2. Download vcpkg. Install the following packages:
+- abseil
+- c-ares
+- curl
+- grpc
+- nlohmann-json
+- openssl
+- protobuf
+- re2
+- upb
+- zlib
+- gtest
+- benchmark
+
+3. Download OpenTelemetry MATLAB
+
+4. Build and install OpenTelemetry MATLAB
 ```
 cd \<opentelemetry-matlab-root>\
-cmake -S . -B build -DCMAKE_INSTALL_PREFIX=\<opentelemetry-matlab-installdir>\
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=\<opentelemetry-matlab-installdir>\ -DCMAKE_TOOLCHAIN_FILE=\<vcpkg_toolchain_file> -DCMAKE_PREFIX_PATH=\<path to opentelemetry-cpp-config.cmake>\
 cmake --build build --config Release --target install
 
 ```
-4. Download [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-releases/releases). You can just obtain a pre-built binary for your platform.
-5. Create a configuration yaml file for the OpenTelemetry Collector in the config directory. Include "logging" as an export destination for your traces so that your spans/traces will be displayed in the collector. For example,
-```
-service:
-
-  pipelines:
-
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [logging]
-```
+5. Download [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-releases/releases). You can just obtain a pre-built binary for your platform.
 
 ## Getting Started
 1. Start OpenTelemetry Collector
@@ -61,7 +63,6 @@ otelcol --config \<otelcol-config-yaml>\
 3. Add the OpenTelemetry MATLAB install directories to your MATLAB path
 ```
 >> addpath \<OpenTelemetry MATLAB installdir>\
->> addpath \<OpenTelemetry MATLAB installdir>\\libmexclass
 ```
 ## Examples
 1. Create a default tracer provider and save it.
@@ -78,7 +79,7 @@ otelcol --config \<otelcol-config-yaml>\
 ``` 
 >> endSpan(sp);
 ```
-4. You should see your span displayed in the Collector.
+4. If your collector is configured to display the data, you should see your span displayed: 
 ```
 2023-03-21T11:29:44.570-0400    info    TracesExporter  {"kind": "exporter", "data_type": "traces", "name": "logging", "#spans": 1}
 2023-03-21T11:29:55.525-0400    info    ResourceSpans #0
@@ -110,4 +111,4 @@ The license is available in the License file within this repository
 ## Community Support
 [MATLAB Central](https://www.mathworks.com/matlabcentral)
 
-Copyright 2022 The MathWorks, Inc.
+Copyright 2023 The MathWorks, Inc.
