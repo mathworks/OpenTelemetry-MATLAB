@@ -194,10 +194,10 @@ tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "tracer");
 % TODO: string scalar is current broken, and string array not yet
 % implemented
-attributes = dictionary(["doublescalar", "int32scalar", "uint32scalar", "int64scalar", ...
-    "logicalscalar", "doublearray", "int32array", "uint32array", "int64array", ...
-    "logicalarray"], {10, int32(10), uint32(20), int64(35), false, [2 3; 4 5], ...
-    int32(1:6), uint32((15:18).'), int64(reshape(1:4,2,1,2)), [true false true]});
+attributes = dictionary(["stringscalar", "doublescalar", "int32scalar", "uint32scalar", ...
+    "int64scalar", "logicalscalar", "doublearray", "int32array", "uint32array", ...
+    "int64array", "logicalarray"], {"foo", 10, int32(10), uint32(20), int64(35), false, ...
+    [2 3; 4 5], int32(1:6), uint32((15:18).'), int64(reshape(1:4,2,1,2)), [true false true]});
 sp1 = startSpan(tr, "span", "Attributes", attributes);
 endSpan(sp1);
 
@@ -207,6 +207,10 @@ results = gatherjson(testCase);
 attrkeys = string({results{1}.resourceSpans.scopeSpans.spans.attributes.key});
 
 % scalars
+stringscidx = find(attrkeys == "stringscalar");
+verifyNotEmpty(testCase, stringscidx);
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(stringscidx).value.stringValue, 'foo');
+
 doublescidx = find(attrkeys == "doublescalar");
 verifyNotEmpty(testCase, doublescidx);
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(doublescidx).value.doubleValue, 10);
@@ -276,7 +280,7 @@ tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp = startSpan(tr, "bar");
 % Name-value pairs
-setAttributes(sp, "doublescalar", 15, "int32array", reshape(int32(1:6),2,3));
+setAttributes(sp, "stringscalar", "quux", "doublescalar", 15, "int32array", reshape(int32(1:6),2,3));
 % dictionary
 attributes = dictionary(["doublearray", "int64scalar"], {reshape(10:13,1,2,2), int64(155)});
 setAttributes(sp, attributes);
@@ -286,6 +290,10 @@ endSpan(sp);
 results = gatherjson(testCase);
 
 attrkeys = string({results{1}.resourceSpans.scopeSpans.spans.attributes.key});
+
+stringscidx = find(attrkeys == "stringscalar");
+verifyNotEmpty(testCase, stringscidx); 
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(stringscidx).value.stringValue, 'quux');
 
 doublescidx = find(attrkeys == "doublescalar");
 verifyNotEmpty(testCase, doublescidx); 
@@ -318,7 +326,8 @@ tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp = startSpan(tr, "bar");
 % Name-value pairs
-addEvent(sp, "baz", "doublescalar", 5, "int32array", reshape(int32(1:6),2,3));
+addEvent(sp, "baz", "doublescalar", 5, "int32array", reshape(int32(1:6),2,3), ...
+    "stringscalar", "baz");
 % dictionary
 attributes = dictionary(["doublearray", "int64scalar"], {reshape(1:4,1,2,2), int64(350)});
 addEvent(sp, "quux", attributes);
@@ -342,6 +351,10 @@ verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.e
 i32szidx = find(event1keys == "int32array.size");
 verifyNotEmpty(testCase, i32szidx); 
 verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(i32szidx).value.arrayValue.values.doubleValue], [2 3]);
+
+stringscidx = find(event1keys == "stringscalar");
+verifyNotEmpty(testCase, stringscidx); 
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(stringscidx).value.stringValue, 'baz');
 
 % event 2
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(2).name, 'quux');

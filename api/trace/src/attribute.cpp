@@ -11,6 +11,7 @@ namespace libmexclass::opentelemetry {
 
 void processAttribute(std::string& attrname, const matlab::data::Array& attrvalue, 
 		std::vector<std::pair<std::string, common::AttributeValue> >& attrs, 
+		std::vector<std::string >& stringattr_buffer_vector,
 		std::vector<std::vector<double> >& attrvalue_dims_buffer_vector) {
 
     std::vector<double> attrvalue_dims_buffer; // dimensions of array attribute, cast to double
@@ -37,8 +38,8 @@ void processAttribute(std::string& attrname, const matlab::data::Array& attrvalu
           attrs.push_back(std::pair<std::string, common::AttributeValue>(attrname, attrvalue_mda[0]));
        } else {   // string
           matlab::data::StringArray attrvalue_mda = attrvalue;
-	  std::string attrvalue_string{static_cast<std::string>(attrvalue_mda[0])};
-          attrs.push_back(std::pair<std::string, common::AttributeValue>(attrname, attrvalue_string));
+          stringattr_buffer_vector.push_back(static_cast<std::string>(attrvalue_mda[0]));
+          attrs.push_back(std::pair<std::string, common::AttributeValue>(attrname, stringattr_buffer_vector.back()));
        }
     } else {  // array case
        if (valtype == matlab::data::ArrayType::DOUBLE) {

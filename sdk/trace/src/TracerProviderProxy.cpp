@@ -38,11 +38,12 @@ TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArgum
     std::vector<std::pair<std::string, common::AttributeValue> > resourceattrs;
     // TODO Use one level of std::vector instead of 2
     std::vector<std::vector<double> > resourcedims_double; // vector of vector, to hold the dimensions of array attributes 
+    std::vector<std::string> string_resource_attrs; // vector of strings as a buffer to hold the string attributes
     for (size_t i = 0; i < nresourceattrs; ++i) {
        std::string resourcename = static_cast<std::string>(resourcenames_mda[i]);
        matlab::data::Array resourcevalue = resourcevalues_mda[i];
 
-       processAttribute(resourcename, resourcevalue, resourceattrs, resourcedims_double);
+       processAttribute(resourcename, resourcevalue, resourceattrs, string_resource_attrs, resourcedims_double);
     }
     auto resource_default = resource::Resource::Create({ {"telemetry.sdk.language", "MATLAB"},
 		    {"telemetry.sdk.version", OTEL_MATLAB_VERSION} });

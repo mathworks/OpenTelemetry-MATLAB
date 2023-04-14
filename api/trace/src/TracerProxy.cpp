@@ -49,11 +49,12 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     std::vector<std::pair<std::string, common::AttributeValue> > attrs;
     // TODO Use one level of std::vector instead of 2
     std::vector<std::vector<double> > attrdims_double; // vector of vector, to hold the dimensions of array attributes 
+    std::vector<std::string> stringattrs; // vector of strings as a buffer to hold the string attributes
     for (size_t i = 0; i < nattrs; ++i) {
        std::string attrname = static_cast<std::string>(attrnames_mda[i]);
        matlab::data::Array attrvalue = attrvalues_mda[i];
 
-       processAttribute(attrname, attrvalue, attrs, attrdims_double);
+       processAttribute(attrname, attrvalue, attrs, stringattrs, attrdims_double);
     }
 
     auto sp = CppTracer->StartSpan(name, attrs, options);

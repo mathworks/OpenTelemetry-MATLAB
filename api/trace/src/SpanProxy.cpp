@@ -55,9 +55,10 @@ void SpanProxy::setAttribute(libmexclass::proxy::method::Context& context) {
     matlab::data::Array attrvalue = context.inputs[1];
 
     std::vector<std::pair<std::string, common::AttributeValue> > spanattrs;
+    std::vector<std::string> stringattrs; // vector of strings as a buffer to hold the string attributes
     std::vector<std::vector<double> > attrdims_double; // vector of vector, to hold the dimensions of array attributes 
    
-    processAttribute(attrname, attrvalue, spanattrs, attrdims_double); 
+    processAttribute(attrname, attrvalue, spanattrs, stringattrs, attrdims_double); 
 						      
     for (size_t i = 0; i<spanattrs.size(); ++i) {
        CppSpan->SetAttribute(spanattrs[i].first, spanattrs[i].second); 
@@ -75,12 +76,13 @@ void SpanProxy::addEvent(libmexclass::proxy::method::Context& context) {
     std::vector<std::pair<std::string, common::AttributeValue> > eventattrs;
     // TODO Use one level of std::vector instead of 2
     std::vector<std::vector<double> > attrdims_double; // vector of vector, to hold the dimensions of array attributes 
+    std::vector<std::string> stringattrs; // vector of strings as a buffer to hold the string attributes
     for (size_t i = 2, count = 0; i < nin; i += 2, ++count) {
        matlab::data::StringArray attrname_mda = context.inputs[i];
        std::string attrname = static_cast<std::string>(attrname_mda[0]);
        matlab::data::Array attrvalue = context.inputs[i+1];
 
-       processAttribute(attrname, attrvalue, eventattrs, attrdims_double);
+       processAttribute(attrname, attrvalue, eventattrs, stringattrs, attrdims_double);
     }
     if (nin < 3) {
        CppSpan->AddEvent(eventname, eventtime);
