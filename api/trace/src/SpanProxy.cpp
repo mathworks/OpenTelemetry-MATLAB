@@ -54,14 +54,15 @@ void SpanProxy::setAttribute(libmexclass::proxy::method::Context& context) {
     std::string attrname = static_cast<std::string>(attrname_mda[0]);
     matlab::data::Array attrvalue = context.inputs[1];
 
-    std::vector<std::pair<std::string, common::AttributeValue> > spanattrs;
-    std::vector<std::string> stringattrs; // vector of strings as a buffer to hold the string attributes
-    std::vector<std::vector<double> > attrdims_double; // vector of vector, to hold the dimensions of array attributes 
+    std::list<std::pair<std::string, common::AttributeValue> > spanattrs;
+    std::list<std::string> stringattrs; // list of strings as a buffer to hold the string attributes
+    std::list<std::vector<nostd::string_view> > stringviews; // list of vector of strings views, used for string array attributes only
+    std::list<std::vector<double> > attrdims_double; // list of vectors, to hold the dimensions of array attributes 
    
-    processAttribute(attrname, attrvalue, spanattrs, stringattrs, attrdims_double); 
+    processAttribute(attrname, attrvalue, spanattrs, stringattrs, stringviews, attrdims_double); 
 						      
-    for (size_t i = 0; i<spanattrs.size(); ++i) {
-       CppSpan->SetAttribute(spanattrs[i].first, spanattrs[i].second); 
+    for (auto itr = spanattrs.cbegin(); itr!=spanattrs.cend(); ++itr) {
+       CppSpan->SetAttribute(itr->first, itr->second); 
     }
 }
 
@@ -73,16 +74,16 @@ void SpanProxy::addEvent(libmexclass::proxy::method::Context& context) {
     common::SystemTimestamp eventtime{std::chrono::duration<double>{eventtime_mda[0]}};
     size_t nin = context.inputs.getNumberOfElements();
     // attributes
-    std::vector<std::pair<std::string, common::AttributeValue> > eventattrs;
-    // TODO Use one level of std::vector instead of 2
-    std::vector<std::vector<double> > attrdims_double; // vector of vector, to hold the dimensions of array attributes 
-    std::vector<std::string> stringattrs; // vector of strings as a buffer to hold the string attributes
+    std::list<std::pair<std::string, common::AttributeValue> > eventattrs;
+    std::list<std::vector<double> > attrdims_double; // list of vector, to hold the dimensions of array attributes 
+    std::list<std::string> stringattrs; // list of strings as a buffer to hold the string attributes
+    std::list<std::vector<nostd::string_view> > stringviews; // list of vector of strings views, used for string array attributes only
     for (size_t i = 2, count = 0; i < nin; i += 2, ++count) {
        matlab::data::StringArray attrname_mda = context.inputs[i];
        std::string attrname = static_cast<std::string>(attrname_mda[0]);
        matlab::data::Array attrvalue = context.inputs[i+1];
 
-       processAttribute(attrname, attrvalue, eventattrs, stringattrs, attrdims_double);
+       processAttribute(attrname, attrvalue, eventattrs, stringattrs, stringviews, attrdims_double);
     }
     if (nin < 3) {
        CppSpan->AddEvent(eventname, eventtime);

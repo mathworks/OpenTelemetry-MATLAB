@@ -192,12 +192,11 @@ function testAttributes(testCase)
 
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "tracer");
-% TODO: string scalar is current broken, and string array not yet
-% implemented
 attributes = dictionary(["stringscalar", "doublescalar", "int32scalar", "uint32scalar", ...
     "int64scalar", "logicalscalar", "doublearray", "int32array", "uint32array", ...
-    "int64array", "logicalarray"], {"foo", 10, int32(10), uint32(20), int64(35), false, ...
-    [2 3; 4 5], int32(1:6), uint32((15:18).'), int64(reshape(1:4,2,1,2)), [true false true]});
+    "int64array", "logicalarray", "stringarray"], {"foo", 10, int32(10), uint32(20), ...
+    int64(35), false, [2 3; 4 5], int32(1:6), uint32((15:18).'), int64(reshape(1:4,2,1,2)), ...
+    [true false true], ["foo", "bar", "quux", "quz"]});
 sp1 = startSpan(tr, "span", "Attributes", attributes);
 endSpan(sp1);
 
@@ -209,23 +208,27 @@ attrkeys = string({results{1}.resourceSpans.scopeSpans.spans.attributes.key});
 % scalars
 stringscidx = find(attrkeys == "stringscalar");
 verifyNotEmpty(testCase, stringscidx);
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(stringscidx).value.stringValue, 'foo');
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.attributes(stringscidx).value.stringValue), attributes{"stringscalar"});
 
 doublescidx = find(attrkeys == "doublescalar");
 verifyNotEmpty(testCase, doublescidx);
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(doublescidx).value.doubleValue, 10);
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(doublescidx).value.doubleValue, ...
+    attributes{"doublescalar"});
 
 i32scidx = find(attrkeys == "int32scalar");
 verifyNotEmpty(testCase, i32scidx);
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(i32scidx).value.intValue, '10');
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(i32scidx).value.intValue, ...
+    char(string(attributes{"int32scalar"})));
 
 u32scidx = find(attrkeys == "uint32scalar");
 verifyNotEmpty(testCase, u32scidx);
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(u32scidx).value.intValue, '20');
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(u32scidx).value.intValue, ...
+    char(string(attributes{"uint32scalar"})));
 
 i64scidx = find(attrkeys == "int64scalar");
 verifyNotEmpty(testCase, i64scidx);
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(i64scidx).value.intValue, '35');
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(i64scidx).value.intValue, ...
+    char(string(attributes{"int64scalar"})));
 
 logicalscidx = find(attrkeys == "logicalscalar");
 verifyNotEmpty(testCase, logicalscidx);
@@ -235,43 +238,62 @@ verifyFalse(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(logic
 doublearidx = find(attrkeys == "doublearray");
 verifyNotEmpty(testCase, doublearidx);
 verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doublearidx).value.arrayValue.values.doubleValue], ...
-    reshape([2 3; 4 5], 1, []));
+    reshape(attributes{"doublearray"}, 1, []));
 
 doubleszidx = find(attrkeys == "doublearray.size");
 verifyNotEmpty(testCase, doubleszidx);
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doubleszidx).value.arrayValue.values.doubleValue], [2 2]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"doublearray"}));
 
 i32aridx = find(attrkeys == "int32array");
 verifyNotEmpty(testCase, i32aridx);
-verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(i32aridx).value.arrayValue.values.intValue})), 1:6);
+verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(i32aridx).value.arrayValue.values.intValue})), ...
+    double(reshape(attributes{"int32array"},1,[])));
 
 i32szidx = find(attrkeys == "int32array.size");
 verifyNotEmpty(testCase, i32szidx);
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(i32szidx).value.arrayValue.values.doubleValue], [1 6]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(i32szidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"int32array"}));
 
 u32aridx = find(attrkeys == "uint32array");
 verifyNotEmpty(testCase, u32aridx);
-verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(u32aridx).value.arrayValue.values.intValue})), 15:18);
+verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(u32aridx).value.arrayValue.values.intValue})), ...
+    double(reshape(attributes{"uint32array"},1,[])));
 
 u32szidx = find(attrkeys == "uint32array.size");
 verifyNotEmpty(testCase, u32szidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(u32szidx).value.arrayValue.values.doubleValue], [4 1]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(u32szidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"uint32array"}));
 
 i64aridx = find(attrkeys == "int64array");
 verifyNotEmpty(testCase, i64aridx);
-verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(i64aridx).value.arrayValue.values.intValue})), 1:4);
+verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(i64aridx).value.arrayValue.values.intValue})), ...
+    double(reshape(attributes{"int64array"},1,[])));
 
 i64szidx = find(attrkeys == "int64array.size");
 verifyNotEmpty(testCase, i64szidx);
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(i64szidx).value.arrayValue.values.doubleValue], [2 1 2]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(i64szidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"int64array"}));
 
 logicalaridx = find(attrkeys == "logicalarray");
 verifyNotEmpty(testCase, logicalaridx);
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(logicalaridx).value.arrayValue.values.boolValue], [true false true]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(logicalaridx).value.arrayValue.values.boolValue], ...
+    reshape(attributes{"logicalarray"},1,[]));
 
 logicalszidx = find(attrkeys == "logicalarray.size");
 verifyNotEmpty(testCase, logicalszidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(logicalszidx).value.arrayValue.values.doubleValue], [1 3]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(logicalszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"logicalarray"}));
+
+stringaridx = find(attrkeys == "stringarray");
+verifyNotEmpty(testCase, stringaridx);
+verifyEqual(testCase, string({results{1}.resourceSpans.scopeSpans.spans.attributes(stringaridx).value.arrayValue.values.stringValue}), ...
+    attributes{"stringarray"});
+
+stringszidx = find(attrkeys == "stringarray.size");
+verifyNotEmpty(testCase, stringszidx); 
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(stringszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"stringarray"}));
 end
 
 %% testSetAttributes: specifying attributes using SetAttributes method
@@ -280,9 +302,11 @@ tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp = startSpan(tr, "bar");
 % Name-value pairs
-setAttributes(sp, "stringscalar", "quux", "doublescalar", 15, "int32array", reshape(int32(1:6),2,3));
+nvattributes = {"stringscalar", "quux", "doublescalar", 15, "int32array", reshape(int32(1:6),2,3)};
+setAttributes(sp, nvattributes{:});
 % dictionary
-attributes = dictionary(["doublearray", "int64scalar"], {reshape(10:13,1,2,2), int64(155)});
+attributes = dictionary(["doublearray", "int64scalar", "stringarray"], ...
+    {reshape(10:13,1,2,2), int64(155), ["I", "am", "a", "string", "array"]});
 setAttributes(sp, attributes);
 endSpan(sp);
 
@@ -290,34 +314,52 @@ endSpan(sp);
 results = gatherjson(testCase);
 
 attrkeys = string({results{1}.resourceSpans.scopeSpans.spans.attributes.key});
+nvattributesstruct = struct(nvattributes{:});
 
 stringscidx = find(attrkeys == "stringscalar");
 verifyNotEmpty(testCase, stringscidx); 
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(stringscidx).value.stringValue, 'quux');
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.attributes(stringscidx).value.stringValue), ...
+    nvattributesstruct.stringscalar);
 
 doublescidx = find(attrkeys == "doublescalar");
 verifyNotEmpty(testCase, doublescidx); 
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(doublescidx).value.doubleValue, 15);
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(doublescidx).value.doubleValue, ...
+    nvattributesstruct.doublescalar);
 
 i32aridx = find(attrkeys == "int32array");
 verifyNotEmpty(testCase, i32aridx);
-verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(i32aridx).value.arrayValue.values.intValue})), 1:6);
+verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.attributes(i32aridx).value.arrayValue.values.intValue})), ...
+    double(reshape(nvattributesstruct.int32array, 1, [])));
 
 i32szidx = find(attrkeys == "int32array.size");
 verifyNotEmpty(testCase, i32szidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(i32szidx).value.arrayValue.values.doubleValue], [2 3]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(i32szidx).value.arrayValue.values.doubleValue], ...
+    size(nvattributesstruct.int32array));
 
 doublearidx = find(attrkeys == "doublearray");
 verifyNotEmpty(testCase, doublearidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doublearidx).value.arrayValue.values.doubleValue], 10:13);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doublearidx).value.arrayValue.values.doubleValue], ...
+    reshape(attributes{"doublearray"}, 1, []));
 
 doubleszidx = find(attrkeys == "doublearray.size");
 verifyNotEmpty(testCase, doubleszidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doubleszidx).value.arrayValue.values.doubleValue], [1 2 2]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"doublearray"}));
 
 i64scidx = find(attrkeys == "int64scalar");
 verifyNotEmpty(testCase, i64scidx); 
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.attributes(i64scidx).value.intValue, '155');
+verifyEqual(testCase, double(string(results{1}.resourceSpans.scopeSpans.spans.attributes(i64scidx).value.intValue)), ...
+    double(attributes{"int64scalar"}));
+
+stringaridx = find(attrkeys == "stringarray");
+verifyNotEmpty(testCase, stringaridx); 
+verifyEqual(testCase, string({results{1}.resourceSpans.scopeSpans.spans.attributes(stringaridx).value.arrayValue.values.stringValue}), ...
+    reshape(attributes{"stringarray"}, 1, []));
+
+stringszidx = find(attrkeys == "stringarray.size");
+verifyNotEmpty(testCase, stringszidx); 
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.attributes(stringszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"stringarray"}));
 end
 
 %% testEvents: adding events
@@ -326,14 +368,17 @@ tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp = startSpan(tr, "bar");
 % Name-value pairs
-addEvent(sp, "baz", "doublescalar", 5, "int32array", reshape(int32(1:6),2,3), ...
-    "stringscalar", "baz");
+nvattributes = {"doublescalar", 5, "int32array", reshape(int32(1:6),2,3), ...
+    "stringscalar", "baz"};
+addEvent(sp, "baz", nvattributes{:});
 % dictionary
-attributes = dictionary(["doublearray", "int64scalar"], {reshape(1:4,1,2,2), int64(350)});
+attributes = dictionary(["doublearray", "int64scalar", "stringarray"], ...
+    {reshape(1:4,1,2,2), int64(350), ["one", "two", "three"; "four", "five","six"]});
 addEvent(sp, "quux", attributes);
 endSpan(sp);
 
 results = gatherjson(testCase);
+nvattributesstruct = struct(nvattributes{:});
 
 % event 1
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).name, 'baz');
@@ -342,19 +387,23 @@ event1keys = string({results{1}.resourceSpans.scopeSpans.spans.events(1).attribu
 
 doublescidx = find(event1keys == "doublescalar");
 verifyNotEmpty(testCase, doublescidx); 
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(doublescidx).value.doubleValue, 5);
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(doublescidx).value.doubleValue, ...
+    nvattributesstruct.doublescalar);
 
 i32aridx = find(event1keys == "int32array");
 verifyNotEmpty(testCase, i32aridx);
-verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(i32aridx).value.arrayValue.values.intValue})), 1:6);
+verifyEqual(testCase, double(string({results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(i32aridx).value.arrayValue.values.intValue})), ...
+    reshape(double(nvattributesstruct.int32array), 1, []));
 
 i32szidx = find(event1keys == "int32array.size");
 verifyNotEmpty(testCase, i32szidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(i32szidx).value.arrayValue.values.doubleValue], [2 3]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(i32szidx).value.arrayValue.values.doubleValue], ...
+    size(nvattributesstruct.int32array));
 
 stringscidx = find(event1keys == "stringscalar");
 verifyNotEmpty(testCase, stringscidx); 
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(stringscidx).value.stringValue, 'baz');
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.events(1).attributes(stringscidx).value.stringValue), ...
+    nvattributesstruct.stringscalar);
 
 % event 2
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(2).name, 'quux');
@@ -363,13 +412,27 @@ event2keys = string({results{1}.resourceSpans.scopeSpans.spans.events(2).attribu
 
 doublearidx = find(event2keys == "doublearray");
 verifyNotEmpty(testCase, doublearidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(doublearidx).value.arrayValue.values.doubleValue], 1:4);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(doublearidx).value.arrayValue.values.doubleValue], ...
+    reshape(attributes{"doublearray"}, 1, []));
 
 doubleszidx = find(event2keys == "doublearray.size");
 verifyNotEmpty(testCase, doubleszidx); 
-verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(doubleszidx).value.arrayValue.values.doubleValue], [1 2 2]);
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"doublearray"}));
 
 i64scidx = find(event2keys == "int64scalar");
 verifyNotEmpty(testCase, i64scidx); 
-verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(i64scidx).value.intValue, '350');
+verifyEqual(testCase, double(string(results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(i64scidx).value.intValue)), ...
+    double(attributes{"int64scalar"}));
+
+stringaridx = find(event2keys == "stringarray");
+verifyNotEmpty(testCase, stringaridx); 
+verifyEqual(testCase, string({results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(stringaridx).value.arrayValue.values.stringValue}), ...
+    reshape(attributes{"stringarray"}, 1, []));
+
+stringszidx = find(event2keys == "stringarray.size");
+verifyNotEmpty(testCase, stringszidx); 
+verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(2).attributes(stringszidx).value.arrayValue.values.doubleValue], ...
+    size(attributes{"stringarray"}));
+
 end

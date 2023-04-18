@@ -7,6 +7,7 @@
 #include "libmexclass/proxy/ProxyManager.h"
 
 #include "MatlabDataArray.hpp"
+
 namespace libmexclass::opentelemetry {
 void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     matlab::data::StringArray name_mda = context.inputs[0];
@@ -46,15 +47,15 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     options.kind = kind;
 
     // attributes
-    std::vector<std::pair<std::string, common::AttributeValue> > attrs;
-    // TODO Use one level of std::vector instead of 2
-    std::vector<std::vector<double> > attrdims_double; // vector of vector, to hold the dimensions of array attributes 
-    std::vector<std::string> stringattrs; // vector of strings as a buffer to hold the string attributes
+    std::list<std::pair<std::string, common::AttributeValue> > attrs;
+    std::list<std::vector<double> > attrdims_double; // list of vectors, to hold the dimensions of array attributes 
+    std::list<std::string> stringattrs; // list of strings as a buffer to hold the string attributes
+    std::list<std::vector<nostd::string_view> > stringviews; // list of vector of strings views, used for string array attributes only
     for (size_t i = 0; i < nattrs; ++i) {
        std::string attrname = static_cast<std::string>(attrnames_mda[i]);
        matlab::data::Array attrvalue = attrvalues_mda[i];
 
-       processAttribute(attrname, attrvalue, attrs, stringattrs, attrdims_double);
+       processAttribute(attrname, attrvalue, attrs, stringattrs, stringviews, attrdims_double);
     }
 
     auto sp = CppTracer->StartSpan(name, attrs, options);

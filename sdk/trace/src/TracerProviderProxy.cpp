@@ -14,7 +14,6 @@
 
 namespace trace_api = opentelemetry::trace;
 namespace trace_sdk = opentelemetry::sdk::trace;
-namespace nostd = opentelemetry::nostd;
 namespace resource = opentelemetry::sdk::resource;
 namespace common_sdk = opentelemetry::sdk::common;
 
@@ -35,15 +34,15 @@ TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArgum
 		    libmexclass::proxy::ProxyManager::getProxy(samplerid))->getInstance();
     
     // resource
-    std::vector<std::pair<std::string, common::AttributeValue> > resourceattrs;
-    // TODO Use one level of std::vector instead of 2
-    std::vector<std::vector<double> > resourcedims_double; // vector of vector, to hold the dimensions of array attributes 
-    std::vector<std::string> string_resource_attrs; // vector of strings as a buffer to hold the string attributes
+    std::list<std::pair<std::string, common::AttributeValue> > resourceattrs;
+    std::list<std::vector<double> > resourcedims_double; // list of vector, to hold the dimensions of array attributes 
+    std::list<std::string> string_resource_attrs; // list of strings as a buffer to hold the string attributes
+    std::list<std::vector<nostd::string_view> > stringview_resource_attrs; // list of vector of stringviews, used for string array attributes only
     for (size_t i = 0; i < nresourceattrs; ++i) {
        std::string resourcename = static_cast<std::string>(resourcenames_mda[i]);
        matlab::data::Array resourcevalue = resourcevalues_mda[i];
 
-       processAttribute(resourcename, resourcevalue, resourceattrs, string_resource_attrs, resourcedims_double);
+       processAttribute(resourcename, resourcevalue, resourceattrs, string_resource_attrs, stringview_resource_attrs, resourcedims_double);
     }
     auto resource_default = resource::Resource::Create({ {"telemetry.sdk.language", "MATLAB"},
 		    {"telemetry.sdk.version", OTEL_MATLAB_VERSION} });
