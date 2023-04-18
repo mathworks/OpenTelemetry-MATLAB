@@ -5,7 +5,7 @@ MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), an o
 ## DISCLAIMERS
 **NOTE**: `OpenTelemetry MATLAB`is **UNDER ACTIVE DEVELOPMENT**. It is **NOT** recommended for production use.
 - Currently only tracing is supported. Metrics and logs will be in the future.
-- This package is supported and has been tested on Windows&reg; and Linux&reg;. We will add Mac support in the future. 
+- This package is supported and has been tested on Windows&reg; and Linux&reg;. We will add macOS support in the future. 
 
 ### MathWorks Products (https://www.mathworks.com)
 
