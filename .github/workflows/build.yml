@@ -33,8 +33,8 @@ jobs:
             - name: Download OpenTelemetry Collector binary
               run:
                   mkdir otelcol && cd otelcol
-                  wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.75.0/otelcol_0.75.0_linux_386.tar.gz
-                  tar -xzf otelcol_0.75.0_linux_386.tar.gz
+                  wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.75.0/otelcol_0.75.0_linux_amd64.tar.gz
+                  tar -xzf otelcol_0.75.0_linux_amd64.tar.gz
             - name: Build OpenTelemetry-cpp
               run:
                   cd opentelemetry-cpp

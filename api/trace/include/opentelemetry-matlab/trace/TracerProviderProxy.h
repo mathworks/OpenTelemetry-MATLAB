@@ -13,7 +13,7 @@
 #include "opentelemetry/trace/tracer_provider.h"
 #include "opentelemetry/trace/provider.h"
 
-#define OTEL_MATLAB_VERSION "0.1"
+#define OTEL_MATLAB_VERSION "0.1.0"
 
 namespace trace_api = opentelemetry::trace;
 namespace trace_sdk = opentelemetry::sdk::trace;

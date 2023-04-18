@@ -78,7 +78,7 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
 	     nostd::span<const nostd::string_view>{&(*stringview_buffer.back().cbegin()), &(*stringview_buffer.back().cend())}));
        }
        // Add a size attribute to preserve the shape
-       std::string& sizeattr{attrname + ".size"};
+       std::string sizeattr{attrname + ".size"};
        matlab::data::ArrayDimensions::iterator copyfrom;
        for (copyfrom = attrdims.begin(); copyfrom != attrdims.end(); ++copyfrom) {
           attrvalue_dims_buffer.push_back(static_cast<double>(*copyfrom));

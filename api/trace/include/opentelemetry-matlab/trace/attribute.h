@@ -7,6 +7,8 @@
 
 #include "MatlabDataArray.hpp"
 
+#include <list>
+
 namespace common = opentelemetry::common;
 namespace nostd = opentelemetry::nostd;
 
