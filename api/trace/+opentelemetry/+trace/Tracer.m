@@ -1,15 +1,24 @@
-classdef Tracer
-% A tracer that is used to create spans.
+classdef Tracer < handle
+    % A tracer that is used to create spans.
 
-% Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023 The MathWorks, Inc.
+
+    properties (SetAccess=immutable)
+        Name    (1,1) string
+        Version (1,1) string
+        Schema  (1,1) string
+    end
 
     properties (Access=private)
         Proxy
     end
 
     methods (Access={?opentelemetry.trace.TracerProvider, ?opentelemetry.sdk.trace.TracerProvider})
-        function obj = Tracer(proxy)
+        function obj = Tracer(proxy, trname, trversion, trschema)
             obj.Proxy = proxy;
+            obj.Name = trname;
+            obj.Version = trversion;
+            obj.Schema = trschema;
         end
     end
 
@@ -56,25 +65,12 @@ classdef Tracer
                     end
                 end
             end
-            id = obj.Proxy.startSpan(string(spname), contextid, spankind, ...
+            spname = string(spname);
+            id = obj.Proxy.startSpan(spname, contextid, spankind, ...
                 attributekeys, attributevalues);
             spanproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.SpanProxy", "ID", id);
-    	    span = opentelemetry.trace.Span(spanproxy);
-        end
-
-        function [span, scope] = startAsCurrentSpan(obj, spname, varargin)
-    	    arguments
-     	       obj
-    	       spname (1,:) {mustBeTextScalar}
-            end
-            arguments (Repeating)
-                varargin
-            end
-            % TODO: explore alternative approach to use WithActiveSpan method 
-            % in C++ tracer 
-            span = startSpan(obj, string(spname), varargin{:});
-    	    scope = makeCurrent(span);
+    	    span = opentelemetry.trace.Span(spanproxy, spname);
         end
     end
 

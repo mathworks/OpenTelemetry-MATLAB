@@ -1,4 +1,4 @@
-classdef SpanContext
+classdef SpanContext < handle
 % The part of a span that is propagated.
 
 % Copyright 2023 The MathWorks, Inc.

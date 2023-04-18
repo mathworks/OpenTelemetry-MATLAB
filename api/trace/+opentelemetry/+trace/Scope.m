@@ -1,4 +1,4 @@
-classdef Scope
+classdef Scope < handle
 % Controls the duration when a span is current
 
 % Copyright 2023 The MathWorks, Inc.

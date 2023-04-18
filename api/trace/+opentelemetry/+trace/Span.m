@@ -1,28 +1,33 @@
-classdef Span
+classdef Span < handle
 % A span that represents a unit of work within a trace.  
 
 % Copyright 2023 The MathWorks, Inc.
+
+    properties 
+        Name  (1,1) string
+    end
 
     properties (Access=private)
         Proxy
     end
 
     methods (Access=?opentelemetry.trace.Tracer)
-        function obj = Span(proxy)
+        function obj = Span(proxy, spname)
             obj.Proxy = proxy;
+            obj.Name = spname;
         end
     end
 
     methods
-        %{
-        function endSpan(obj, endtime)
+        function set.Name(obj, spname)
             arguments
      	       obj
-               endtime (1,1) datetime = datetime("now") 
+    	       spname (1,:) {mustBeTextScalar}
             end
-            obj.Proxy.endSpan(seconds(endtime-datetime("now")));
+            spname = string(spname);
+            obj.Proxy.updateName(spname); %#ok<MCSUP>
+            obj.Name = spname;
         end
-        %}
 
         function endSpan(obj)
             obj.Proxy.endSpan();
@@ -33,16 +38,6 @@ classdef Span
             scopeproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ScopeProxy", "ID", id);
     	    scope = opentelemetry.trace.Scope(scopeproxy);
-        end
-
-        function setAttribute(obj, attrname, attrvalue)
-            arguments
-     	       obj
-    	       attrname (1,:) {mustBeTextScalar}
-    	       attrvalue
-            end
-            [~, attrvalue] = obj.processAttribute(attrname, attrvalue);
-            obj.Proxy.setAttribute(string(attrname), attrvalue);
         end
 
     	function setAttributes(obj, varargin)
@@ -128,14 +123,6 @@ classdef Span
                end
                obj.Proxy.addEvent(string(eventname), eventtime, varargin{:});
             end            
-        end
-
-        function updateName(obj, spname)
-    	    arguments
-     	       obj
-    	       spname (1,:) {mustBeTextScalar}
-    	    end
-            obj.Proxy.updateName(string(spname));
         end
 
     	function setStatus(obj, status, description)

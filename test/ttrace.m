@@ -99,19 +99,28 @@ end
 %% testBasic: names, default spankind and status, default resource
 function testBasic(testCase)
 
+tracername = "foo";
+spanname = "bar";
+
 tp = opentelemetry.sdk.trace.TracerProvider();
-tr = getTracer(tp, "foo");
-sp = startSpan(tr, "bar");
+tr = getTracer(tp, tracername);
+sp = startSpan(tr, spanname);
 pause(1);
 endSpan(sp);
+
+% verify object properties
+verifyEqual(testCase, tr.Name, tracername);
+verifyEqual(testCase, tr.Version, "");
+verifyEqual(testCase, tr.Schema, "");
+verifyEqual(testCase, sp.Name, spanname);
 
 % perform test comparisons
 results = gatherjson(testCase);
 results = results{1};
 
 % check span and tracer names
-verifyEqual(testCase, results.resourceSpans.scopeSpans.spans.name, 'bar');
-verifyEqual(testCase, results.resourceSpans.scopeSpans.scope.name, 'foo');
+verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
+verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
 
 % check spankind and status
 verifyEqual(testCase, results.resourceSpans.scopeSpans.spans.kind, 1);   % internal
@@ -185,6 +194,24 @@ verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.name, 'server');
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.kind, 2);   % server has a enum id of 2
 verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.name, 'consumer');
 verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.kind, 5);   % consumer has a enum id of 5
+end
+
+%% testSpanName: changing Span Name
+function testSpanName(testCase)
+oldname = "helloworld";
+newname = "hello World!";
+
+tp = opentelemetry.sdk.trace.TracerProvider();
+tr = getTracer(tp, "tracer");
+sp = startSpan(tr, oldname);
+verifyEqual(testCase, sp.Name, oldname);
+sp.Name = newname;
+verifyEqual(testCase, sp.Name, newname);
+endSpan(sp);
+
+% perform test comparisons
+results = gatherjson(testCase);
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), newname);
 end
 
 %% testAttributes: specifying attributes when starting spans

@@ -1,4 +1,4 @@
-classdef TracerProvider
+classdef TracerProvider < handle
     % A tracer provider stores a set of configurations used in a distributed
     % tracing system.
 
@@ -24,10 +24,13 @@ classdef TracerProvider
                 trversion (1,:) {mustBeTextScalar} = ""
                 trschema (1,:) {mustBeTextScalar} = ""
             end
-            id = obj.Proxy.getTracer(string(trname), string(trversion), string(trschema));
+            trname = string(trname);
+            trversion = string(trversion);
+            trschema = string(trschema);
+            id = obj.Proxy.getTracer(trname, trversion, trschema);
             tracerproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.TracerProxy", "ID", id);
-            tracer = opentelemetry.trace.Tracer(tracerproxy);
+            tracer = opentelemetry.trace.Tracer(tracerproxy, trname, trversion, trschema);
         end
         
         function setTracerProvider(obj)

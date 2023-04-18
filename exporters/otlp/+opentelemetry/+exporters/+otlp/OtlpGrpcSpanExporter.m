@@ -7,9 +7,9 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
 
     properties (SetAccess=immutable)
         Endpoint (1,1) string
-        UseSSLCredentials (1,1) logical
-        CACertificatePath (1,1) string
-        CACertificateString (1,1) string
+        UseCredentials  (1,1) logical
+        CertificatePath (1,1) string
+        CertificateString (1,1) string
         Timeout (1,1) duration
         HttpHeaders (1,1) dictionary
     end
@@ -21,8 +21,8 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
                 optionvalues
             end
 
-            validnames = ["Endpoint", "UseSSLCredentials", "CACertificatePath", ...
-                "CACertificateString", "Timeout", "HttpHeaders"];
+            validnames = ["Endpoint", "UseCredentials ", "CertificatePath", ...
+                "CertificateString", "Timeout", "HttpHeaders"];
             % set default values to empty or negative
             endpoint = "";
             usessl = false;
@@ -39,19 +39,19 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
                         error("Endpoint must be a scalar string.");
                     end
                     endpoint = string(valuei);
-                elseif strcmp(namei, "UseSSLCredentials")
+                elseif strcmp(namei, "UseCredentials ")
                     if ~((islogical(valuei) || isnumeric(valuei)) && isscalar(valuei))
-                        error("UseSSLCredentials must be a scalar logical.")
+                        error("UseCredentials  must be a scalar logical.")
                     end
                     usessl = logical(valuei);
-                elseif strcmp(namei, "CACertificatePath")
+                elseif strcmp(namei, "CertificatePath")
                     if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("CACertificatePath must be a scalar string.");
+                        error("CertificatePath must be a scalar string.");
                     end
                     certificatepath = string(valuei);
-                elseif strcmp(namei, "CACertificateString")
+                elseif strcmp(namei, "CertificateString")
                     if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("CACertificateString must be a scalar string.");
+                        error("CertificateString must be a scalar string.");
                     end
                     certificatestring = string(valuei);
                 elseif  strcmp(namei, "Timeout") 
@@ -86,16 +86,16 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
             else
                 obj.Endpoint = endpoint;
             end            
-            obj.UseSSLCredentials = usessl;
+            obj.UseCredentials  = usessl;
             if certificatepath == ""  % not specified, use default value
-                obj.CACertificatePath = defaultcertpath;
+                obj.CertificatePath = defaultcertpath;
             else
-                obj.CACertificatePath = certificatepath;
+                obj.CertificatePath = certificatepath;
             end
             if certificatestring == ""  % not specified, use default value
-                obj.CACertificateString = defaultcertstring;
+                obj.CertificateString = defaultcertstring;
             else
-                obj.CACertificateString = certificatestring;
+                obj.CertificateString = certificatestring;
             end
             if timeout_millis < 0  % not specified, use default value
                 obj.Timeout = milliseconds(defaultmillis);
