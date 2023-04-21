@@ -10,6 +10,10 @@
 
 namespace libmexclass::opentelemetry {
 void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
+    size_t ninputs = context.inputs.getNumberOfElements();
+    const size_t nfixedinputs = 5;
+    assert(ninputs >= nfixedinputs && (ninputs - nfixedinputs) % 3 == 0);  // each link uses 3 inputs
+						     
     matlab::data::StringArray name_mda = context.inputs[0];
     std::string name = static_cast<std::string>(name_mda[0]);
     matlab::data::TypedArray<uint64_t> parentid_mda = context.inputs[1];
@@ -58,7 +62,31 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
        processAttribute(attrname, attrvalue, attrs, stringattrs, stringviews, attrdims_double);
     }
 
-    auto sp = CppTracer->StartSpan(name, attrs, options);
+    // links
+    std::list<std::pair<trace_api::SpanContext, std::list<std::pair<std::string, common::AttributeValue> > > > links;
+    for (size_t i = nfixedinputs; i < ninputs; i+=3) {
+       // link target
+       matlab::data::TypedArray<uint64_t> linktargetid_mda = context.inputs[i];
+       libmexclass::proxy::ID linktargetid = linktargetid_mda[0];
+       std::shared_ptr<SpanContextProxy> linktarget = std::static_pointer_cast<SpanContextProxy>(
+		       libmexclass::proxy::ProxyManager::getProxy(linktargetid));
+
+       // link attributes
+       std::list<std::pair<std::string, common::AttributeValue> > linkattrs;
+       matlab::data::StringArray linkattrnames_mda = context.inputs[i+1];
+       matlab::data::Array linkattrnames_base_mda = context.inputs[i+1];
+       size_t nlinkattrs = linkattrnames_base_mda.getNumberOfElements();
+       matlab::data::Array linkattrvalues_mda = context.inputs[i+2];
+       for (size_t ii = 0; ii < nlinkattrs; ++ii) {
+          std::string linkattrname = static_cast<std::string>(linkattrnames_mda[ii]);
+          matlab::data::Array linkattrvalue = linkattrvalues_mda[ii];
+  
+          processAttribute(linkattrname, linkattrvalue, linkattrs, stringattrs, stringviews, attrdims_double);
+       }
+       links.push_back(std::pair(linktarget->getInstance(), linkattrs));
+    }
+
+    auto sp = CppTracer->StartSpan(name, attrs, links, options);
 
     // instantiate a SpanProxy instance
     SpanProxy* newproxy = new SpanProxy(libmexclass::proxy::FunctionArguments());

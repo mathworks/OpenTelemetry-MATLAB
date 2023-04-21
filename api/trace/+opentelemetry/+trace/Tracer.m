@@ -33,12 +33,13 @@ classdef Tracer < handle
                 trailingvalues
             end
             % validate the trailing names and values
-            optionnames = ["Context", "SpanKind", "Attributes"];
+            optionnames = ["Context", "SpanKind", "Attributes", "Links"];
             % define default values
             contextid = intmax("uint64");   % default value which means no context supplied
             spankind = "internal";
             attributekeys = string.empty();
             attributevalues = {};
+            links = {};
             % Loop through Name-Value pairs
             for i = 1:length(trailingnames)
                 namei = validatestring(trailingnames{i}, optionnames);
@@ -63,11 +64,32 @@ classdef Tracer < handle
                     if all(cellfun(@iscell, attributevalues))
                         attributevalues = [attributevalues{:}];
                     end
+                elseif strcmp(namei, "Links")
+                    valuei = trailingvalues{i};
+                    if ~isa(valuei, "opentelemetry.trace.Link")
+                        error("Links input must be a scalar or an array of Link objects.");
+                    end
+                    nlinks = numel(valuei);
+                    links = cell(3,nlinks);
+                    for li = 1:nlinks
+                        links{1,li} = valuei(li).Target.Proxy.ID;
+                        linkattrs = valuei(li).Attributes;
+                        linkattrkeys = keys(linkattrs);
+                        linkattrvalues = values(linkattrs,"cell");
+                        % collapse one level of cells, as this may be due to
+                        % a behavior of dictionary.values
+                        if ~isempty(linkattrvalues) && all(cellfun(@iscell, linkattrvalues))
+                            linkattrvalues = [linkattrvalues{:}];
+                        end
+                        links{2,li} = linkattrkeys;
+                        links{3,li} = linkattrvalues;
+                    end
+                    links = reshape(links,1,[]);  % flatten into a row vector
                 end
             end
             spname = string(spname);
             id = obj.Proxy.startSpan(spname, contextid, spankind, ...
-                attributekeys, attributevalues);
+                attributekeys, attributevalues, links{:});
             spanproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.SpanProxy", "ID", id);
     	    span = opentelemetry.trace.Span(spanproxy, spname);

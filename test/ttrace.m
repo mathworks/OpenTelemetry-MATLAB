@@ -463,3 +463,58 @@ verifyEqual(testCase, [results{1}.resourceSpans.scopeSpans.spans.events(2).attri
     size(attributes{"stringarray"}));
 
 end
+
+%% testLinks: specifying links between spans
+function testLinks(testCase)
+
+tp = opentelemetry.sdk.trace.TracerProvider();
+tr = getTracer(tp, "foo");
+sp1 = startSpan(tr, "bar");
+ctxt1 = getContext(sp1);
+% one link, no attributes
+l1 = opentelemetry.trace.Link(ctxt1);
+sp2 = startSpan(tr, "quux", "Links", l1);
+
+endSpan(sp2);
+
+% two links, with attributes in one link
+sp3 = startSpan(tr, "baz");
+ctxt3 = getContext(sp3);
+l2attributes = {"StringScalar", "abcde", "DoubleArray", magic(3)};
+l2 = opentelemetry.trace.Link(ctxt1, l2attributes{:});
+l3 = opentelemetry.trace.Link(ctxt3);
+sp4 = startSpan(tr, "quz", "Links", [l2 l3]);
+
+endSpan(sp4);
+
+results = gatherjson(testCase);
+
+% one link, no attributes
+verifyLength(testCase, results{1}.resourceSpans.scopeSpans.spans.links, 1);  % only 1 link
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.links.traceId), ctxt1.TraceId);
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.links.spanId), ctxt1.SpanId);
+
+% two links, with attributes
+% first link
+verifyLength(testCase, results{2}.resourceSpans.scopeSpans.spans.links, 2);  % 2 links
+verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{1}.traceId), ctxt1.TraceId);
+verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{1}.spanId), ctxt1.SpanId);
+
+linkattrkeys = string({results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes.key});
+stringscidx = find(linkattrkeys == "StringScalar");
+verifyNotEmpty(testCase, stringscidx); 
+verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes(stringscidx).value.stringValue), ...
+    l2attributes{2});
+doublearidx = find(linkattrkeys == "DoubleArray");
+verifyNotEmpty(testCase, doublearidx); 
+verifyEqual(testCase, [results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes(doublearidx).value.arrayValue.values.doubleValue], ...
+    reshape(l2attributes{4},1,[]));
+doubleszidx = find(linkattrkeys == "DoubleArray.size");
+verifyNotEmpty(testCase, doubleszidx); 
+verifyEqual(testCase, [results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
+    size(l2attributes{4}));
+
+% second link
+verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{2}.traceId), ctxt3.TraceId);
+verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{2}.spanId), ctxt3.SpanId);
+end
