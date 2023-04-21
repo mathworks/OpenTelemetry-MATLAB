@@ -1,4 +1,4 @@
-classdef SpanProcessor
+classdef SpanProcessor < matlab.mixin.Heterogeneous
 % Base class of span processors
 
 % Copyright 2023 The MathWorks, Inc.

@@ -8,6 +8,7 @@
 #include "libmexclass/proxy/ProxyManager.h"
 
 #include "opentelemetry/sdk/trace/tracer_provider_factory.h"
+#include "opentelemetry/sdk/trace/tracer_provider.h"
 #include "opentelemetry/sdk/resource/resource.h"
 #include "opentelemetry/trace/tracer_provider.h"
 #include "opentelemetry/common/key_value_iterable_view.h"
@@ -53,6 +54,18 @@ TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArgum
     CppTracerProvider = nostd::shared_ptr<trace_api::TracerProvider>(
 		    std::move(trace_sdk::TracerProviderFactory::Create(std::move(processor), resource_merged,
 		    std::move(sampler))));
+
+    // register methods
+    REGISTER_METHOD(TracerProviderProxy, addSpanProcessor);
+}
+
+void TracerProviderProxy::addSpanProcessor(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<uint64_t> processorid_mda = context.inputs[0];
+    libmexclass::proxy::ID processorid = processorid_mda[0];
+
+    static_cast<trace_sdk::TracerProvider&>(*CppTracerProvider).AddProcessor(
+		    std::static_pointer_cast<SpanProcessorProxy>(
+			    libmexclass::proxy::ProxyManager::getProxy(processorid))->getInstance());
 }
 
 } // namespace libmexclass::opentelemetry

@@ -11,5 +11,7 @@ namespace libmexclass::opentelemetry::sdk {
 class TracerProviderProxy : public libmexclass::opentelemetry::TracerProviderProxy {
   public:
     TracerProviderProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
+
+    void addSpanProcessor(libmexclass::proxy::method::Context& context);
 };
 } // namespace libmexclass::opentelemetry

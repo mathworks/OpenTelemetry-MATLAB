@@ -66,6 +66,15 @@ classdef TracerProvider < handle
             obj.Resource = resource;
         end
         
+        function addSpanProcessor(obj, processor)
+            arguments
+                obj
+                processor (1,1) {mustBeA(processor, "opentelemetry.sdk.trace.SpanProcessor")}
+            end
+            obj.Proxy.addSpanProcessor(processor.Proxy.ID);
+            obj.SpanProcessor(end+1) = processor;  % append
+        end
+
         function tracer = getTracer(obj, trname, trversion, trschema)
     	    arguments
      	       obj
