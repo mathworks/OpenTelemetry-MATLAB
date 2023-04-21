@@ -33,10 +33,11 @@ classdef Tracer < handle
                 trailingvalues
             end
             % validate the trailing names and values
-            optionnames = ["Context", "SpanKind", "Attributes", "Links"];
+            optionnames = ["Context", "SpanKind", "StartTime", "Attributes", "Links"];
             % define default values
             contextid = intmax("uint64");   % default value which means no context supplied
             spankind = "internal";
+            starttime = NaN;
             attributekeys = string.empty();
             attributevalues = {};
             links = {};
@@ -52,6 +53,12 @@ classdef Tracer < handle
                 elseif strcmp(namei, "SpanKind")
                     spankind = validatestring(trailingvalues{i}, ...
                         ["internal", "server", "client", "producer", "consumer"]);
+                elseif strcmp(namei, "StartTime")
+                    valuei = trailingvalues{i};
+                    if ~(isdatetime(valuei) && isscalar(valuei) && ~isnat(valuei))
+                        error("StartTime must be a scalar datetime that is not NaT.");
+                    end
+                    starttime = posixtime(valuei);
                 elseif strcmp(namei, "Attributes")
                     valuei = trailingvalues{i};
                     if ~isa(valuei, "dictionary")
@@ -88,7 +95,7 @@ classdef Tracer < handle
                 end
             end
             spname = string(spname);
-            id = obj.Proxy.startSpan(spname, contextid, spankind, ...
+            id = obj.Proxy.startSpan(spname, contextid, spankind, starttime, ...
                 attributekeys, attributevalues, links{:});
             spanproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.SpanProxy", "ID", id);

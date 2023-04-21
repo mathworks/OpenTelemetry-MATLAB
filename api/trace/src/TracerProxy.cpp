@@ -8,10 +8,12 @@
 
 #include "MatlabDataArray.hpp"
 
+#include <chrono>
+
 namespace libmexclass::opentelemetry {
 void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     size_t ninputs = context.inputs.getNumberOfElements();
-    const size_t nfixedinputs = 5;
+    const size_t nfixedinputs = 6;
     assert(ninputs >= nfixedinputs && (ninputs - nfixedinputs) % 3 == 0);  // each link uses 3 inputs
 						     
     matlab::data::StringArray name_mda = context.inputs[0];
@@ -21,10 +23,12 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     libmexclass::proxy::ID noparentid(-1);   // wrap around to intmax
     matlab::data::StringArray kind_mda = context.inputs[2];
     std::string kindstr = static_cast<std::string>(kind_mda[0]);
-    matlab::data::StringArray attrnames_mda = context.inputs[3];
-    matlab::data::Array attrnames_base_mda = context.inputs[3];
+    matlab::data::TypedArray<double> starttime_mda = context.inputs[3];
+    double starttime = starttime_mda[0];    // number of seconds since 1/1/1970 (i.e. POSIX time)
+    matlab::data::StringArray attrnames_mda = context.inputs[4];
+    matlab::data::Array attrnames_base_mda = context.inputs[4];
     size_t nattrs = attrnames_base_mda.getNumberOfElements();
-    matlab::data::CellArray attrvalues_mda = context.inputs[4];
+    matlab::data::CellArray attrvalues_mda = context.inputs[5];
     
     trace_api::StartSpanOptions options;
 
@@ -49,6 +53,13 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
        kind = trace_api::SpanKind::kConsumer;
     } 
     options.kind = kind;
+
+    // starttime
+    if (~isnan(starttime)) {  // NaN means not specified
+       options.start_system_time = common::SystemTimestamp{std::chrono::duration<double>(starttime)};
+       options.start_steady_time = common::SteadyTimestamp{std::chrono::system_clock::time_point(options.start_system_time) 
+	       - std::chrono::system_clock::now() + std::chrono::steady_clock::now()};
+    }
 
     // attributes
     std::list<std::pair<std::string, common::AttributeValue> > attrs;

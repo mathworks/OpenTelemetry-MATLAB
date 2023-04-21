@@ -29,8 +29,16 @@ classdef Span < handle
             obj.Name = spname;
         end
 
-        function endSpan(obj)
-            obj.Proxy.endSpan();
+        function endSpan(obj, endtime)
+            if nargin < 2
+                endposixtime = NaN;
+            else
+                if ~(isdatetime(endtime) && isscalar(endtime) && ~isnat(endtime))
+                    error("End time must be a scalar datetime that is not NaT.");
+                end
+                endposixtime = posixtime(endtime);
+            end
+            obj.Proxy.endSpan(endposixtime);
         end
 
         function scope = makeCurrent(obj)

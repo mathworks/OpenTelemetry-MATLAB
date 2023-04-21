@@ -214,6 +214,26 @@ results = gatherjson(testCase);
 verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), newname);
 end
 
+%% testTime: specifying start and end times
+function testTime(testCase)
+tp = opentelemetry.sdk.trace.TracerProvider();
+tr = getTracer(tp, "tracer");
+starttime = datetime(2000,1,1,10,0,0);
+endtime = datetime(2001, 8, 31, 7, 30, 0);
+sp = startSpan(tr, "foo", "StartTime", starttime);
+endSpan(sp, endtime);
+
+% perform test comparisons
+results = gatherjson(testCase);
+verifyEqual(testCase, datetime(double(string(...
+    results{1}.resourceSpans.scopeSpans.spans.startTimeUnixNano))/1e9, ...
+    "convertFrom", "posixtime"), starttime);  % convert from nanoseconds to seconds
+% for end time, use a tolerance
+verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+    results{1}.resourceSpans.scopeSpans.spans.endTimeUnixNano))/1e9, ...
+    "convertFrom", "posixtime") - endtime), seconds(2));
+end
+
 %% testAttributes: specifying attributes when starting spans
 function testAttributes(testCase)
 

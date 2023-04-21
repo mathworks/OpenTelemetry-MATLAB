@@ -18,15 +18,18 @@ namespace common = opentelemetry::common;
 
 namespace libmexclass::opentelemetry {
 void SpanProxy::endSpan(libmexclass::proxy::method::Context& context) {
-    // TODO One input case uses steady_time which has an epoch that is not fixed
-    /*
     matlab::data::TypedArray<double> endtime_mda = context.inputs[0];
-    common::SteadyTimestamp endtime{std::chrono::duration<double>{endtime_mda[0]}};
-    trace_api::EndSpanOptions options;
-    options.end_steady_time = endtime;
-    CppSpan->End(options);
-    */
-    CppSpan->End();
+    double endtime = endtime_mda[0];    // number of seconds since 1/1/1970 (i.e. POSIX time)
+    if (~isnan(endtime)) {  // NaN means not specified
+       trace_api::EndSpanOptions options;
+       // conversion between system_time and steady_time
+       common::SystemTimestamp end_system_time{std::chrono::duration<double>(endtime)};
+       options.end_steady_time = common::SteadyTimestamp{std::chrono::system_clock::time_point(end_system_time) 
+	       - std::chrono::system_clock::now() + std::chrono::steady_clock::now()};
+       CppSpan->End(options);
+    } else {
+       CppSpan->End();
+    }
 }
 
 void SpanProxy::makeCurrent(libmexclass::proxy::method::Context& context) {
