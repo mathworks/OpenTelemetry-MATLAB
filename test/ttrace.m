@@ -96,7 +96,7 @@ fclose(fid);
 jsonresults = cellfun(@jsondecode,str,"UniformOutput",false);
 end
 
-%% testBasic: names, default spankind and status, default resource
+%% testBasic: names, default spankind and status, default resource, start and end times
 function testBasic(testCase)
 
 tracername = "foo";
@@ -105,8 +105,10 @@ spanname = "bar";
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, tracername);
 sp = startSpan(tr, spanname);
+starttime = datetime("now", "TimeZone", "UTC");
 pause(1);
 endSpan(sp);
+endtime = datetime("now", "TimeZone", "UTC");
 
 % verify object properties
 verifyEqual(testCase, tr.Name, tracername);
@@ -126,6 +128,16 @@ verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), trace
 verifyEqual(testCase, results.resourceSpans.scopeSpans.spans.kind, 1);   % internal
 verifyEmpty(testCase, fieldnames(results.resourceSpans.scopeSpans.spans.status));   % status unset
 
+% check start and end times
+% use a tolerance when testing times
+tol = seconds(2);
+verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+    results.resourceSpans.scopeSpans.spans.startTimeUnixNano))/1e9, ...
+    "convertFrom", "posixtime", "TimeZone", "UTC") - starttime), tol);
+verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+    results.resourceSpans.scopeSpans.spans.endTimeUnixNano))/1e9, ...
+    "convertFrom", "posixtime", "TimeZone", "UTC") - endtime), tol);
+
 % check resource
 resourcekeys = string({results.resourceSpans.resource.attributes.key});
 languageidx = find(resourcekeys == "telemetry.sdk.language");
@@ -143,6 +155,37 @@ verifyEqual(testCase, results.resourceSpans.resource.attributes(nameidx).value.s
 serviceidx = find(resourcekeys == "service.name");
 verifyNotEmpty(testCase, serviceidx);
 verifyEqual(testCase, results.resourceSpans.resource.attributes(serviceidx).value.stringValue, 'unknown_service');
+end
+
+%% testGetSetTracerProvider: setting and getting global instance of TracerProvider
+function testGetSetTracerProvider(testCase)
+customkey = "quux";
+customvalue = 1;
+tp = opentelemetry.sdk.trace.TracerProvider(opentelemetry.sdk.trace.SimpleSpanProcessor, ...
+    "Resource", dictionary(customkey, customvalue));  % specify an arbitrary resource as an identifier
+setTracerProvider(tp);
+clear("tp");
+
+tracername = "foo";
+spanname = "bar";
+tr = opentelemetry.trace.getTracer(tracername);
+sp = startSpan(tr, spanname);
+endSpan(sp);
+
+% perform test comparisons
+results = gatherjson(testCase);
+
+% check a span has been created, and check its resource to identify the
+% correct TracerProvider has been used
+verifyNotEmpty(testCase, results);
+
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername);
+
+resourcekeys = string({results{1}.resourceSpans.resource.attributes.key});
+idx = find(resourcekeys == customkey);
+verifyNotEmpty(testCase, idx);
+verifyEqual(testCase, results{1}.resourceSpans.resource.attributes(idx).value.doubleValue, customvalue);
 end
 
 %% testParent: parent and children relationship
@@ -212,6 +255,20 @@ endSpan(sp);
 % perform test comparisons
 results = gatherjson(testCase);
 verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), newname);
+end
+
+%% testSpanContext: getSpanContext
+function testSpanContext(testCase)
+tp = opentelemetry.sdk.trace.TracerProvider();
+tr = getTracer(tp, "foo");
+sp = startSpan(tr, "bar");
+ctxt = getContext(sp);
+endSpan(sp);
+
+% perform test comparisons
+results = gatherjson(testCase);
+verifyEqual(testCase, ctxt.TraceId, string(results{1}.resourceSpans.scopeSpans.spans.traceId));
+verifyEqual(testCase, ctxt.SpanId, string(results{1}.resourceSpans.scopeSpans.spans.spanId));
 end
 
 %% testTime: specifying start and end times

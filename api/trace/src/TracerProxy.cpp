@@ -55,7 +55,7 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     options.kind = kind;
 
     // starttime
-    if (~isnan(starttime)) {  // NaN means not specified
+    if (starttime == starttime) { // not NaN. NaN means not specified
        options.start_system_time = common::SystemTimestamp{std::chrono::duration<double>(starttime)};
        options.start_steady_time = common::SteadyTimestamp{std::chrono::system_clock::time_point(options.start_system_time) 
 	       - std::chrono::system_clock::now() + std::chrono::steady_clock::now()};

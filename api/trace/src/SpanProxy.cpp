@@ -20,7 +20,7 @@ namespace libmexclass::opentelemetry {
 void SpanProxy::endSpan(libmexclass::proxy::method::Context& context) {
     matlab::data::TypedArray<double> endtime_mda = context.inputs[0];
     double endtime = endtime_mda[0];    // number of seconds since 1/1/1970 (i.e. POSIX time)
-    if (~isnan(endtime)) {  // NaN means not specified
+    if (endtime==endtime) {  // not NaN. NaN means not specified
        trace_api::EndSpanOptions options;
        // conversion between system_time and steady_time
        common::SystemTimestamp end_system_time{std::chrono::duration<double>(endtime)};
