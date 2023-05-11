@@ -11,10 +11,19 @@ classdef Span < handle
         Proxy
     end
 
-    methods (Access=?opentelemetry.trace.Tracer)
+    methods (Access={?opentelemetry.trace.Tracer, ?opentelemetry.trace.Context})
         function obj = Span(proxy, spname)
-            obj.Proxy = proxy;
-            obj.Name = spname;
+            if isa(proxy, "opentelemetry.context.Context")
+                % called from opentelemetry.trace.Context.extractSpan
+                context = proxy;
+                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                    "libmexclass.opentelemetry.SpanProxy", ...
+                    "ConstructorArguments", {context.Proxy.ID});
+                obj.Name = "";   % unknown name when span is extracted from context, leave blank
+            else   % in is a proxy object
+                obj.Proxy = proxy;
+                obj.Name = spname;
+            end
         end
     end
 
