@@ -15,8 +15,10 @@ classdef TextMapCarrier
     methods 
         function obj = TextMapCarrier(in)
             if nargin < 1
-                obj.Proxy = strings(0,2);
-            elseif isa(in, "libmexclass.proxy.Proxy")
+                in = strings(0,2);
+            end
+            
+            if isa(in, "libmexclass.proxy.Proxy")
                 obj.Proxy = in;
             elseif isstring(in) && ismatrix(in) && size(in,2) == 2  % Nx2 headers 
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...

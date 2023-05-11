@@ -7,93 +7,15 @@ tests = functiontests(localfunctions);
 end
 
 function setupOnce(testCase)
-% file definitions
-otelcolroot = getenv("OPENTELEMETRY_COLLECTOR_INSTALL");
-testCase.TestData.otelconfigfile = "otelcol_config.yml";
-testCase.TestData.otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
-testCase.TestData.jsonfile = "myoutput.json";
-testCase.TestData.pidfile = "testoutput.txt";
-
-% process definitions
-testCase.TestData.otelcol = fullfile(otelcolroot, "otelcol");
-if ispc
-   testCase.TestData.list = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
-   testCase.TestData.readlist = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
-   testCase.TestData.extractPid = @(table)table.Var2;
-   windows_killroot = string(getenv("WINDOWS_KILL_INSTALL"));
-   testCase.TestData.sigint = @(id)fullfile(windows_killroot,"windows-kill") + " -SIGINT " + id;
-   testCase.TestData.sigterm = @(id)"taskkill /pid " + id;
-elseif isunix && ~ismac
-   testCase.TestData.list = @(name)"ps -C " + name;
-   testCase.TestData.readlist = @readtable;
-   testCase.TestData.extractPid = @(table)table.PID;
-   testCase.TestData.sigint = @(id)"kill " + id;  % kill sends a SIGTERM instead of SIGINT but turns out this is sufficient to terminate OTEL collector on Linux
-   testCase.TestData.sigterm = @(id)"kill " + id;
-end
-
-% set up path
-addpath(testCase.TestData.otelroot);
-
-% remove temporary files if present
-if exist(testCase.TestData.jsonfile, "file")
-    delete(testCase.TestData.jsonfile);
-end
-if exist(testCase.TestData.pidfile, "file")
-    delete(testCase.TestData.pidfile);
-end
+commonSetupOnce(testCase);
 end
 
 function setup(testCase)
-% start collector
-system(testCase.TestData.otelcol + " --config " + testCase.TestData.otelconfigfile + '&');
-pause(1);   % give a little time for Collector to start up
+commonSetup(testCase);
 end
 
 function teardown(testCase)
-% On Windows, a command prompt has popped up, remove it as clean up
-if ispc
-    system(testCase.TestData.list("cmd") + "  > " + testCase.TestData.pidfile);
-    tbl = testCase.TestData.readlist(testCase.TestData.pidfile);
-    pid = tbl.Var2(end-1);
-    system(testCase.TestData.sigterm(pid));
-end
-
-delete(testCase.TestData.jsonfile);
-delete(testCase.TestData.pidfile);
-end
-
-function jsonresults = gatherjson(testCase)
-
-system(testCase.TestData.list("otelcol") + " > " + testCase.TestData.pidfile);
-
-tbl = testCase.TestData.readlist(testCase.TestData.pidfile);
-pid = testCase.TestData.extractPid(tbl);
-system(testCase.TestData.sigint(pid));
-
-% check if kill succeeded as it can sporadically fail
-system(testCase.TestData.list("otelcol") + " > " + testCase.TestData.pidfile);
-tbl = testCase.TestData.readlist(testCase.TestData.pidfile);
-pid = testCase.TestData.extractPid(tbl);
-retry = 0;
-% sometimes kill will fail with a RuntimeError: windows-kill-library: ctrl-routine:findAddress:checkAddressIsNotNull 
-% in that case, retry up to 3 times
-while ~isempty(pid) && retry < 3
-    system(testCase.TestData.sigint(pid));
-    tbl = testCase.TestData.readlist(testCase.TestData.pidfile);
-    pid = testCase.TestData.extractPid(tbl);
-    retry = retry + 1;
-end
-
-pause(1);
-assert(exist(testCase.TestData.jsonfile, "file"));
-
-fid = fopen(testCase.TestData.jsonfile);
-raw = fread(fid, inf);
-str = cellstr(strsplit(char(raw'),'\n'));
-% discard the last cell, which is empty
-str(end) = [];
-fclose(fid);
-jsonresults = cellfun(@jsondecode,str,"UniformOutput",false);
+commonTeardown(testCase);
 end
 
 %% testBasic: names, default spankind and status, default resource, start and end times
@@ -117,7 +39,7 @@ verifyEqual(testCase, tr.Schema, "");
 verifyEqual(testCase, sp.Name, spanname);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 results = results{1};
 
 % check span and tracer names
@@ -173,7 +95,7 @@ sp = startSpan(tr, spanname);
 endSpan(sp);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 
 % check a span has been created, and check its resource to identify the
 % correct TracerProvider has been used
@@ -203,7 +125,7 @@ clear("sp2");
 clear("sp");
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 
 % check span and tracer names
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.name, 'with parent');
@@ -232,7 +154,7 @@ sp2 = startSpan(tr, "consumer", "SpanKind", "consumer");
 endSpan(sp2);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.name, 'server');
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.kind, 2);   % server has a enum id of 2
 verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.name, 'consumer');
@@ -253,7 +175,7 @@ verifyEqual(testCase, sp.Name, newname);
 endSpan(sp);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), newname);
 end
 
@@ -266,7 +188,7 @@ ctxt = getContext(sp);
 endSpan(sp);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 verifyEqual(testCase, ctxt.TraceId, string(results{1}.resourceSpans.scopeSpans.spans.traceId));
 verifyEqual(testCase, ctxt.SpanId, string(results{1}.resourceSpans.scopeSpans.spans.spanId));
 end
@@ -281,7 +203,7 @@ sp = startSpan(tr, "foo", "StartTime", starttime);
 endSpan(sp, endtime);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 verifyEqual(testCase, datetime(double(string(...
     results{1}.resourceSpans.scopeSpans.spans.startTimeUnixNano))/1e9, ...
     "convertFrom", "posixtime"), starttime);  % convert from nanoseconds to seconds
@@ -305,7 +227,7 @@ sp1 = startSpan(tr, "span", "Attributes", attributes);
 endSpan(sp1);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 
 attrkeys = string({results{1}.resourceSpans.scopeSpans.spans.attributes.key});
 
@@ -415,7 +337,7 @@ setAttributes(sp, attributes);
 endSpan(sp);
 
 % perform test comparisons
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 
 attrkeys = string({results{1}.resourceSpans.scopeSpans.spans.attributes.key});
 nvattributesstruct = struct(nvattributes{:});
@@ -481,7 +403,7 @@ attributes = dictionary(["doublearray", "int64scalar", "stringarray"], ...
 addEvent(sp, "quux", attributes);
 endSpan(sp);
 
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 nvattributesstruct = struct(nvattributes{:});
 
 % event 1
@@ -564,7 +486,7 @@ sp4 = startSpan(tr, "quz", "Links", [l2 l3]);
 
 endSpan(sp4);
 
-results = gatherjson(testCase);
+results = readJsonResults(testCase);
 
 % one link, no attributes
 verifyLength(testCase, results{1}.resourceSpans.scopeSpans.spans.links, 1);  % only 1 link
