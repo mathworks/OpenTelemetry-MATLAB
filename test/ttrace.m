@@ -191,6 +191,8 @@ endSpan(sp);
 results = readJsonResults(testCase);
 verifyEqual(testCase, ctxt.TraceId, string(results{1}.resourceSpans.scopeSpans.spans.traceId));
 verifyEqual(testCase, ctxt.SpanId, string(results{1}.resourceSpans.scopeSpans.spans.spanId));
+verifyEqual(testCase, ctxt.TraceState, "");
+verifyEqual(testCase, ctxt.TraceFlags, "01");   % sampled flag should be on
 end
 
 %% testTime: specifying start and end times

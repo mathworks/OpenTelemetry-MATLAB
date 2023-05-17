@@ -17,6 +17,8 @@ class SpanContextProxy : public libmexclass::proxy::Proxy {
     {
         REGISTER_METHOD(SpanContextProxy, getTraceId);
         REGISTER_METHOD(SpanContextProxy, getSpanId);
+        REGISTER_METHOD(SpanContextProxy, getTraceState);
+        REGISTER_METHOD(SpanContextProxy, getTraceFlags);
         REGISTER_METHOD(SpanContextProxy, isSampled);
         REGISTER_METHOD(SpanContextProxy, isValid);
         REGISTER_METHOD(SpanContextProxy, isRemote);
@@ -34,6 +36,10 @@ class SpanContextProxy : public libmexclass::proxy::Proxy {
     void getTraceId(libmexclass::proxy::method::Context& context);
 
     void getSpanId(libmexclass::proxy::method::Context& context);
+
+    void getTraceState(libmexclass::proxy::method::Context& context);
+
+    void getTraceFlags(libmexclass::proxy::method::Context& context);
 
     void isSampled(libmexclass::proxy::method::Context& context);
 

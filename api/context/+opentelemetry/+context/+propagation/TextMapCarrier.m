@@ -20,10 +20,10 @@ classdef TextMapCarrier
             
             if isa(in, "libmexclass.proxy.Proxy")
                 obj.Proxy = in;
-            elseif isstring(in) && ismatrix(in) && size(in,2) == 2  % Nx2 headers 
+            elseif (isstring(in) || iscellstr(in)) && ismatrix(in) && size(in,2) == 2  % Nx2 headers 
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.TextMapCarrierProxy", ...
-                    "ConstructorArguments", {in});
+                    "ConstructorArguments", {string(in)});
             else
                 error("Input must be an M-by-2 string array.")
             end

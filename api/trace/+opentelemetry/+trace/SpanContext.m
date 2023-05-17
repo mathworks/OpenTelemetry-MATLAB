@@ -6,6 +6,8 @@ classdef SpanContext < handle
     properties (Dependent, SetAccess=private)
         TraceId (1,1) string
         SpanId (1,1)  string
+        TraceState (1,1) string
+        TraceFlags (1,1) string
     end
 
     properties (Access=?opentelemetry.trace.Tracer)
@@ -25,6 +27,14 @@ classdef SpanContext < handle
 
         function spanid = get.SpanId(obj)
             spanid = obj.Proxy.getSpanId();
+        end
+
+        function tracestate = get.TraceState(obj)
+            tracestate = obj.Proxy.getTraceState();
+        end
+
+        function traceflags = get.TraceFlags(obj)
+            traceflags = obj.Proxy.getTraceFlags();
         end
 
         function tf = isSampled(obj)

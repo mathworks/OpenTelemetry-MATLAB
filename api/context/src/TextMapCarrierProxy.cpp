@@ -28,8 +28,8 @@ void TextMapCarrierProxy::getHeaders(libmexclass::proxy::method::Context& contex
     // Populate output
     size_t i = 0;
     for (const auto& [key, value] : CppCarrier.Headers) {
-      headers_mda[i,0] = key;
-      headers_mda[i++,1] = value;
+      headers_mda[i][0] = key;
+      headers_mda[i++][1] = value;
     }
 
     context.outputs[0] = headers_mda;

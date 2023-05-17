@@ -12,8 +12,9 @@ commonSetupOnce(testCase);
 % simulate an HTTP header with relevant fields, used for extraction 
 testCase.TestData.traceId = "0af7651916cd43dd8448eb211c80319c";
 testCase.TestData.spanId = "00f067aa0ba902b7";
+testCase.TestData.traceState = "foo=00f067aa0ba902b7";
 testCase.TestData.headers = ["traceparent", "00-" + testCase.TestData.traceId + ...
-    "-" + testCase.TestData.spanId + "-01"; "tracestate", "foo=00f067aa0ba902b7"];
+    "-" + testCase.TestData.spanId + "-01"; "tracestate", testCase.TestData.traceState];
 end
 
 function setup(testCase)
@@ -46,6 +47,9 @@ verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ..
     testCase.TestData.traceId);
 verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
     testCase.TestData.spanId);
+% check trace state in span context
+spancontext = getContext(sp);
+verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
 end
 
 %% testExplicitContext: extracting context from HTTP header, and then extracting span context
@@ -76,6 +80,9 @@ verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ..
     testCase.TestData.traceId);
 verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
     testCase.TestData.spanId);
+% check trace state in span context
+spancontext = getContext(sp);
+verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
 end
 
 %% testInject: injecting context into carrier
@@ -127,9 +134,10 @@ newcontext = p.extract(carrier, context);
 span = opentelemetry.trace.Context.extractSpan(newcontext);
 spancontext = getContext(span);
 
-% verify the extracted trace and span ID match the headers
+% verify the extracted trace and span ID and trace state match the headers
 verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
 verifyEqual(testCase, spancontext.SpanId, testCase.TestData.spanId);
+verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
 end
 
 %% testExtractContext: extractContext convenience function
@@ -145,9 +153,10 @@ context = opentelemetry.context.propagation.extractContext(carrier);
 span = opentelemetry.trace.Context.extractSpan(context);
 spancontext = getContext(span);
 
-% verify extracted trace and span IDs
+% verify extracted trace and span IDs and trace state
 verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
 verifyEqual(testCase, spancontext.SpanId, testCase.TestData.spanId);
+verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
 end
 
 %% testInjectContext: injectContext convenience function

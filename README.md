@@ -27,7 +27,7 @@ Before proceeding, ensure that the below products are installed:
 cd \<opentelemetry-cpp-root>\
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP=TRUE -DWITH_OTLP_HTTP=TRUE -DWITH_OTLP_GRPC=TRUE -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=\<vcpkg_toolchain_file>\
 cmake --build build --config Release --target ALL_BUILD
-cmake --install . --prefix \<opentelemetry-cpp-installdir>\
+cmake --install build --prefix \<opentelemetry-cpp-installdir>\
 ```
 2. Download vcpkg. Install the following packages:
 - abseil
