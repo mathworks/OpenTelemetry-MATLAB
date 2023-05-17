@@ -4,6 +4,7 @@
 #include "opentelemetry-matlab/trace/SpanProxy.h"
 #include "opentelemetry-matlab/trace/SpanContextProxy.h"
 #include "opentelemetry-matlab/trace/attribute.h"
+#include "opentelemetry-matlab/context/ContextProxy.h"
 #include "libmexclass/proxy/ProxyManager.h"
 
 #include "MatlabDataArray.hpp"
@@ -35,7 +36,7 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     // populate the parent field if supplied
     // parent
     if (parentid != noparentid) {
-       options.parent = std::static_pointer_cast<SpanContextProxy>(
+       options.parent = std::static_pointer_cast<ContextProxy>(
 		       libmexclass::proxy::ProxyManager::getProxy(parentid))->getInstance();
     }
     // kind

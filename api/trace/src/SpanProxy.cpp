@@ -39,6 +39,7 @@ SpanProxy::SpanProxy(const libmexclass::proxy::FunctionArguments& constructor_ar
     REGISTER_METHOD(SpanProxy, setStatus);
     REGISTER_METHOD(SpanProxy, getContext);
     REGISTER_METHOD(SpanProxy, isRecording);
+    REGISTER_METHOD(SpanProxy, insertSpan);
 }
 
 void SpanProxy::endSpan(libmexclass::proxy::method::Context& context) {
@@ -140,7 +141,7 @@ void SpanProxy::setStatus(libmexclass::proxy::method::Context& context) {
 void SpanProxy::getContext(libmexclass::proxy::method::Context& context) {
     trace_api::SpanContext sc = CppSpan->GetContext();
 
-    // instantiate a ScopeProxy instance
+    // instantiate a SpanContextProxy instance
     auto scproxy = std::shared_ptr<libmexclass::proxy::Proxy>(new SpanContextProxy(std::move(sc)));
 
     // obtain a proxy ID
@@ -160,5 +161,24 @@ void SpanProxy::isRecording(libmexclass::proxy::method::Context& context) {
     context.outputs[0] = tf_mda;
 }
 
+void SpanProxy::insertSpan(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<uint64_t> contextid_mda = context.inputs[0];
+    libmexclass::proxy::ID contextid = contextid_mda[0];
+
+    context_api::Context ctxt = std::static_pointer_cast<ContextProxy>(
+         libmexclass::proxy::ProxyManager::getProxy(contextid))->getInstance();
+    context_api::Context newctxt = trace_api::SetSpan(ctxt, CppSpan);
+    
+    // instantiate a ContextProxy instance
+    auto ctxtproxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ContextProxy(std::move(newctxt)));
+
+    // obtain a proxy ID
+    libmexclass::proxy::ID proxyid = libmexclass::proxy::ProxyManager::manageProxy(ctxtproxy);
+
+    // return the ID
+    matlab::data::ArrayFactory factory;
+    auto proxyid_mda = factory.createScalar<libmexclass::proxy::ID>(proxyid);
+    context.outputs[0] = proxyid_mda;
+}
 
 } // namespace libmexclass::opentelemetry

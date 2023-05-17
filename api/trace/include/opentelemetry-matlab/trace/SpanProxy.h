@@ -35,6 +35,8 @@ class SpanProxy : public libmexclass::proxy::Proxy {
 
     void isRecording(libmexclass::proxy::method::Context& context);
 
+    void insertSpan(libmexclass::proxy::method::Context& context);
+
   private:
 
     nostd::shared_ptr<trace_api::Span> CppSpan;

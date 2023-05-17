@@ -110,17 +110,17 @@ verifyNotEmpty(testCase, idx);
 verifyEqual(testCase, results{1}.resourceSpans.resource.attributes(idx).value.doubleValue, customvalue);
 end
 
-%% testParent: parent and children relationship
-function testParent(testCase)
+%% testImplicitParent: parent and children relationship using implicit context
+function testImplicitParent(testCase)
 
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "tracer");
 sp = startSpan(tr, "parent");
-scope = makeCurrent(sp);
-sp1 = startSpan(tr, "with parent");
+scope = makeCurrent(sp); %#ok<NASGU>
+sp1 = startSpan(tr, "with parent"); %#ok<NASGU>
 clear("sp1");
 clear("scope")
-sp2 = startSpan(tr, "without parent");
+sp2 = startSpan(tr, "without parent"); %#ok<NASGU>
 clear("sp2");
 clear("sp");
 
@@ -141,6 +141,33 @@ verifyEmpty(testCase, results{2}.resourceSpans.scopeSpans.spans.parentSpanId);
 verifyEmpty(testCase, results{3}.resourceSpans.scopeSpans.spans.parentSpanId);
 verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.traceId, results{3}.resourceSpans.scopeSpans.spans.traceId);
 verifyNotEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.traceId, results{3}.resourceSpans.scopeSpans.spans.traceId);
+end
+
+%% testExplicitParent: parent and children relationship by passing context object explicitly
+function testExplicitParent(testCase)
+
+tp = opentelemetry.sdk.trace.TracerProvider();
+tr = getTracer(tp, "tracer");
+sp = startSpan(tr, "parent");
+context = opentelemetry.context.Context();  % empty context
+context = opentelemetry.trace.Context.insertSpan(context, sp);  % insert span into context
+sp1 = startSpan(tr, "child", Context=context); 
+endSpan(sp1);
+endSpan(sp);
+
+% perform test comparisons
+results = readJsonResults(testCase);
+
+% check span and tracer names
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.name, 'child');
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.scope.name, 'tracer');
+verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.name, 'parent');
+verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.scope.name, 'tracer');
+
+% check correct parent and children relationship
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
+verifyEmpty(testCase, results{2}.resourceSpans.scopeSpans.spans.parentSpanId);
+verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.traceId, results{2}.resourceSpans.scopeSpans.spans.traceId);
 end
 
 %% testSpanKind: specifying SpanKind

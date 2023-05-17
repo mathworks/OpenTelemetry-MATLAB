@@ -46,8 +46,8 @@ classdef Tracer < handle
                 namei = validatestring(trailingnames{i}, optionnames);
                 if strcmp(namei, "Context")                    
                     context = trailingvalues{i};
-                    if ~isa(context, "opentelemetry.trace.SpanContext")
-                        error("Context must be an opentelemetry.trace.SpanContext object");
+                    if ~isa(context, "opentelemetry.context.Context")
+                        error("Context must be an opentelemetry.context.Context object");
                     end
                     contextid = context.Proxy.ID;
                 elseif strcmp(namei, "SpanKind")

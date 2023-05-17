@@ -5,7 +5,7 @@ classdef Context
 % Copyright 2023 The MathWorks, Inc.
 
     properties (Access={?opentelemetry.context.propagation.TextMapPropagator, ...
-            ?opentelemetry.trace.Span})
+            ?opentelemetry.trace.Span, ?opentelemetry.trace.Tracer})
         Proxy
     end
 

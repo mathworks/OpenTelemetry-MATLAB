@@ -32,43 +32,9 @@ carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.hea
 propagator = opentelemetry.trace.propagation.TraceContextPropagator();
 context = opentelemetry.context.getCurrentContext();
 newcontext = propagator.extract(carrier, context);
-token = setCurrentContext(newcontext); %#ok<NASGU>
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "bar");
-sp = startSpan(tr, "quux");
-endSpan(sp);
-
-% perform test comparisons
-results = readJsonResults(testCase);
-results = results{1};
-
-% check trace and parent IDs
-verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ...
-    testCase.TestData.traceId);
-verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
-    testCase.TestData.spanId);
-% check trace state in span context
-spancontext = getContext(sp);
-verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
-end
-
-%% testExplicitContext: extracting context from HTTP header, and then extracting span context
-% for use as explicit parent
-function testExplicitContext(testCase)
-
-carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.headers);
-propagator = opentelemetry.trace.propagation.TraceContextPropagator();
-context = opentelemetry.context.getCurrentContext();
-newcontext = propagator.extract(carrier, context);
-
-% extract span context from extracted context
-parent = opentelemetry.trace.Context.extractSpan(newcontext);
-parentcontext = getContext(parent);
-
-% start and end child span, passing in parent span context
-tp = opentelemetry.sdk.trace.TracerProvider();
-tr = getTracer(tp, "bar");
-sp = startSpan(tr, "quux", Context=parentcontext);
+sp = startSpan(tr, "quux", Context=newcontext);
 endSpan(sp);
 
 % perform test comparisons

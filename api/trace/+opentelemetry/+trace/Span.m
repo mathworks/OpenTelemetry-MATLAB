@@ -161,7 +161,14 @@ classdef Span < handle
 
     	function tf = isRecording(obj)
             tf = obj.Proxy.isRecording();
-    	end
+        end
+
+        function context = insertSpan(obj, context)
+            contextid = obj.Proxy.insertSpan(context.Proxy.ID);
+            contextproxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.ContextProxy", "ID", contextid);
+            context = opentelemetry.context.Context(contextproxy);
+        end
     end
 
     methods (Static, Access=private)
