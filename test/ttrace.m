@@ -200,6 +200,9 @@ verifyEqual(testCase, sp.Name, oldname);
 sp.Name = newname;
 verifyEqual(testCase, sp.Name, newname);
 endSpan(sp);
+% change to another name after span has ended, should be ignored
+sp.Name = "bogus";
+verifyEqual(testCase, sp.Name, newname);
 
 % perform test comparisons
 results = readJsonResults(testCase);

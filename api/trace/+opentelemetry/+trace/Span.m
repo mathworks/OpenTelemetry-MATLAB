@@ -9,6 +9,7 @@ classdef Span < handle
 
     properties (Access=private)
         Proxy
+        Ended  (1,1) logical = false
     end
 
     methods (Access={?opentelemetry.trace.Tracer, ?opentelemetry.trace.Context})
@@ -33,9 +34,12 @@ classdef Span < handle
      	       obj
     	       spname (1,:) {mustBeTextScalar}
             end
-            spname = string(spname);
-            obj.Proxy.updateName(spname); %#ok<MCSUP>
-            obj.Name = spname;
+            % ignore new name if span has already ended
+            if ~obj.Ended %#ok<MCSUP>
+                spname = string(spname);
+                obj.Proxy.updateName(spname); %#ok<MCSUP>
+                obj.Name = spname;
+            end
         end
 
         function endSpan(obj, endtime)
@@ -48,6 +52,7 @@ classdef Span < handle
                 endposixtime = posixtime(endtime);
             end
             obj.Proxy.endSpan(endposixtime);
+            obj.Ended = true;
         end
 
         function scope = makeCurrent(obj)
