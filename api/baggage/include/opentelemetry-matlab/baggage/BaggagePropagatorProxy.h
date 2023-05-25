@@ -7,25 +7,25 @@
 
 #include "opentelemetry-matlab/context/propagation/TextMapPropagatorProxy.h"
 
-#include "opentelemetry/trace/propagation/http_trace_context.h"
+#include "opentelemetry/baggage/propagation/baggage_propagator.h"
 
-namespace trace_propagation = opentelemetry::trace::propagation;
+namespace baggage_propagation = opentelemetry::baggage::propagation;
 namespace context_propagation = opentelemetry::context::propagation;
 
 namespace libmexclass::opentelemetry {
-class TraceContextPropagatorProxy : public TextMapPropagatorProxy {
+class BaggagePropagatorProxy : public TextMapPropagatorProxy {
   public:
-    TraceContextPropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
+    BaggagePropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
     {
-        CppPropagator = nostd::shared_ptr<context_propagation::TextMapPropagator>(new trace_propagation::HttpTraceContext());
+        CppPropagator = nostd::shared_ptr<context_propagation::TextMapPropagator>(new baggage_propagation::BaggagePropagator());
     }
 
     // getUniquePtrCopy is used by CompositePropagator, which needs a unique_ptr instance
     // Takes the BaggagePropagator object inside the shared_ptr, make a copy, and wrap the copy in a unique_ptr 
     virtual std::unique_ptr<context_propagation::TextMapPropagator> getUniquePtrCopy() {
         return std::unique_ptr<context_propagation::TextMapPropagator>(
-			new trace_propagation::HttpTraceContext(
-				*static_cast<trace_propagation::HttpTraceContext*>(CppPropagator.get())));
+			new baggage_propagation::BaggagePropagator(
+				*static_cast<baggage_propagation::BaggagePropagator*>(CppPropagator.get())));
     }
 };
 } // namespace libmexclass::opentelemetry

@@ -28,6 +28,13 @@ class TextMapPropagatorProxy : public libmexclass::proxy::Proxy {
         registerMethods();
     }
 
+    // getUniquePtrCopy is used by CompositePropagator, which needs a unique_ptr instance
+    virtual std::unique_ptr<context_propagation::TextMapPropagator> getUniquePtrCopy() {
+	// default behavior is to assert and return null
+	assert(false);
+        return nullptr;
+    }
+
     void extract(libmexclass::proxy::method::Context& context);
 
     void inject(libmexclass::proxy::method::Context& context);

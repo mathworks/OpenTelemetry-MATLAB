@@ -10,8 +10,11 @@
 #include "opentelemetry-matlab/trace/TraceContextPropagatorProxy.h"
 #include "opentelemetry-matlab/context/propagation/TextMapCarrierProxy.h"
 #include "opentelemetry-matlab/context/propagation/TextMapPropagatorProxy.h"
+#include "opentelemetry-matlab/context/propagation/CompositePropagatorProxy.h"
 #include "opentelemetry-matlab/context/ContextProxy.h"
 #include "opentelemetry-matlab/context/TokenProxy.h"
+#include "opentelemetry-matlab/baggage/BaggageProxy.h"
+#include "opentelemetry-matlab/baggage/BaggagePropagatorProxy.h"
 #include "opentelemetry-matlab/sdk/trace/TracerProviderProxy.h"
 #include "opentelemetry-matlab/sdk/trace/SimpleSpanProcessorProxy.h"
 #include "opentelemetry-matlab/sdk/trace/BatchSpanProcessorProxy.h"
@@ -35,7 +38,10 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
     REGISTER_PROXY(libmexclass.opentelemetry.ContextProxy, libmexclass::opentelemetry::ContextProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TokenProxy, libmexclass::opentelemetry::TokenProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TextMapPropagatorProxy, libmexclass::opentelemetry::TextMapPropagatorProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.CompositePropagatorProxy, libmexclass::opentelemetry::CompositePropagatorProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TraceContextPropagatorProxy, libmexclass::opentelemetry::TraceContextPropagatorProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.BaggageProxy, libmexclass::opentelemetry::BaggageProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.BaggagePropagatorProxy, libmexclass::opentelemetry::BaggagePropagatorProxy);
 
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.TracerProviderProxy, libmexclass::opentelemetry::sdk::TracerProviderProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.SimpleSpanProcessorProxy, libmexclass::opentelemetry::sdk::SimpleSpanProcessorProxy);

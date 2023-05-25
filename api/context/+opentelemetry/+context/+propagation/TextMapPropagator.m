@@ -3,12 +3,14 @@ classdef TextMapPropagator
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=private)
+    properties (Access=?opentelemetry.context.propagation.CompositePropagator)
         Proxy
     end
 
     methods (Access={?opentelemetry.context.propagation.Propagator, ...
-            ?opentelemetry.trace.propagation.TraceContextPropagator})
+            ?opentelemetry.trace.propagation.TraceContextPropagator, ...
+            ?opentelemetry.baggage.propagation.BaggagePropagator, ...
+            ?opentelemetry.context.propagation.CompositePropagator})
         function obj = TextMapPropagator(proxy)
             if nargin < 1
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
