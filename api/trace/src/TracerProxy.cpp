@@ -27,8 +27,7 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     matlab::data::TypedArray<double> starttime_mda = context.inputs[3];
     double starttime = starttime_mda[0];    // number of seconds since 1/1/1970 (i.e. POSIX time)
     matlab::data::StringArray attrnames_mda = context.inputs[4];
-    matlab::data::Array attrnames_base_mda = context.inputs[4];
-    size_t nattrs = attrnames_base_mda.getNumberOfElements();
+    size_t nattrs = attrnames_mda.getNumberOfElements();
     matlab::data::CellArray attrvalues_mda = context.inputs[5];
     
     trace_api::StartSpanOptions options;
@@ -86,8 +85,7 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
        // link attributes
        std::list<std::pair<std::string, common::AttributeValue> > linkattrs;
        matlab::data::StringArray linkattrnames_mda = context.inputs[i+1];
-       matlab::data::Array linkattrnames_base_mda = context.inputs[i+1];
-       size_t nlinkattrs = linkattrnames_base_mda.getNumberOfElements();
+       size_t nlinkattrs = linkattrnames_mda.getNumberOfElements();
        matlab::data::Array linkattrvalues_mda = context.inputs[i+2];
        for (size_t ii = 0; ii < nlinkattrs; ++ii) {
           std::string linkattrname = static_cast<std::string>(linkattrnames_mda[ii]);

@@ -5,8 +5,7 @@
 namespace libmexclass::opentelemetry {
 TextMapCarrierProxy::TextMapCarrierProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::StringArray headers_mda = constructor_arguments[0];
-    matlab::data::Array headers_base_mda = constructor_arguments[0];
-    matlab::data::ArrayDimensions headers_size = headers_base_mda.getDimensions();
+    matlab::data::ArrayDimensions headers_size = headers_mda.getDimensions();
     size_t nheaders = headers_size[0];
     assert(headers_size[1] == 2);    // input should be Nx2
 	

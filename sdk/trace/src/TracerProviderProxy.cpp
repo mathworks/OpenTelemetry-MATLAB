@@ -25,8 +25,7 @@ TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArgum
     matlab::data::TypedArray<uint64_t> samplerid_mda = constructor_arguments[1];
     libmexclass::proxy::ID samplerid = samplerid_mda[0];
     matlab::data::StringArray resourcenames_mda = constructor_arguments[2];
-    matlab::data::Array resourcenames_base_mda = constructor_arguments[2];
-    size_t nresourceattrs = resourcenames_base_mda.getNumberOfElements();
+    size_t nresourceattrs = resourcenames_mda.getNumberOfElements();
     matlab::data::CellArray resourcevalues_mda = constructor_arguments[3];
 
     auto processor = std::static_pointer_cast<SpanProcessorProxy>(
