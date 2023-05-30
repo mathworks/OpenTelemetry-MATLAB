@@ -18,7 +18,7 @@ class SimpleSpanProcessorProxy : public SpanProcessorProxy {
 	    : SpanProcessorProxy(constructor_arguments) {}
 	    //: SpanProcessorProxy(constructor_arguments[0]) {}
 
-    std::unique_ptr<trace_sdk::SpanProcessor> getInstance() {
+    std::unique_ptr<trace_sdk::SpanProcessor> getInstance() override {
         return trace_sdk::SimpleSpanProcessorFactory::Create(std::move(SpanExporter->getInstance()));
     }
 };

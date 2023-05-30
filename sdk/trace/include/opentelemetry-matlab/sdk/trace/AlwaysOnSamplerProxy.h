@@ -16,7 +16,7 @@ class AlwaysOnSamplerProxy : public SamplerProxy {
   public:
     AlwaysOnSamplerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {}
 
-    std::unique_ptr<trace_sdk::Sampler> getInstance() {
+    std::unique_ptr<trace_sdk::Sampler> getInstance() override {
         return trace_sdk::AlwaysOnSamplerFactory::Create();
     }
 };

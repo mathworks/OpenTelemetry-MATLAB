@@ -14,7 +14,7 @@ class ParentBasedSamplerProxy : public SamplerProxy {
   public:
     ParentBasedSamplerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments); 
 
-    std::unique_ptr<trace_sdk::Sampler> getInstance();
+    std::unique_ptr<trace_sdk::Sampler> getInstance() override;
 
   private:
     std::shared_ptr<trace_sdk::Sampler> DelegateSampler;

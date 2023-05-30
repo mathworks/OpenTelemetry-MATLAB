@@ -77,9 +77,8 @@ void BaggageProxy::setEntries(libmexclass::proxy::method::Context& context) {
 
 void BaggageProxy::deleteEntries(libmexclass::proxy::method::Context& context) {
     matlab::data::StringArray keys_mda = context.inputs[0];
-    size_t nkeys = keys_mda.getNumberOfElements();
-    for (size_t i = 0; i < nkeys; ++i) {
-        CppBaggage = CppBaggage->Delete(static_cast<std::string>(keys_mda[i]));
+    for (auto key : keys_mda) {
+        CppBaggage = CppBaggage->Delete(static_cast<std::string>(key));
     }
 }
 

@@ -22,7 +22,7 @@ class TraceContextPropagatorProxy : public TextMapPropagatorProxy {
 
     // getUniquePtrCopy is used by CompositePropagator, which needs a unique_ptr instance
     // Takes the BaggagePropagator object inside the shared_ptr, make a copy, and wrap the copy in a unique_ptr 
-    virtual std::unique_ptr<context_propagation::TextMapPropagator> getUniquePtrCopy() {
+    virtual std::unique_ptr<context_propagation::TextMapPropagator> getUniquePtrCopy() override {
         return std::unique_ptr<context_propagation::TextMapPropagator>(
 			new trace_propagation::HttpTraceContext(
 				*static_cast<trace_propagation::HttpTraceContext*>(CppPropagator.get())));

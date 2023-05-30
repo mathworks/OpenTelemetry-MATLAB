@@ -17,7 +17,7 @@ class BatchSpanProcessorProxy : public SpanProcessorProxy {
   public:
     BatchSpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
-    std::unique_ptr<trace_sdk::SpanProcessor> getInstance();
+    std::unique_ptr<trace_sdk::SpanProcessor> getInstance() override;
 
     void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
 

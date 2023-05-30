@@ -19,7 +19,7 @@ class TraceIdRatioBasedSamplerProxy : public SamplerProxy {
         Ratio = ratio_mda[0];
     }
 
-    std::unique_ptr<trace_sdk::Sampler> getInstance() {
+    std::unique_ptr<trace_sdk::Sampler> getInstance() override {
         return trace_sdk::TraceIdRatioBasedSamplerFactory::Create(Ratio);
     }
 

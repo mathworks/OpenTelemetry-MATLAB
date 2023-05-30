@@ -16,8 +16,7 @@ CompositePropagatorProxy::CompositePropagatorProxy(const libmexclass::proxy::Fun
     std::vector<std::unique_ptr<context_propagation::TextMapPropagator> > propagators;
     propagators.reserve(npropagators);
 	
-    for (size_t i=0; i < npropagators; ++i) {
-	libmexclass::proxy::ID propagatorid = propagatorid_mda[i];
+    for (auto propagatorid : propagatorid_mda) {
         propagators.push_back(std::static_pointer_cast<TextMapPropagatorProxy>(
 		   libmexclass::proxy::ProxyManager::getProxy(propagatorid))->getUniquePtrCopy());
     }
