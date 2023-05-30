@@ -78,31 +78,7 @@ otelcol --config \<otelcol-config-yaml>\
 ``` 
 >> sp.endSpan();
 ```
-4. If your collector is configured to display the data, you should see your span displayed: 
-```
-2023-03-21T11:29:44.570-0400    info    TracesExporter  {"kind": "exporter", "data_type": "traces", "name": "logging", "#spans": 1}
-2023-03-21T11:29:55.525-0400    info    ResourceSpans #0
-Resource SchemaURL:
-Resource attributes:
-     -> telemetry.sdk.language: STRING(MATLAB)
-     -> telemetry.sdk.name: STRING(opentelemetry)
-     -> telemetry.sdk.version: STRING(0.1.0)
-     -> service.name: STRING(unknown_service)
-ScopeSpans #0
-ScopeSpans SchemaURL:
-InstrumentationScope First Tracer
-Span #0
-    Trace ID       : 2a298501841ef6e2f73fbef5a9245e5e
-    Parent ID      :
-    ID             : fccba2f9e2262bd5
-    Name           : First Span
-    Kind           : SPAN_KIND_INTERNAL
-    Start time     : 2023-03-21 15:29:39.8057461 +0000 UTC
-    End time       : 2023-03-21 15:29:44.4545706 +0000 UTC
-    Status code    : STATUS_CODE_UNSET
-    Status message :
-        {"kind": "exporter", "data_type": "traces", "name": "logging"}
-```
+4. If your collector is configured to display the data, you should see your span displayed. 
 
 ## License
 The license is available in the License file within this repository
