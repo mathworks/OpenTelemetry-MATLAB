@@ -31,7 +31,7 @@ class SpanProxy : public libmexclass::proxy::Proxy {
 
     void setStatus(libmexclass::proxy::method::Context& context);
 
-    void getContext(libmexclass::proxy::method::Context& context);
+    void getSpanContext(libmexclass::proxy::method::Context& context);
 
     void isRecording(libmexclass::proxy::method::Context& context);
 

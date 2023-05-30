@@ -71,6 +71,9 @@ classdef Baggage
     	       keys {mustBeVector, mustBeText}
                values {mustBeVector, mustBeText}
             end
+            if length(keys) ~= length(values)
+                error("Keys and values must be the same length.")
+            end
             obj.Proxy.setEntries(string(keys(:)), string(values(:)));
         end
 
@@ -81,10 +84,11 @@ classdef Baggage
             end
             obj.Proxy.deleteEntries(string(keys(:)));
         end
-    end
 
-    methods (Access = ?opentelemetry.baggage.Context)
         function context = insertBaggage(obj, context)
+            if nargin < 2
+                context = opentelemetry.context.getCurrentContext();
+            end
             contextid = obj.Proxy.insertBaggage(context.Proxy.ID);
             contextproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ContextProxy", "ID", contextid);

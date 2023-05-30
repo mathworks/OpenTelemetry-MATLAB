@@ -214,7 +214,7 @@ function testSpanContext(testCase)
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp = startSpan(tr, "bar");
-ctxt = getContext(sp);
+ctxt = getSpanContext(sp);
 endSpan(sp);
 
 % perform test comparisons
@@ -501,7 +501,7 @@ function testLinks(testCase)
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp1 = startSpan(tr, "bar");
-ctxt1 = getContext(sp1);
+ctxt1 = getSpanContext(sp1);
 % one link, no attributes
 l1 = opentelemetry.trace.Link(ctxt1);
 sp2 = startSpan(tr, "quux", "Links", l1);
@@ -510,7 +510,7 @@ endSpan(sp2);
 
 % two links, with attributes in one link
 sp3 = startSpan(tr, "baz");
-ctxt3 = getContext(sp3);
+ctxt3 = getSpanContext(sp3);
 l2attributes = {"StringScalar", "abcde", "DoubleArray", magic(3)};
 l2 = opentelemetry.trace.Link(ctxt1, l2attributes{:});
 l3 = opentelemetry.trace.Link(ctxt3);

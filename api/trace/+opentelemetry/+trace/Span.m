@@ -157,8 +157,8 @@ classdef Span < handle
     	    obj.Proxy.setStatus(status, description);
     	end
 
-        function context = getContext(obj)
-            contextid = obj.Proxy.getContext();
+        function context = getSpanContext(obj)
+            contextid = obj.Proxy.getSpanContext();
             contextproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.SpanContextProxy", "ID", contextid);
             context = opentelemetry.trace.SpanContext(contextproxy);
@@ -169,6 +169,9 @@ classdef Span < handle
         end
 
         function context = insertSpan(obj, context)
+            if nargin < 2
+                context = opentelemetry.context.getCurrentContext();
+            end
             contextid = obj.Proxy.insertSpan(context.Proxy.ID);
             contextproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ContextProxy", "ID", contextid);

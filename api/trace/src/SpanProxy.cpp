@@ -37,7 +37,7 @@ SpanProxy::SpanProxy(const libmexclass::proxy::FunctionArguments& constructor_ar
     REGISTER_METHOD(SpanProxy, addEvent);
     REGISTER_METHOD(SpanProxy, updateName);
     REGISTER_METHOD(SpanProxy, setStatus);
-    REGISTER_METHOD(SpanProxy, getContext);
+    REGISTER_METHOD(SpanProxy, getSpanContext);
     REGISTER_METHOD(SpanProxy, isRecording);
     REGISTER_METHOD(SpanProxy, insertSpan);
 }
@@ -138,7 +138,7 @@ void SpanProxy::setStatus(libmexclass::proxy::method::Context& context) {
     CppSpan->SetStatus(code, descr);
 }
 
-void SpanProxy::getContext(libmexclass::proxy::method::Context& context) {
+void SpanProxy::getSpanContext(libmexclass::proxy::method::Context& context) {
     trace_api::SpanContext sc = CppSpan->GetContext();
 
     // instantiate a SpanContextProxy instance

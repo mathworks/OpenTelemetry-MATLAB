@@ -24,6 +24,9 @@ classdef TextMapPropagator
     
     methods
         function newcontext = extract(obj, carrier, context)
+            if nargin < 3
+                context = opentelemetry.context.getCurrentContext();
+            end
             newcontextid = obj.Proxy.extract(carrier.Proxy.ID, context.Proxy.ID);
             newcontextproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ContextProxy", "ID", newcontextid);
@@ -31,6 +34,9 @@ classdef TextMapPropagator
         end
 
         function newcarrier = inject(obj, carrier, context)
+            if nargin < 3
+                context = opentelemetry.context.getCurrentContext();
+            end
             newcarrierid = obj.Proxy.inject(carrier.Proxy.ID, context.Proxy.ID);
             newcarrierproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.TextMapCarrierProxy", "ID", newcarrierid);

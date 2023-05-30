@@ -34,8 +34,7 @@ function testExtract(testCase)
 
 carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.headers);
 propagator = opentelemetry.trace.propagation.TraceContextPropagator();
-context = opentelemetry.context.getCurrentContext();
-newcontext = propagator.extract(carrier, context);
+newcontext = propagator.extract(carrier);
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "bar");
 sp = startSpan(tr, "quux", Context=newcontext);
@@ -51,7 +50,7 @@ verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ..
 verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
     testCase.TestData.spanId);
 % check trace state in span context
-spancontext = getContext(sp);
+spancontext = getSpanContext(sp);
 verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
 end
 
@@ -66,9 +65,8 @@ scope = makeCurrent(sp); %#ok<NASGU>
 
 % inject the current context
 propagator = opentelemetry.trace.propagation.TraceContextPropagator();
-context = opentelemetry.context.getCurrentContext();
 carrier = opentelemetry.context.propagation.TextMapCarrier();
-carrier = propagator.inject(carrier, context);
+carrier = propagator.inject(carrier);
 headers = carrier.Headers;
 
 endSpan(sp);
@@ -102,7 +100,7 @@ carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.hea
 context = opentelemetry.context.Context();
 newcontext = p.extract(carrier, context);
 span = opentelemetry.trace.Context.extractSpan(newcontext);
-spancontext = getContext(span);
+spancontext = getSpanContext(span);
 
 % verify the extracted trace and span ID and trace state match the headers
 verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
@@ -121,7 +119,7 @@ opentelemetry.context.propagation.Propagator.setTextMapPropagator(propagator);
 carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.headers);
 context = opentelemetry.context.propagation.extractContext(carrier);
 span = opentelemetry.trace.Context.extractSpan(context);
-spancontext = getContext(span);
+spancontext = getSpanContext(span);
 
 % verify extracted trace and span IDs and trace state
 verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
@@ -140,7 +138,7 @@ opentelemetry.context.propagation.Propagator.setTextMapPropagator(propagator);
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "foo");
 sp = startSpan(tr, "bar");
-spancontext = getContext(sp);
+spancontext = getSpanContext(sp);
 scope = makeCurrent(sp); %#ok<NASGU>
 
 % inject
@@ -157,8 +155,7 @@ function testExtractBaggage(testCase)
 
 carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.baggageHeaders);
 propagator = opentelemetry.baggage.propagation.BaggagePropagator();
-context = opentelemetry.context.getCurrentContext();
-newcontext = propagator.extract(carrier, context);
+newcontext = propagator.extract(carrier);
 bag = opentelemetry.baggage.Context.extractBaggage(newcontext);
 bag = bag.Entries;
 
@@ -242,8 +239,7 @@ carrier = opentelemetry.context.propagation.TextMapCarrier([testCase.TestData.he
 propagator = opentelemetry.context.propagation.CompositePropagator(...
     opentelemetry.trace.propagation.TraceContextPropagator, ...
     opentelemetry.baggage.propagation.BaggagePropagator);
-context = opentelemetry.context.getCurrentContext();
-newcontext = propagator.extract(carrier, context);
+newcontext = propagator.extract(carrier);
 
 % extract baggage from context and verify
 bag = opentelemetry.baggage.Context.extractBaggage(newcontext);
@@ -272,7 +268,7 @@ verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ..
 verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
     testCase.TestData.spanId);
 % check trace state in span context
-spancontext = getContext(sp);
+spancontext = getSpanContext(sp);
 verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
 end
 
@@ -349,7 +345,7 @@ end
 
 % extract span and verify
 span = opentelemetry.trace.Context.extractSpan(context);
-spancontext = getContext(span);
+spancontext = getSpanContext(span);
 
 % verify extracted trace and span IDs and trace state
 verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
@@ -390,7 +386,7 @@ verifyEqual(testCase, headers(baggagerow,:), testCase.TestData.baggageHeaders);
 % verify the injected traceparent contains the trace and span IDs
 traceparentrow = find(headers(:,1) == "traceparent");
 verifyNotEmpty(testCase, traceparentrow);
-spancontext = getContext(sp);
+spancontext = getSpanContext(sp);
 verifySubstring(testCase, headers(traceparentrow,2), spancontext.TraceId);
 verifySubstring(testCase, headers(traceparentrow,2), spancontext.SpanId);
 end
