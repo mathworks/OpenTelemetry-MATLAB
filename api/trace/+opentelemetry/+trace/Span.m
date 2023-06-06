@@ -4,11 +4,11 @@ classdef Span < handle
 % Copyright 2023 The MathWorks, Inc.
 
     properties 
-        Name  (1,1) string
+        Name  (1,1) string   % Name of span
     end
 
     properties (Access=private)
-        Proxy
+        Proxy   % Proxy object to interface C++ code
         Ended  (1,1) logical = false
     end
 
@@ -43,6 +43,10 @@ classdef Span < handle
         end
 
         function endSpan(obj, endtime)
+            % ENDSPAN  End the span.
+            %    ENDSPAN(SP) ends the span SP.
+            %
+            %    See also OPENTELEMETRY.TRACE.TRACER.STARTSPAN
             if nargin < 2
                 endposixtime = NaN;
             else
@@ -56,6 +60,15 @@ classdef Span < handle
         end
 
         function scope = makeCurrent(obj)
+            % MAKECURRENT Make span the current span
+            %    SCOPE = MAKECURRENT(SP) makes span SP the current span, by
+            %    inserting it into the current context. Returns a scope
+            %    object SCOPE that determines the duration when SP is current.
+            %    When SCOPE is deleted, SP will no longer be current. 
+            %
+            %    See also OPENTELEMETRY.CONTEXT.CONTEXT,
+            %    OPENTELEMETRY.GETCURRENTCONTEXT, OPENTELEMETRY.TRACE.SCOPE
+
             id = obj.Proxy.makeCurrent();
             scopeproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ScopeProxy", "ID", id);
@@ -63,6 +76,15 @@ classdef Span < handle
         end
 
     	function setAttributes(obj, varargin)
+            % SETATTRIBUTES Add attributes to span
+            %    SETATTRIBUTES(SP, ATTRIBUTES) adds attributes to span SP,
+            %    specified as a dictionary.
+            %
+            %    SETATTRIBUTES(SP, ATTRNAME1, ATTRVALUE1, ATTRNAME2,
+            %    ATTRVALUE2, ...) specifies attributes as trailing
+            %    name-value pairs.
+            %
+            %    See also ADDEVENT
             nin = length(varargin);
     	    if nin == 1 && isa(varargin{1}, "dictionary")
                 % dictionary case
@@ -98,6 +120,18 @@ classdef Span < handle
     	end
 
         function addEvent(obj, eventname, varargin)
+            % ADDEVENT  Record a event.
+            %    ADDEVENT(SP, NAME) records a event with the specified name
+            %    at the current time.
+            %
+            %    ADDEVENT(SP, NAME, TIME) also specifies a event time.
+            %
+            %    ADDEVENT(..., ATTRIBUTES) or ADDEVENT(..., ATTRNAME1,
+            %    ATTRVALUE1, ATTRNAME2, ATTRVALUE2, ...) specifies
+            %    attribute name/value pairs for the event, either as a
+            %    dictionary or as trailing inputs.
+            %
+            %    See also SETATTRIBUTES
             arguments
         	       obj
                    eventname (1,:) {mustBeTextScalar}
@@ -148,6 +182,12 @@ classdef Span < handle
         end
 
     	function setStatus(obj, status, description)
+            % SETSTATUS  Set the span status.
+            %    SETSTATUS(SP, STATUS) sets the span status as "Ok" or
+            %    "Error".
+            % 
+            %    SETSTATUS(SP, STATUS, DESC) also specifies a description.
+            %    Description is only recorded if status is "Error".
             arguments
      	       obj
     	       status (1,:) {mustBeTextScalar}
@@ -158,6 +198,12 @@ classdef Span < handle
     	end
 
         function context = getSpanContext(obj)
+            % GETSPANCONTEXT  Span context object associated with this span.
+            %    SPCTXT = GETSPANCONTEXT(SP) returns the span context
+            %    object that records information such as trace and span
+            %    IDs.
+            %
+            %    See also OPENTELEMETRY.TRACE.SPANCONTEXT
             contextid = obj.Proxy.getSpanContext();
             contextproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.SpanContextProxy", "ID", contextid);
@@ -165,10 +211,23 @@ classdef Span < handle
         end
 
     	function tf = isRecording(obj)
+            % ISRECORDING whether the span is recording and sending telemetry data.
+            %    TF = ISRECORDING(SP)  returns true or false which
+            %    indicates whether the span is recording and sending
+            %    telemetry data. A span is no longer recording if it has
+            %    already ended, is excluded during sampling, or is created
+            %    from a span context propagated externally.
             tf = obj.Proxy.isRecording();
         end
 
         function context = insertSpan(obj, context)
+            % INSERTSPAN Insert span into a context and return a new context.
+            %    NEWCTXT = INSERTSPAN(SP, CTXT) inserts span SP into
+            %    context CTXT and returns a new context.
+            %    
+            %    NEWCTXT = INSERTSPAN(SP)  inserts into the current context.
+            %
+            %    See also OPENTELEMETRY.TRACE.CONTEXT.EXTRACTSPAN
             if nargin < 2
                 context = opentelemetry.context.getCurrentContext();
             end

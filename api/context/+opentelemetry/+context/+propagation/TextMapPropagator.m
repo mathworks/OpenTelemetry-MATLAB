@@ -4,7 +4,7 @@ classdef TextMapPropagator
 % Copyright 2023 The MathWorks, Inc.
 
     properties (Access=?opentelemetry.context.propagation.CompositePropagator)
-        Proxy
+        Proxy    % Proxy object to interface C++ code
     end
 
     methods (Access={?opentelemetry.context.propagation.Propagator, ...
@@ -24,6 +24,13 @@ classdef TextMapPropagator
     
     methods
         function newcontext = extract(obj, carrier, context)
+            % EXTRACT  Extract HTTP header from carrier into a context.
+            %    NEWCTXT = EXTRACT(PROP, C, CTXT) extracts HTTP header
+            %    stored in carrier C into context CTXT, and returns a new
+            %    context NEWCTXT.
+            %
+            %    See also INJECT, OPENTELEMETRY.CONTEXT.CONTEXT,
+            %    OPENTELEMETRY.CONTEXT.PROPAGATION.TEXTMAPCARRIER
             if nargin < 3
                 context = opentelemetry.context.getCurrentContext();
             end
@@ -34,6 +41,12 @@ classdef TextMapPropagator
         end
 
         function newcarrier = inject(obj, carrier, context)
+            % INJECT  Inject HTTP header from a context into a carrier.
+            %    C = INJECT(PROP, C, CTXT) injects HTTP header in context 
+            %    CTXT into carrier C.
+            %
+            %    See also EXTRACT, OPENTELEMETRY.CONTEXT.CONTEXT,
+            %    OPENTELEMETRY.CONTEXT.PROPAGATION.TEXTMAPCARRIER
             if nargin < 3
                 context = opentelemetry.context.getCurrentContext();
             end
@@ -44,6 +57,12 @@ classdef TextMapPropagator
         end
 
         function setTextMapPropagator(obj)
+            % SETTEXTMAPPROPAGATOR Set propagator as the global instance.
+            %    SETTEXTMAPPROPAGATOR(PROP) sets the propagator PROP as the
+            %    global instance.
+            %
+            %    See also
+            %    OPENTELEMETRY.CONTEXT.PROPAGATION.PROPAGATOR.GETTEXTMAPPROPAGATOR
             obj.Proxy.setTextMapPropagator();
         end
     end

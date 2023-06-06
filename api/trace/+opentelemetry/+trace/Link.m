@@ -4,15 +4,29 @@ classdef Link
 % Copyright 2023 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Target 
+        Target (1,1) opentelemetry.trace.SpanContext  % Target span 
     end
 
     properties (Access=?opentelemetry.trace.Tracer)
-        Attributes (1,1) dictionary = dictionary(string.empty, {})
+        Attributes (1,1) dictionary = dictionary(string.empty, {})  % Name-value pairs that describe the link
     end
 
     methods
         function obj = Link(targetspan, varargin)
+            % Link object used to specify a relationship between two spans.
+            %    LK = OPENTELEMETRY.TRACE.LINK(SPCTXT) returns a link
+            %    object with the target span specified by its span context
+            %    SPCTXT.
+            %
+            %    LK = OPENTELEMETRY.TRACE.LINK(SPCTXT, ATTRIBUTES) further
+            %    describes the link using a name-value pairs specified as a
+            %    dictionary.
+            %
+            %    LK = OPENTELEMETRY.TRACE.LINK(SPCTXT, ATTRNAME1,
+            %    ATTRVALUE1, ATTRNAME2, ATTRVALUE2, ...) further describes
+            %    the link using trailing name-value pairs.
+            %
+            %    See also OPENTELEMETRY.TRACE.TRACER.STARTSPAN
             arguments
                 targetspan (1,1) opentelemetry.trace.SpanContext
             end
@@ -27,8 +41,14 @@ classdef Link
         end
 
         function obj = setAttributes(obj, varargin)
+            % SETATTRIBUTES Append new attributes to existing ones
+            %    NEWLK = SETATTRIBUTES(LK, ATTRIBUTES) appends extra
+            %    attributes to the link, specified as a dictionary.
+            %
+            %    NEWLK = SETATTRIBUTES(LK, ATTRNAME1,
+            %    ATTRVALUE1, ATTRNAME2, ATTRVALUE2, ...) appends extra 
+            %    attributes to the link using trailing name-value pairs.
             attrs = validateAttributeInputs(varargin{:});
-            % append new attributes to existing ones
             % use loop to support array of links
             for i = 1:numel(obj)
                 obj(i).Attributes(keys(attrs)) = values(attrs);

@@ -4,17 +4,19 @@ classdef Tracer < handle
     % Copyright 2023 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Name    (1,1) string
-        Version (1,1) string
-        Schema  (1,1) string
+        Name    (1,1) string   % Tracer name
+        Version (1,1) string   % Tracer version
+        Schema  (1,1) string   % URL that documents the schema of the generated spans
     end
 
     properties (Access=private)
-        Proxy
+        Proxy   % Proxy object to interface C++ code
     end
 
     methods (Access={?opentelemetry.trace.TracerProvider, ?opentelemetry.sdk.trace.TracerProvider})
         function obj = Tracer(proxy, trname, trversion, trschema)
+            % Private constructor. Use getTracer method of TracerProvider
+            % to create tracers.
             obj.Proxy = proxy;
             obj.Name = trname;
             obj.Version = trversion;
@@ -24,6 +26,25 @@ classdef Tracer < handle
 
     methods
         function span = startSpan(obj, spname, trailingnames, trailingvalues)
+            % STARTSPAN Create and start a span
+            %    SP = STARTSPAN(TR, NAME) starts a span with the specified
+            %    span name.
+            %
+            %    SP = STARTSPAN(TR, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    ...) specifies optional parameter name/value pairs.
+            %    Parameters are:
+            %       "Context"   - Parent span contained in a context object
+            %       "SpanKind"  - "server", "client", "producer",
+            %                     "consumer", or "internal" (default)
+            %       "StartTime" - Starting time of span specified as a
+            %                     datetime. Default is the current time.
+            %       "Attributes" - Attribute name-value pairs specified as
+            %                      a dictionary.
+            %       "Links"     - Link objects that specifies relationships
+            %                     with other spans.
+            %     
+            %    See also OPENTELEMETRY.TRACE.SPAN,
+            %    OPENTELEMETRY.TRACE.LINK, OPENTELEMETRY.CONTEXT.CONTEXT
     	    arguments
      	       obj
     	       spname (1,:) {mustBeTextScalar}

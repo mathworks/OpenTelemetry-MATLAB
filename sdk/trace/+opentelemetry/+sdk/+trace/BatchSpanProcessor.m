@@ -4,13 +4,37 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
 % Copyright 2023 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        MaximumQueueSize (1,1) double
-        ScheduledDelay (1,1) duration
-        MaximumExportBatchSize (1,1) double
+        MaximumQueueSize (1,1) double    % Maximum queue size. After queue size is reached, spans are dropped.
+        ScheduledDelay (1,1) duration    % Time interval between span exports
+        MaximumExportBatchSize (1,1) double   % Maximum batch size to export. 
     end
 
     methods
         function obj = BatchSpanProcessor(spanexporter, optionnames, optionvalues)
+            % Batch span processor creates batches of spans and passes them to an exporter.
+            %    BSP = OPENTELEMETRY.SDK.TRACE.BATCHSPANPROCESSOR creates a 
+            %    batch span processor that uses an OTLP HTTP exporter, which 
+            %    exports spans in OpenTelemetry Protocol (OTLP) format through HTTP.
+            %
+            %    BSP = OPENTELEMETRY.SDK.TRACE.BATCHSPANPROCESSOR(EXP) specifies 
+            %    the span exporter. Supported span exporters are OTLP HTTP 
+            %    exporter and OTLP gRPC exporter.
+            %    
+            %    BSP = OPENTELEMETRY.SDK.TRACE.BATCHSPANPROCESSOR(EXP, PARAM1, 
+            %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
+            %    name/value pairs. Parameters are:
+            %       "MaximumQueueSize"  - Maximum queue size. After queue
+            %                             size is reached, spans are dropped. 
+            %                             Default value is 2048.
+            %       "ScheduledDelay"    - Time interval between span
+            %                             exports. Default interval is 5 seconds.
+            %       "MaximumExportBatchSize"  - Maximum batch size to export.
+            %                                   Default size is 512.
+            %                        
+            %    See also OPENTELEMETRY.SDK.TRACE.SIMPLESPANPROCESSOR, 
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER, 
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER, 
+            %    OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER  
             arguments
       	       spanexporter {mustBeA(spanexporter, "opentelemetry.sdk.trace.SpanExporter")} = ...
                    opentelemetry.exporters.otlp.OtlpHttpSpanExporter()

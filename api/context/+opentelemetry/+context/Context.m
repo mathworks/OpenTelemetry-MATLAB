@@ -1,17 +1,20 @@
 classdef Context 
-% Context class used to store context information including the current
-% span and baggage
+% Propagation mechanism used to carry context data across functions and
+% external interfaces.
 
 % Copyright 2023 The MathWorks, Inc.
 
     properties (Access={?opentelemetry.context.propagation.TextMapPropagator, ...
             ?opentelemetry.trace.Span, ?opentelemetry.trace.Tracer, ...
             ?opentelemetry.baggage.Baggage})
-        Proxy
+        Proxy   % Proxy object to interface C++ code
     end
 
     methods 
         function obj = Context(proxy)
+            % Propagation mechanism used to carry context data across functions and external interfaces.
+            %    CTXT = OPENTELEMETRY.CONTEXT.CONTEXT creates an empty
+            %    context object.
             if nargin < 1
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.ContextProxy", ...
@@ -22,6 +25,12 @@ classdef Context
         end
 
         function token = setCurrentContext(obj)
+            % SETCURRENTCONTEXT Set context to be current context.
+            %    TOKEN = SETCURRENTCONTEXT(CTXT) sets context to be current
+            %    context and returns a token object which determines the duration 
+            %    when CTXT is current. When TOKEN is deleted, CTXT will no longer be current. 
+            %
+            %    See also OPENTELEMETRY.CONTEXT.TOKEN
             tokenid = obj.Proxy.setCurrentContext();
             tokenproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.TokenProxy", "ID", tokenid);

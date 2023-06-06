@@ -5,15 +5,17 @@ classdef SpanProcessor < matlab.mixin.Heterogeneous
 
     properties (GetAccess={?opentelemetry.sdk.trace.TracerProvider,...
 		    ?opentelemetry.sdk.trace.BatchSpanProcessor})
-        Proxy
+        Proxy  % Proxy object to interface C++ code
     end
 
     properties (SetAccess=immutable)
-        SpanExporter
+        SpanExporter  % Span exporter object responsible for exporting telemetry data to an OpenTelemetry Collector or a compatible backend.
     end
 
     methods (Access=protected)
         function obj = SpanProcessor(spanexporter, proxyname, varargin)
+            % Base class constructor
+
             % Append SpanExporter proxy ID as the first input argument of 
             % proxy class constructor
             obj.Proxy = libmexclass.proxy.Proxy("Name", proxyname, ...

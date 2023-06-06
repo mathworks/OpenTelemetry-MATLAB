@@ -5,6 +5,12 @@ classdef BaggagePropagator < opentelemetry.context.propagation.TextMapPropagator
 
     methods
         function obj = BaggagePropagator()
+            % Propagator for injecting and extracting baggage from HTTP header
+            %    PROP = OPENTELEMETRY.BAGGAGE.PROPAGATION.BAGGAGEPROPAGATOR
+            %    creates a baggage propagator.
+            %
+            %    See also
+            %    OPENTELEMETRY.TRACE.PROPAGATION.TRACECONTEXTPROPAGATOR
             proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.BaggagePropagatorProxy", ...
                 "ConstructorArguments", {});
