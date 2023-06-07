@@ -9,8 +9,8 @@
 namespace context_propagation = opentelemetry::context::propagation;
 
 namespace libmexclass::opentelemetry {
-CompositePropagatorProxy::CompositePropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-{
+
+libmexclass::proxy::MakeResult CompositePropagatorProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::TypedArray<uint64_t> propagatorid_mda = constructor_arguments[0];
     size_t npropagators = propagatorid_mda.getNumberOfElements();
     std::vector<std::unique_ptr<context_propagation::TextMapPropagator> > propagators;
@@ -21,6 +21,8 @@ CompositePropagatorProxy::CompositePropagatorProxy(const libmexclass::proxy::Fun
 		   libmexclass::proxy::ProxyManager::getProxy(propagatorid))->getUniquePtrCopy());
     }
 
-    CppPropagator = nostd::shared_ptr<context_propagation::TextMapPropagator>(new context_propagation::CompositePropagator(std::move(propagators)));
+    return std::make_shared<CompositePropagatorProxy>(nostd::shared_ptr<context_propagation::TextMapPropagator>(
+			    new context_propagation::CompositePropagator(std::move(propagators))));
 }
+
 } // namespace libmexclass::opentelemetry

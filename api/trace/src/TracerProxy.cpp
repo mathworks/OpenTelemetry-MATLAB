@@ -36,7 +36,7 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     // parent
     if (parentid != noparentid) {
        options.parent = std::static_pointer_cast<ContextProxy>(
-		       libmexclass::proxy::ProxyManager::getProxy(parentid))->getInstance();
+	       libmexclass::proxy::ProxyManager::getProxy(parentid))->getInstance();
     }
     // kind
     trace_api::SpanKind kind;
@@ -99,8 +99,7 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     auto sp = CppTracer->StartSpan(name, attrs, links, options);
 
     // instantiate a SpanProxy instance
-    SpanProxy* newproxy = new SpanProxy(libmexclass::proxy::FunctionArguments());
-    newproxy->setInstance(sp);
+    SpanProxy* newproxy = new SpanProxy(sp);
     auto spproxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
     
     // obtain a proxy ID

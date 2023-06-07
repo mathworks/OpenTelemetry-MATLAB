@@ -7,7 +7,7 @@
 class OtelMatlabProxyFactory : public libmexclass::proxy::Factory {
   public:
     OtelMatlabProxyFactory() {}
-    virtual std::shared_ptr<libmexclass::proxy::Proxy>
+    virtual libmexclass::proxy::MakeResult
     make_proxy(const libmexclass::proxy::ClassName& class_name,
                const libmexclass::proxy::FunctionArguments& constructor_arguments);
 };

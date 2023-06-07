@@ -12,7 +12,10 @@ namespace trace_sdk = opentelemetry::sdk::trace;
 namespace libmexclass::opentelemetry::sdk {
 class ParentBasedSamplerProxy : public SamplerProxy {
   public:
-    ParentBasedSamplerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments); 
+    ParentBasedSamplerProxy(std::shared_ptr<trace_sdk::Sampler> delegate) 
+	    : DelegateSampler(delegate) {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<trace_sdk::Sampler> getInstance() override;
 

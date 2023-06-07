@@ -10,11 +10,11 @@
 namespace libmexclass::opentelemetry {
 class TextMapCarrierProxy : public libmexclass::proxy::Proxy {
   public:
-    TextMapCarrierProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
-
     TextMapCarrierProxy(const HttpTextMapCarrier& carrier) : CppCarrier(carrier) {
-        registerMethods();
+        REGISTER_METHOD(TextMapCarrierProxy, getHeaders);
     }
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     HttpTextMapCarrier getInstance() {
         return CppCarrier;
@@ -23,10 +23,6 @@ class TextMapCarrierProxy : public libmexclass::proxy::Proxy {
     void getHeaders(libmexclass::proxy::method::Context& context);
 
   private:
-    void registerMethods() {
-        REGISTER_METHOD(TextMapCarrierProxy, getHeaders);
-    }
-
     HttpTextMapCarrier CppCarrier;
 };
 } // namespace libmexclass::opentelemetry

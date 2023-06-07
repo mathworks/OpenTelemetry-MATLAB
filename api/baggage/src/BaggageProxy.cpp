@@ -12,16 +12,16 @@
 
 namespace libmexclass::opentelemetry {
 
-BaggageProxy::BaggageProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) 
-{
+libmexclass::proxy::MakeResult BaggageProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     size_t nin = constructor_arguments.getNumberOfElements();
+    nostd::shared_ptr<baggage_api::Baggage> baggage;
     if (nin == 1) {
         matlab::data::TypedArray<uint64_t> contextid_mda = constructor_arguments[0];
         libmexclass::proxy::ID contextid = contextid_mda[0];
 
 	context_api::Context ctxt = std::static_pointer_cast<ContextProxy>(
 		libmexclass::proxy::ProxyManager::getProxy(contextid))->getInstance();
-	CppBaggage = baggage_api::GetBaggage(ctxt);
+	baggage = baggage_api::GetBaggage(ctxt);
     } else {  // 2 inputs
         matlab::data::StringArray keys_mda = constructor_arguments[0];
         matlab::data::StringArray values_mda = constructor_arguments[1];
@@ -34,13 +34,9 @@ BaggageProxy::BaggageProxy(const libmexclass::proxy::FunctionArguments& construc
 			static_cast<std::string>(values_mda[i])));
 	}
 
-	CppBaggage = nostd::shared_ptr<baggage_api::Baggage>(new baggage_api::Baggage(attrs));
+	baggage = nostd::shared_ptr<baggage_api::Baggage>(new baggage_api::Baggage(attrs));
     }
-
-    REGISTER_METHOD(BaggageProxy, getAllEntries);
-    REGISTER_METHOD(BaggageProxy, setEntries);
-    REGISTER_METHOD(BaggageProxy, deleteEntries);
-    REGISTER_METHOD(BaggageProxy, insertBaggage);
+    return std::make_shared<BaggageProxy>(baggage);
 }
 
 void BaggageProxy::getAllEntries(libmexclass::proxy::method::Context& context) {

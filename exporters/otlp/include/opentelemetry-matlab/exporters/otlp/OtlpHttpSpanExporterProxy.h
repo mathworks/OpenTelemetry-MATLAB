@@ -16,7 +16,11 @@ namespace otlp_exporter = opentelemetry::exporter::otlp;
 namespace libmexclass::opentelemetry::exporters {
 class OtlpHttpSpanExporterProxy: public libmexclass::opentelemetry::sdk::SpanExporterProxy {
   public:
-    OtlpHttpSpanExporterProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
+    OtlpHttpSpanExporterProxy(otlp_exporter::OtlpHttpExporterOptions options) : CppOptions(options) {
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, getDefaultOptionValues);
+    }
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<trace_sdk::SpanExporter> getInstance() override;
 

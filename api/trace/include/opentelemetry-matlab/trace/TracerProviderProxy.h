@@ -25,28 +25,20 @@ namespace resource = opentelemetry::sdk::resource;
 namespace libmexclass::opentelemetry {
 class TracerProviderProxy : public libmexclass::proxy::Proxy {
   public:
-    // this constructor should only be used by getTracerProvider
-    TracerProviderProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-    {
-        // get the global instance instead of creating a new instance
-	CppTracerProvider = trace_api::Provider::GetTracerProvider();
-        registerMethods(); 
+    TracerProviderProxy(nostd::shared_ptr<trace_api::TracerProvider> tp) : CppTracerProvider(tp) {
+        REGISTER_METHOD(TracerProviderProxy, getTracer);
+        REGISTER_METHOD(TracerProviderProxy, setTracerProvider);
     }
 
-    // default constructor should only be called by SDK TracerProvider constructor
-    TracerProviderProxy() {
-        registerMethods();
+    // Static make method should only be used by getTracerProvider. It gets the global instance 
+    // instead of creating a new instance
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<TracerProviderProxy>(trace_api::Provider::GetTracerProvider());
     }
 
     void getTracer(libmexclass::proxy::method::Context& context);
 
     void setTracerProvider(libmexclass::proxy::method::Context& context);
-
-  private:
-    void registerMethods() {
-        REGISTER_METHOD(TracerProviderProxy, getTracer);
-        REGISTER_METHOD(TracerProviderProxy, setTracerProvider);
-    }
 
   protected:
     nostd::shared_ptr<trace_api::TracerProvider> CppTracerProvider;

@@ -14,9 +14,11 @@ namespace trace_sdk = opentelemetry::sdk::trace;
 namespace libmexclass::opentelemetry::sdk {
 class TraceIdRatioBasedSamplerProxy : public SamplerProxy {
   public:
-    TraceIdRatioBasedSamplerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+    TraceIdRatioBasedSamplerProxy(double ratio) : Ratio(ratio) {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
         matlab::data::TypedArray<double> ratio_mda = constructor_arguments[0];
-        Ratio = ratio_mda[0];
+	return std::make_shared<TraceIdRatioBasedSamplerProxy>(ratio_mda[0]);
     }
 
     std::unique_ptr<trace_sdk::Sampler> getInstance() override {

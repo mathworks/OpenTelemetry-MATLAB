@@ -7,11 +7,11 @@
 #include "opentelemetry/sdk/trace/samplers/parent_factory.h"
 
 namespace libmexclass::opentelemetry::sdk {
-ParentBasedSamplerProxy::ParentBasedSamplerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+libmexclass::proxy::MakeResult ParentBasedSamplerProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::TypedArray<uint64_t> delegateid_mda = constructor_arguments[0];
     libmexclass::proxy::ID delegateid = delegateid_mda[0];
-    DelegateSampler = std::shared_ptr<trace_sdk::Sampler>(std::move(std::static_pointer_cast<SamplerProxy>(
-        libmexclass::proxy::ProxyManager::getProxy(delegateid))->getInstance()));
+    return std::make_shared<ParentBasedSamplerProxy>(std::shared_ptr<trace_sdk::Sampler>(std::move(std::static_pointer_cast<SamplerProxy>(
+        libmexclass::proxy::ProxyManager::getProxy(delegateid))->getInstance())));
 }
 
 std::unique_ptr<trace_sdk::Sampler> ParentBasedSamplerProxy::getInstance() {

@@ -14,7 +14,11 @@ namespace trace_sdk = opentelemetry::sdk::trace;
 namespace libmexclass::opentelemetry::sdk {
 class AlwaysOffSamplerProxy : public SamplerProxy {
   public:
-    AlwaysOffSamplerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {}
+    AlwaysOffSamplerProxy() {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<AlwaysOffSamplerProxy>();
+    }
 
     std::unique_ptr<trace_sdk::Sampler> getInstance() override {
         return trace_sdk::AlwaysOffSamplerFactory::Create();

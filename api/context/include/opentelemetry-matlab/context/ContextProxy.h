@@ -16,16 +16,15 @@ namespace context_api = opentelemetry::context;
 namespace libmexclass::opentelemetry {
 class ContextProxy : public libmexclass::proxy::Proxy {
   public:
-    // zero input supports the code path for empty context creation
-    // one input supports the code path for getCurrentContext
-    ContextProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) 
-	    : CppContext(constructor_arguments.isEmpty()? context_api::Context() : context_api::RuntimeContext::GetCurrent())
-    {
-        registerMethods();
+    ContextProxy(context_api::Context ctxt) : CppContext{ctxt} {
+        REGISTER_METHOD(ContextProxy, setCurrentContext);
     }
 
-    ContextProxy(context_api::Context ctxt) : CppContext{ctxt} {
-        registerMethods();
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        // zero input supports the code path for empty context creation
+        // one input supports the code path for getCurrentContext
+        return std::make_shared<ContextProxy>(constructor_arguments.isEmpty()? 
+			context_api::Context() : context_api::RuntimeContext::GetCurrent());
     }
 
     context_api::Context getInstance() {
@@ -35,9 +34,6 @@ class ContextProxy : public libmexclass::proxy::Proxy {
     void setCurrentContext(libmexclass::proxy::method::Context& context);
 
   private:
-    void registerMethods() {
-        REGISTER_METHOD(ContextProxy, setCurrentContext);
-    }
 
     context_api::Context CppContext;
 };

@@ -15,7 +15,11 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class TokenProxy : public libmexclass::proxy::Proxy {
   public:
-    TokenProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {}
+    TokenProxy() {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<TokenProxy>();
+    }
 
     void setInstance(nostd::unique_ptr<context_api::Token>& instance) {
         CppToken.swap(instance);

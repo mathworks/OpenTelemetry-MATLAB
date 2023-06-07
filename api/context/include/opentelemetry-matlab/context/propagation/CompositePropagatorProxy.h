@@ -10,6 +10,8 @@
 namespace libmexclass::opentelemetry {
 class CompositePropagatorProxy : public TextMapPropagatorProxy {
   public:
-    CompositePropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
+    CompositePropagatorProxy(nostd::shared_ptr<context_propagation::TextMapPropagator> prop) : TextMapPropagatorProxy(prop) {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 };
 } // namespace libmexclass::opentelemetry

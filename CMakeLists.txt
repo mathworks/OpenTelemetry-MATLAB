@@ -79,6 +79,7 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${CONTEXT_API_SOURCE_DIR}/ContextProxy.cpp
     ${BAGGAGE_API_SOURCE_DIR}/BaggageProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/TracerProviderProxy.cpp
+    ${TRACE_SDK_SOURCE_DIR}/SimpleSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/BatchSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp

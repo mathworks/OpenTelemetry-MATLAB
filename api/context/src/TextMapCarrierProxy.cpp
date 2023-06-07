@@ -3,17 +3,18 @@
 #include "opentelemetry-matlab/context/propagation/TextMapCarrierProxy.h"
 
 namespace libmexclass::opentelemetry {
-TextMapCarrierProxy::TextMapCarrierProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+libmexclass::proxy::MakeResult TextMapCarrierProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::StringArray headers_mda = constructor_arguments[0];
     matlab::data::ArrayDimensions headers_size = headers_mda.getDimensions();
     size_t nheaders = headers_size[0];
     assert(headers_size[1] == 2);    // input should be Nx2
 	
+    HttpTextMapCarrier carrier;
     for (size_t i=0; i<nheaders; ++i) {
-       CppCarrier.Set(std::string(headers_mda[i][0]), std::string(headers_mda[i][1]));
+       carrier.Set(std::string(headers_mda[i][0]), std::string(headers_mda[i][1]));
     }
 
-    registerMethods();
+    return std::make_shared<TextMapCarrierProxy>(carrier);
 }
 
 void TextMapCarrierProxy::getHeaders(libmexclass::proxy::method::Context& context) {

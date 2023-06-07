@@ -13,13 +13,8 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class TracerProxy : public libmexclass::proxy::Proxy {
   public:
-    TracerProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-    {
+    TracerProxy(nostd::shared_ptr<trace_api::Tracer> tr) : CppTracer(tr) {
         REGISTER_METHOD(TracerProxy, startSpan);
-    }
-
-    void setInstance(nostd::shared_ptr<trace_api::Tracer> instance) {
-        CppTracer = instance;
     }
 
     void startSpan(libmexclass::proxy::method::Context& context);

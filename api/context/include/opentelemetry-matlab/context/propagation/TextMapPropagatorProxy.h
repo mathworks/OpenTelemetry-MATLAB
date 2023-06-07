@@ -15,17 +15,16 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class TextMapPropagatorProxy : public libmexclass::proxy::Proxy {
   public:
-    // this constructor should only be used by getTextMapPropagator
-    TextMapPropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-	    : CppPropagator(context_propagation::GlobalTextMapPropagator::GetGlobalPropagator())
+    TextMapPropagatorProxy(nostd::shared_ptr<context_propagation::TextMapPropagator> prop)
+	    : CppPropagator(prop)
     {
-        registerMethods();
+        REGISTER_METHOD(TextMapPropagatorProxy, extract);
+        REGISTER_METHOD(TextMapPropagatorProxy, inject);
+        REGISTER_METHOD(TextMapPropagatorProxy, setTextMapPropagator);
     }
 
-    // default constructor should only be called by subclass constructors
-    TextMapPropagatorProxy()
-    {
-        registerMethods();
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<TextMapPropagatorProxy>(context_propagation::GlobalTextMapPropagator::GetGlobalPropagator());
     }
 
     // getUniquePtrCopy is used by CompositePropagator, which needs a unique_ptr instance
@@ -41,13 +40,6 @@ class TextMapPropagatorProxy : public libmexclass::proxy::Proxy {
 
     void setTextMapPropagator(libmexclass::proxy::method::Context& context) {
 	    context_propagation::GlobalTextMapPropagator::SetGlobalPropagator(CppPropagator);
-    }
-
-  private:
-    void registerMethods() {
-        REGISTER_METHOD(TextMapPropagatorProxy, extract);
-        REGISTER_METHOD(TextMapPropagatorProxy, inject);
-        REGISTER_METHOD(TextMapPropagatorProxy, setTextMapPropagator);
     }
 
   protected:

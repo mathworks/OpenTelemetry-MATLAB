@@ -7,7 +7,7 @@ void ContextProxy::setCurrentContext(libmexclass::proxy::method::Context& contex
     auto token = context_api::RuntimeContext::Attach(CppContext); 
 
     // instantiate TokenProxy instance
-    TokenProxy* newproxy = new TokenProxy(libmexclass::proxy::FunctionArguments());
+    TokenProxy* newproxy = new TokenProxy();
     newproxy->setInstance(token);
     auto tokenproxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
 

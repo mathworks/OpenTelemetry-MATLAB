@@ -14,9 +14,15 @@ classdef SpanContext < handle
         Proxy   % Proxy object to interface C++ code
     end   
 
-    methods (Access=?opentelemetry.trace.Span)
+    methods (Access={?opentelemetry.trace.Span,?opentelemetry.trace.Link})
         function obj = SpanContext(proxy)
-            obj.Proxy = proxy;
+            if nargin < 1
+                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                    "libmexclass.opentelemetry.SpanContextProxy", ...
+                    "ConstructorArguments", {});
+            else
+                obj.Proxy = proxy;
+            end
         end
     end
 

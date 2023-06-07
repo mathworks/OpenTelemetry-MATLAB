@@ -8,14 +8,9 @@
 #include "opentelemetry/sdk/trace/batch_span_processor_factory.h"
 
 namespace libmexclass::opentelemetry::sdk {
-BatchSpanProcessorProxy::BatchSpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) 
-	: SpanProcessorProxy(constructor_arguments) {
-    matlab::data::TypedArray<double> qsize_mda = constructor_arguments[1];
-    double qsize = qsize_mda[0];
-    matlab::data::TypedArray<double> delay_mda = constructor_arguments[2];
-    double delay = delay_mda[0];
-    matlab::data::TypedArray<double> batchsize_mda = constructor_arguments[3];
-    double batchsize = batchsize_mda[0];
+BatchSpanProcessorProxy::BatchSpanProcessorProxy(std::shared_ptr<SpanExporterProxy> exporter, 
+		double qsize, double delay, double batchsize)
+	: SpanProcessorProxy(exporter) {
 
     if (qsize > 0) {
         CppOptions.max_queue_size = static_cast<size_t>(qsize);
@@ -27,6 +22,21 @@ BatchSpanProcessorProxy::BatchSpanProcessorProxy(const libmexclass::proxy::Funct
         CppOptions.max_export_batch_size = static_cast<size_t>(batchsize);
     }
     REGISTER_METHOD(BatchSpanProcessorProxy, getDefaultOptionValues);
+}
+
+libmexclass::proxy::MakeResult BatchSpanProcessorProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+    matlab::data::TypedArray<uint64_t> exporterid_mda = constructor_arguments[0];
+    libmexclass::proxy::ID exporterid = exporterid_mda[0];
+    std::shared_ptr<SpanExporterProxy> exporter = std::static_pointer_cast<SpanExporterProxy>(
+        libmexclass::proxy::ProxyManager::getProxy(exporterid));
+    matlab::data::TypedArray<double> qsize_mda = constructor_arguments[1];
+    double qsize = qsize_mda[0];
+    matlab::data::TypedArray<double> delay_mda = constructor_arguments[2];
+    double delay = delay_mda[0];
+    matlab::data::TypedArray<double> batchsize_mda = constructor_arguments[3];
+    double batchsize = batchsize_mda[0];
+    
+    return std::make_shared<BatchSpanProcessorProxy>(exporter, qsize, delay, batchsize);
 }
 
 std::unique_ptr<trace_sdk::SpanProcessor> BatchSpanProcessorProxy::getInstance() {

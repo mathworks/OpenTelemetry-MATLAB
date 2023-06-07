@@ -19,7 +19,7 @@ namespace resource = opentelemetry::sdk::resource;
 namespace common_sdk = opentelemetry::sdk::common;
 
 namespace libmexclass::opentelemetry::sdk {
-TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+libmexclass::proxy::MakeResult TracerProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::TypedArray<uint64_t> processorid_mda = constructor_arguments[0];
     libmexclass::proxy::ID processorid = processorid_mda[0];
     matlab::data::TypedArray<uint64_t> samplerid_mda = constructor_arguments[1];
@@ -50,12 +50,9 @@ TracerProviderProxy::TracerProviderProxy(const libmexclass::proxy::FunctionArgum
     // the order matters, default resource must come after custom. Otherwise the default resource will be overwritten.
     auto resource_merged = resource_custom.Merge(resource_default);  
 
-    CppTracerProvider = nostd::shared_ptr<trace_api::TracerProvider>(
+    return std::make_shared<TracerProviderProxy>(nostd::shared_ptr<trace_api::TracerProvider>(
 		    std::move(trace_sdk::TracerProviderFactory::Create(std::move(processor), resource_merged,
-		    std::move(sampler))));
-
-    // register methods
-    REGISTER_METHOD(TracerProviderProxy, addSpanProcessor);
+		    std::move(sampler)))));
 }
 
 void TracerProviderProxy::addSpanProcessor(libmexclass::proxy::method::Context& context) {

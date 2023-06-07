@@ -9,7 +9,7 @@
 namespace otlp_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::exporters {
-OtlpGrpcSpanExporterProxy::OtlpGrpcSpanExporterProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+libmexclass::proxy::MakeResult OtlpGrpcSpanExporterProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::StringArray endpoint_mda = constructor_arguments[0];
     std::string endpoint = static_cast<std::string>(endpoint_mda[0]);
     matlab::data::TypedArray<bool> use_ssl_mda = constructor_arguments[1];
@@ -25,28 +25,28 @@ OtlpGrpcSpanExporterProxy::OtlpGrpcSpanExporterProxy(const libmexclass::proxy::F
     matlab::data::StringArray headernames_mda = constructor_arguments[5];
     matlab::data::StringArray headervalues_mda = constructor_arguments[6];
 
+    otlp_exporter::OtlpGrpcExporterOptions options;
     if (!endpoint.empty()) {
-        CppOptions.endpoint = endpoint;
+        options.endpoint = endpoint;
     } 
     // use_ssl
-    CppOptions.use_ssl_credentials = use_ssl;
+    options.use_ssl_credentials = use_ssl;
     if (!certpath.empty()) {
-        CppOptions.ssl_credentials_cacert_path = certpath;
+        options.ssl_credentials_cacert_path = certpath;
     } 
     if (!certstring.empty()) {
-        CppOptions.ssl_credentials_cacert_as_string = certstring;
+        options.ssl_credentials_cacert_as_string = certstring;
     } 
     // timeout
     if (timeout >= 0) {
-        CppOptions.timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout));
+        options.timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout));
     }
     // http headers
     for (size_t i = 0; i < nheaders; ++i) {
-        CppOptions.metadata.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
+        options.metadata.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
 				static_cast<std::string>(headervalues_mda[i])});
     }
-
-    REGISTER_METHOD(OtlpGrpcSpanExporterProxy, getDefaultOptionValues);
+    return std::make_shared<OtlpGrpcSpanExporterProxy>(options);
 }
 
 std::unique_ptr<trace_sdk::SpanExporter> OtlpGrpcSpanExporterProxy::getInstance() {

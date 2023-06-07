@@ -20,8 +20,7 @@ void TracerProviderProxy::getTracer(libmexclass::proxy::method::Context& context
    auto tr = CppTracerProvider->GetTracer(name, version, schema);
 
    // instantiate a TracerProxy instance
-   TracerProxy* newproxy = new TracerProxy(libmexclass::proxy::FunctionArguments());
-   newproxy->setInstance(tr);
+   TracerProxy* newproxy = new TracerProxy(tr);
    auto trproxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
     
    // obtain a proxy ID

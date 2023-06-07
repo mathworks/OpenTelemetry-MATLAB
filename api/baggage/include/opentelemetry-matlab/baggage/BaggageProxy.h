@@ -12,7 +12,14 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class BaggageProxy : public libmexclass::proxy::Proxy {
   public:
-    BaggageProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments); 
+    BaggageProxy(nostd::shared_ptr<baggage_api::Baggage> bag) : CppBaggage(bag) {
+        REGISTER_METHOD(BaggageProxy, getAllEntries);
+        REGISTER_METHOD(BaggageProxy, setEntries);
+        REGISTER_METHOD(BaggageProxy, deleteEntries);
+        REGISTER_METHOD(BaggageProxy, insertBaggage);
+    }
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     void getAllEntries(libmexclass::proxy::method::Context& context);
     void setEntries(libmexclass::proxy::method::Context& context);

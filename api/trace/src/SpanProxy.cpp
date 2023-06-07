@@ -8,10 +8,10 @@
 
 #include "libmexclass/proxy/ProxyManager.h"
 
+#include "opentelemetry/trace/context.h"
 #include "opentelemetry/trace/scope.h"
 #include "opentelemetry/trace/span_metadata.h"
 #include "opentelemetry/trace/span_startoptions.h"
-#include "opentelemetry/trace/context.h"
 
 #include <assert.h>
 #include <chrono>
@@ -21,25 +21,16 @@ namespace common = opentelemetry::common;
 
 namespace libmexclass::opentelemetry {
 
-SpanProxy::SpanProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-{
-    if (!constructor_arguments.isEmpty()) {
-       // called from opentelemetry.trace.Context.ExtractSpan
-       matlab::data::TypedArray<uint64_t> contextid_mda = constructor_arguments[0];
-       libmexclass::proxy::ID contextid = contextid_mda[0];
-       context_api::Context ctxt = std::static_pointer_cast<ContextProxy>(
-                   libmexclass::proxy::ProxyManager::getProxy(contextid))->getInstance();
-       CppSpan = trace_api::GetSpan(ctxt);
-    }
-    REGISTER_METHOD(SpanProxy, endSpan);
-    REGISTER_METHOD(SpanProxy, makeCurrent);
-    REGISTER_METHOD(SpanProxy, setAttribute);
-    REGISTER_METHOD(SpanProxy, addEvent);
-    REGISTER_METHOD(SpanProxy, updateName);
-    REGISTER_METHOD(SpanProxy, setStatus);
-    REGISTER_METHOD(SpanProxy, getSpanContext);
-    REGISTER_METHOD(SpanProxy, isRecording);
-    REGISTER_METHOD(SpanProxy, insertSpan);
+// Spans should only be directly constructed from MATLAB when called from opentelemetry.trace.Context.ExtractSpan, which 
+// constructs a span from a context object
+libmexclass::proxy::MakeResult SpanProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+    libmexclass::proxy::MakeResult makeresult;
+    matlab::data::TypedArray<uint64_t> contextid_mda = constructor_arguments[0];
+    libmexclass::proxy::ID contextid = contextid_mda[0];
+    context_api::Context ctxt = std::static_pointer_cast<ContextProxy>(
+             libmexclass::proxy::ProxyManager::getProxy(contextid))->getInstance();
+    makeresult = std::make_shared<SpanProxy>(trace_api::GetSpan(ctxt));
+    return makeresult;
 }
 
 void SpanProxy::endSpan(libmexclass::proxy::method::Context& context) {

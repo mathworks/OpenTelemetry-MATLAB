@@ -24,9 +24,9 @@ class SpanContextProxy : public libmexclass::proxy::Proxy {
         REGISTER_METHOD(SpanContextProxy, isRemote);
     }
 
-    // dummy constructor that wraps around an invalid context, to satisfy proxy registration
-    SpanContextProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) :
-	CppSpanContext{false,false} {
+    // dummy make static method, to satisfy proxy registration
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<SpanContextProxy>(trace_api::SpanContext{false, false});
     }
 
     trace_api::SpanContext getInstance() {

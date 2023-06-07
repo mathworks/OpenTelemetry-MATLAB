@@ -10,7 +10,11 @@
 namespace libmexclass::opentelemetry::sdk {
 class TracerProviderProxy : public libmexclass::opentelemetry::TracerProviderProxy {
   public:
-    TracerProviderProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
+    TracerProviderProxy(nostd::shared_ptr<trace_api::TracerProvider> tp) : libmexclass::opentelemetry::TracerProviderProxy(tp) {
+        REGISTER_METHOD(TracerProviderProxy, addSpanProcessor);
+    }
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     void addSpanProcessor(libmexclass::proxy::method::Context& context);
 };

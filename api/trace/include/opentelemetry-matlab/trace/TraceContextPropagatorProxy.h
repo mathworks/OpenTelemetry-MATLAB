@@ -15,9 +15,11 @@ namespace context_propagation = opentelemetry::context::propagation;
 namespace libmexclass::opentelemetry {
 class TraceContextPropagatorProxy : public TextMapPropagatorProxy {
   public:
-    TraceContextPropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-    {
-        CppPropagator = nostd::shared_ptr<context_propagation::TextMapPropagator>(new trace_propagation::HttpTraceContext());
+    TraceContextPropagatorProxy() : TextMapPropagatorProxy(nostd::shared_ptr<context_propagation::TextMapPropagator>(
+			    new trace_propagation::HttpTraceContext())) {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<TraceContextPropagatorProxy>();
     }
 
     // getUniquePtrCopy is used by CompositePropagator, which needs a unique_ptr instance

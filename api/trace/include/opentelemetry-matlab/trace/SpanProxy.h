@@ -13,11 +13,19 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class SpanProxy : public libmexclass::proxy::Proxy {
   public:
-    SpanProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments);
-
-    void setInstance(nostd::shared_ptr<trace_api::Span> instance) {
-        CppSpan = instance;
+    SpanProxy(nostd::shared_ptr<trace_api::Span> span) : CppSpan(span) {
+        REGISTER_METHOD(SpanProxy, endSpan);
+        REGISTER_METHOD(SpanProxy, makeCurrent);
+        REGISTER_METHOD(SpanProxy, setAttribute);
+        REGISTER_METHOD(SpanProxy, addEvent);
+        REGISTER_METHOD(SpanProxy, updateName);
+        REGISTER_METHOD(SpanProxy, setStatus);
+        REGISTER_METHOD(SpanProxy, getSpanContext);
+        REGISTER_METHOD(SpanProxy, isRecording);
+        REGISTER_METHOD(SpanProxy, insertSpan);
     }
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     void endSpan(libmexclass::proxy::method::Context& context);
 

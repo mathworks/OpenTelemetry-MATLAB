@@ -15,9 +15,11 @@ namespace context_propagation = opentelemetry::context::propagation;
 namespace libmexclass::opentelemetry {
 class BaggagePropagatorProxy : public TextMapPropagatorProxy {
   public:
-    BaggagePropagatorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments)
-    {
-        CppPropagator = nostd::shared_ptr<context_propagation::TextMapPropagator>(new baggage_propagation::BaggagePropagator());
+    BaggagePropagatorProxy() : TextMapPropagatorProxy(nostd::shared_ptr<context_propagation::TextMapPropagator>(
+			    new baggage_propagation::BaggagePropagator())) {}
+
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+        return std::make_shared<BaggagePropagatorProxy>();
     }
 
     // getUniquePtrCopy is used by CompositePropagator, which needs a unique_ptr instance

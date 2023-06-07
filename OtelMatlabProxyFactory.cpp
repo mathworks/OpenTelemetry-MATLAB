@@ -25,12 +25,12 @@
 #include "opentelemetry-matlab/exporters/otlp/OtlpHttpSpanExporterProxy.h"
 #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcSpanExporterProxy.h"
 
-std::shared_ptr<libmexclass::proxy::Proxy>
+libmexclass::proxy::MakeResult
 OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_name,
                                const libmexclass::proxy::FunctionArguments& constructor_arguments) {
 
     REGISTER_PROXY(libmexclass.opentelemetry.TracerProviderProxy, libmexclass::opentelemetry::TracerProviderProxy);
-    REGISTER_PROXY(libmexclass.opentelemetry.TracerProxy, libmexclass::opentelemetry::TracerProxy);
+    //REGISTER_PROXY(libmexclass.opentelemetry.TracerProxy, libmexclass::opentelemetry::TracerProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.SpanProxy, libmexclass::opentelemetry::SpanProxy);
     //REGISTER_PROXY(libmexclass.opentelemetry.ScopeProxy, libmexclass::opentelemetry::ScopeProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.SpanContextProxy, libmexclass::opentelemetry::SpanContextProxy);

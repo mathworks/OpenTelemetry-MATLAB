@@ -17,12 +17,7 @@ class SpanProcessorProxy : public libmexclass::proxy::Proxy {
     virtual std::unique_ptr<trace_sdk::SpanProcessor> getInstance() = 0;
 
   protected:
-    SpanProcessorProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
-        matlab::data::TypedArray<uint64_t> exporterid_mda = constructor_arguments[0];
-        libmexclass::proxy::ID exporterid = exporterid_mda[0];
-        SpanExporter = std::static_pointer_cast<SpanExporterProxy>(
-			libmexclass::proxy::ProxyManager::getProxy(exporterid));
-    }
+    SpanProcessorProxy(std::shared_ptr<SpanExporterProxy> exporter) : SpanExporter(exporter) {}
 
     std::shared_ptr<SpanExporterProxy> SpanExporter;
 };

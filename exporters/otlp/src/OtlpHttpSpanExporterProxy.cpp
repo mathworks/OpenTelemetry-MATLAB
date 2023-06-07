@@ -9,7 +9,7 @@
 namespace otlp_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::exporters {
-OtlpHttpSpanExporterProxy::OtlpHttpSpanExporterProxy(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
+libmexclass::proxy::MakeResult OtlpHttpSpanExporterProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     matlab::data::StringArray endpoint_mda = constructor_arguments[0];
     std::string endpoint = static_cast<std::string>(endpoint_mda[0]);
     matlab::data::StringArray dataformat_mda = constructor_arguments[1];
@@ -25,36 +25,37 @@ OtlpHttpSpanExporterProxy::OtlpHttpSpanExporterProxy(const libmexclass::proxy::F
     matlab::data::StringArray headernames_mda = constructor_arguments[5];
     matlab::data::StringArray headervalues_mda = constructor_arguments[6];
 
+    otlp_exporter::OtlpHttpExporterOptions options;
     if (!endpoint.empty()) {
-        CppOptions.url = endpoint;
+        options.url = endpoint;
     } 
     // TODO: store the relationship between strings and enums in an associative container
     // dataformat
     if (dataformat.compare("JSON") == 0) {
-        CppOptions.content_type = otlp_exporter::HttpRequestContentType::kJson;
+        options.content_type = otlp_exporter::HttpRequestContentType::kJson;
     } else if (dataformat.compare("binary") == 0) {
-        CppOptions.content_type = otlp_exporter::HttpRequestContentType::kBinary;
+        options.content_type = otlp_exporter::HttpRequestContentType::kBinary;
     }
     // json_bytes_mapping
     if (json_bytes_mapping.compare("hex") == 0) {
-        CppOptions.json_bytes_mapping = otlp_exporter::JsonBytesMappingKind::kHex;
+        options.json_bytes_mapping = otlp_exporter::JsonBytesMappingKind::kHex;
     } else if (json_bytes_mapping.compare("hexId") == 0) {
-        CppOptions.json_bytes_mapping = otlp_exporter::JsonBytesMappingKind::kHexId;
+        options.json_bytes_mapping = otlp_exporter::JsonBytesMappingKind::kHexId;
     } else if (json_bytes_mapping.compare("base64") == 0) {
-        CppOptions.json_bytes_mapping = otlp_exporter::JsonBytesMappingKind::kBase64;
+        options.json_bytes_mapping = otlp_exporter::JsonBytesMappingKind::kBase64;
     }
     // use_json_name
-    CppOptions.use_json_name = use_json_name;
+    options.use_json_name = use_json_name;
     // timeout
     if (timeout >= 0) {
-        CppOptions.timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout));
+        options.timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout));
     }
     // http headers
     for (size_t i = 0; i < nheaders; ++i) {
-        CppOptions.http_headers.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
+        options.http_headers.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
 				static_cast<std::string>(headervalues_mda[i])});
     }
-    REGISTER_METHOD(OtlpHttpSpanExporterProxy, getDefaultOptionValues);
+    return std::make_shared<OtlpHttpSpanExporterProxy>(options);
 }
 
 std::unique_ptr<trace_sdk::SpanExporter> OtlpHttpSpanExporterProxy::getInstance() {
