@@ -6,16 +6,38 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
 % Copyright 2023 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Endpoint (1,1) string
-        Format (1,1) string
-        JsonBytesMapping (1,1) string
-        UseJsonName (1,1) logical
-        Timeout (1,1) duration
-        HttpHeaders (1,1) dictionary
+        Endpoint (1,1) string           % Export destination
+        Format (1,1) string             % Data format, JSON or binary
+        JsonBytesMapping (1,1) string   % What to convert JSON bytes to
+        UseJsonName (1,1) logical       % Whether to use JSON name of protobuf field to set the key of JSON 
+        Timeout (1,1) duration          % Maximum time above which exports will abort
+        HttpHeaders (1,1) dictionary    % Additional HTTP headers
     end
 
     methods
         function obj = OtlpHttpSpanExporter(optionnames, optionvalues)
+            % OtlpHttpSpanExporter exports spans in OpenTelemetry Protocol format via HTTP.
+            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER
+            %    creates an exporter that uses default configurations.
+            %
+            %    EXP =
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER(PARAM1,
+            %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
+            %    name/value pairs. Parameters are:
+            %       "Endpoint"          - Endpoint to export to
+            %       "Format"            - Data format: "JSON" (default) or "binary"
+            %       "JsonBytesMapping"  - What to convert JSON bytes to. Supported
+            %                             values are "hex", "hexId" (default), and
+            %                             "base64". Default "hexId"
+            %                             converts to base 64 except for IDs
+            %                             which are converted to hexadecimals.
+            %       "UseJsonName"       - Whether to use JSON name of protobuf 
+            %                             field to set the key of JSON
+            %       "Timeout"           - Maximum time above which exports 
+            %                             will abort
+            %       "HTTPHeaders"       - Additional HTTP Headers
+            %
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

@@ -6,16 +6,38 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
 % Copyright 2023 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Endpoint (1,1) string
-        UseCredentials  (1,1) logical
-        CertificatePath (1,1) string
-        CertificateString (1,1) string
-        Timeout (1,1) duration
-        HttpHeaders (1,1) dictionary
+        Endpoint (1,1) string               % Export destination
+        UseCredentials  (1,1) logical       % Whether to use SSL credentials
+        CertificatePath (1,1) string        % Path to .pem file for SSL encryption
+        CertificateString (1,1) string      % In-memory string representation of .pem file for SSL encryption
+        Timeout (1,1) duration              % Maximum time above which exports will abort
+        HttpHeaders (1,1) dictionary        % Additional HTTP headers
     end
 
     methods
         function obj = OtlpGrpcSpanExporter(optionnames, optionvalues)
+            % OtlpGrpcSpanExporter exports spans in OpenTelemetry Protocol format via gRPC.
+            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER
+            %    creates an exporter that uses default configurations.
+            %
+            %    EXP =
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER(PARAM1,
+            %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
+            %    name/value pairs. Parameters are:
+            %       "Endpoint"          - Endpoint to export to
+            %       "UseCredentials"    - Whether to use SSL credentials.
+            %                             Default is false. If true, use
+            %                             .pem file specified in
+            %                             "CertificatePath" or
+            %                             "CertificateString".
+            %       "CertificatePath"   - Path to .pem file for SSL encryption
+            %       "CertificateString" - .pem file specified in memory as
+            %                             a string
+            %       "Timeout"           - Maximum time above which exports 
+            %                             will abort
+            %       "HTTPHeaders"       - Additional HTTP Headers
+            %
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues
