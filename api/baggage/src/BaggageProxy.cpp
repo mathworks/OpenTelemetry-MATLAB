@@ -10,6 +10,8 @@
 
 #include "MatlabDataArray.hpp"
 
+#include <list>
+
 namespace libmexclass::opentelemetry {
 
 libmexclass::proxy::MakeResult BaggageProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {

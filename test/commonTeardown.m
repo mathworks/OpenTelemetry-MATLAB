@@ -3,6 +3,9 @@ function commonTeardown(testCase)
 %
 % Copyright 2023 The MathWorks, Inc.
 
+% Terminate Collector if it is still running
+terminateCollector(testCase);
+
 % On Windows, a command prompt has popped up, remove it as clean up
 if ispc
     system(testCase.TestData.list("cmd") + "  > " + testCase.TestData.pidfile);
@@ -11,5 +14,9 @@ if ispc
     system(testCase.TestData.sigterm(pid));
 end
 
-delete(testCase.TestData.jsonfile);
-delete(testCase.TestData.pidfile);
+if exist(testCase.TestData.jsonfile, "file")
+    delete(testCase.TestData.jsonfile);
+end
+if exist(testCase.TestData.pidfile, "file")
+    delete(testCase.TestData.pidfile);
+end

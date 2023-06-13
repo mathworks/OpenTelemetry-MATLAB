@@ -38,6 +38,7 @@ newcontext = propagator.extract(carrier);
 tp = opentelemetry.sdk.trace.TracerProvider();
 tr = getTracer(tp, "bar");
 sp = startSpan(tr, "quux", Context=newcontext);
+pause(1);
 endSpan(sp);
 
 % perform test comparisons
