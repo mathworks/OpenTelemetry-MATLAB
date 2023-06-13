@@ -2,7 +2,7 @@
 
 MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), based on the [OpenTelemetry Specification](https://opentelemetry.io/docs/reference/specification/). OpenTelemetry is an observability framework for creating and managing telemetry data, such as traces, metrics, and logs. This data can then be sent to an observability back-end for monitoring, alerts, and analysis. 
 
-## Status
+### Status
 - Currently only tracing is supported. Metrics and logs will be in the future.
 - This package is supported and has been tested on Windows&reg; and Linux&reg;. We will add macOS support in the future. 
 
@@ -37,17 +37,17 @@ Before proceeding, ensure that the below products are installed:
 
 2. Download, build and install [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
 ```
-cd \<opentelemetry-cpp-root>\
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP_HTTP=TRUE -DWITH_OTLP_GRPC=TRUE -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=\<vcpkg_root>\scripts\buildsystems\vcpkg.cmake
+cd <opentelemetry-cpp-root>
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP_HTTP=TRUE -DWITH_OTLP_GRPC=TRUE -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake
 cmake --build build --config Release --target ALL_BUILD
-cmake --install build --prefix \<opentelemetry-cpp-installdir>\
+cmake --install build --prefix <opentelemetry-cpp-installdir>
 ```
 3. Download OpenTelemetry MATLAB
 
 4. Build and install OpenTelemetry MATLAB
 ```
-cd \<opentelemetry-matlab-root>\
-cmake -S . -B build -DCMAKE_INSTALL_PREFIX=\<opentelemetry-matlab-installdir>\ -DCMAKE_TOOLCHAIN_FILE=\<vcpkg_root>\scripts\buildsystems\vcpkg.cmake -DCMAKE_PREFIX_PATH=\<path to opentelemetry-cpp-config.cmake>\
+cd <opentelemetry-matlab-root>
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=<opentelemetry-matlab-installdir> -DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake -DCMAKE_PREFIX_PATH=<path to opentelemetry-cpp-config.cmake>
 cmake --build build --config Release --target install
 
 ```
@@ -56,12 +56,12 @@ cmake --build build --config Release --target install
 ## Getting Started
 1. Start OpenTelemetry Collector
 ```
-otelcol --config \<otelcol-config-yaml>\
+otelcol --config <otelcol-config-yaml>
 ```
 2. Start MATLAB
 3. Add the OpenTelemetry MATLAB install directories to your MATLAB path
 ```
->> addpath \<OpenTelemetry MATLAB installdir>\
+>> addpath <OpenTelemetry MATLAB installdir>
 ```
 ## Examples
 1. Create a default tracer provider and save it.
@@ -81,7 +81,7 @@ otelcol --config \<otelcol-config-yaml>\
 4. If your collector is configured to display the data, you should see your span displayed. 
 
 ## Help
-To view documentation of individual function, type "help <function_name>". For example,
+To view documentation of individual function, type "help \<function_name>\". For example,
 ```
 >> help opentelemetry.sdk.trace.TracerProvider
 ```
