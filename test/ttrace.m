@@ -518,6 +518,10 @@ sp4 = startSpan(tr, "quz", "Links", [l2 l3]);
 
 endSpan(sp4);
 
+% end the rest of the spans
+endSpan(sp1);
+endSpan(sp3);
+
 results = readJsonResults(testCase);
 
 % one link, no attributes

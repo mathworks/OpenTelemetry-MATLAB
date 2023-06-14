@@ -145,6 +145,7 @@ scope = makeCurrent(sp); %#ok<NASGU>
 % inject
 carrier = opentelemetry.context.propagation.injectContext();
 headers = carrier.Headers;
+endSpan(sp);
 
 % verify the injected traceparent contains the trace and span IDs
 verifySubstring(testCase, headers(1,2), spancontext.TraceId);
@@ -378,6 +379,7 @@ token = setCurrentContext(newcontext); %#ok<NASGU>
 % inject
 carrier = opentelemetry.context.propagation.injectContext();
 headers = carrier.Headers;
+endSpan(sp);
 
 % verify the baggage header
 baggagerow = find(headers(:,1) == "baggage");
