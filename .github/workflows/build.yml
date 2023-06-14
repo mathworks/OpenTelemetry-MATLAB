@@ -26,23 +26,23 @@ jobs:
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v1
             - name: Install vcpkg packages
-              run:
+              run: |
                   cd vcpkg
                   ./bootstrap-vcpkg.sh
                   ./vcpkg install abseil c-ares curl grpc nlohmann-json openssl protobuf re2 upb zlib gtest benchmark
             - name: Download OpenTelemetry Collector binary
-              run:
+              run: |
                   mkdir otelcol && cd otelcol
                   wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.75.0/otelcol_0.75.0_linux_amd64.tar.gz
                   tar -xzf otelcol_0.75.0_linux_amd64.tar.gz
             - name: Build OpenTelemetry-cpp
-              run:
+              run: |
                   cd opentelemetry-cpp
                   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP_HTTP=TRUE -DWITH_OTLP_GRPC=TRUE -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
                   cmake --build build --config Release --target all
                   cmake --install build --prefix ${{ env.OPENTELEMETRY_CPP_INSTALL }}
             - name: Build OpenTelemetry-Matlab
-              run:
+              run: |
                   cd opentelemetry-matlab
                   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }} -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=${{ env.OPENTELEMETRY_CPP_INSTALL }}/lib/cmake/opentelemetry-cpp
                   cmake --build build --config Release --target install
