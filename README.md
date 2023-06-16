@@ -22,23 +22,15 @@ Before proceeding, ensure that the below products are installed:
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
 
 1. Download [vcpkg](https://vcpkg.io). Install the following packages:
-- abseil
-- c-ares
 - curl
-- grpc
 - nlohmann-json
-- openssl
 - protobuf
-- re2
-- upb
 - zlib
-- gtest
-- benchmark
 
 2. Download, build and install [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
 ```
 cd <opentelemetry-cpp-root>
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP_HTTP=TRUE -DWITH_OTLP_GRPC=TRUE -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP_HTTP=ON -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake
 cmake --build build --config Release --target ALL_BUILD
 cmake --install build --prefix <opentelemetry-cpp-installdir>
 ```
