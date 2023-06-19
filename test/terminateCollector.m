@@ -12,6 +12,7 @@ retry = 0;
 % Retry up to 3 times
 while ~isempty(pid) && retry < 4
     system(testCase.TestData.sigint(pid));
+    pause(2);  % give a little time for the collector to shut down
     system(testCase.TestData.list("otelcol") + " > " + testCase.TestData.pidfile);
     tbl = testCase.TestData.readlist(testCase.TestData.pidfile);
     pid = testCase.TestData.extractPid(tbl);

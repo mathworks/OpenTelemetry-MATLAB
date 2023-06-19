@@ -37,7 +37,7 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
             %    OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER  
             arguments
       	       spanexporter {mustBeA(spanexporter, "opentelemetry.sdk.trace.SpanExporter")} = ...
-                   opentelemetry.exporters.otlp.OtlpHttpSpanExporter()
+                   opentelemetry.exporters.otlp.defaultSpanExporter()
             end
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}

@@ -20,7 +20,7 @@ classdef SimpleSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
             %    OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER  
             arguments
       	       spanexporter {mustBeA(spanexporter, "opentelemetry.sdk.trace.SpanExporter")} = ...
-                   opentelemetry.exporters.otlp.OtlpHttpSpanExporter()
+                   opentelemetry.exporters.otlp.defaultSpanExporter()
             end
 
             obj = obj@opentelemetry.sdk.trace.SpanProcessor(spanexporter, ...

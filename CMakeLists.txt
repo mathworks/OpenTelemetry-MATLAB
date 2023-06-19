@@ -10,7 +10,11 @@ project(${CLIENT_PROJECT_NAME} VERSION 0.1.0)
 # Options
 # ######################################
 
+option(WITH_OTLP_HTTP "Whether to include the OTLP HTTP exporter" ON)
 option(WITH_OTLP_GRPC "Whether to include the OTLP gRPC exporter" OFF)
+if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC)
+    message(FATAL_ERROR "At least one of WITH_OTLP_HTTP and WITH_OTLP_GRPC must be ON")
+endif()
 
 # ######################################
 # libmexclass FetchContent Configuration
@@ -44,12 +48,16 @@ set(OPENTELEMETRY_PROXY_LIBRARY_NAME "OtelMatlabProxy")
 
 # Specify location for find_package to locate opentelemetry-cpp-config.cmake
 find_package(opentelemetry-cpp CONFIG REQUIRED)
-find_package(CURL REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(nlohmann_json REQUIRED)
 if(WIN32)
     find_package(zlib REQUIRED)
 endif()
+
+if(WITH_OTLP_HTTP)
+    find_package(CURL REQUIRED)
+endif()
+
 if(WITH_OTLP_GRPC)
     find_package(gRPC REQUIRED)
     find_package(absl REQUIRED)
@@ -91,9 +99,11 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${TRACE_SDK_SOURCE_DIR}/TracerProviderProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/SimpleSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/BatchSpanProcessorProxy.cpp
-    ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp
-    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp
-)
+    ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp)
+if(WITH_OTLP_HTTP)
+    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
+	${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp)
+endif()
 if(WITH_OTLP_GRPC)
     set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
         ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp)
@@ -105,16 +115,24 @@ libmexclass_client_add_proxy_library(
     INCLUDE_DIRS ${OPENTELEMETRY_PROXY_INCLUDE_DIRS}
 )
 
-# Additional compiler flags for gRPC exporter
+# Additional compiler flags for HTTP/gRPC exporters
+if(WITH_OTLP_HTTP)
+    if(WIN32)
+	set(OTLP_MACROS /DWITH_OTLP_HTTP)
+    else()
+	set(OTLP_MACROS -D WITH_OTLP_HTTP)
+    endif()
+endif()
+
 if(WITH_OTLP_GRPC)
     if(WIN32)
-        set(OTLP_GRPC_MACRO /DWITH_OTLP_GRPC)
+	set(OTLP_MACROS ${OTLP_MACROS} /DWITH_OTLP_GRPC)
     else()
-        set(OTLP_GRPC_MACRO "-D WITH_OTLP_GRPC")
+	set(OTLP_MACROS ${OTLP_MACROS} -D WITH_OTLP_GRPC)
     endif()
-
-    target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_GRPC_MACRO})
 endif()
+    
+target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
 target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_CPP_LIBRARIES})
@@ -135,18 +153,23 @@ target_compile_features(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE cxx_std_17)
 if(WIN32)
     # runtime dependent libraries
     set(DEPENDS_BINDIR $<$<CONFIG:Debug>:debug/bin>$<$<CONFIG:Release>:bin>)
-    FILE(GLOB CURL_RUNTIME ${CURL_INCLUDE_DIRS}/../bin/*.dll)
+    FILE(GLOB PROTOBUF_RUNTIME ${PROTOBUF_INCLUDE_DIRS}/../bin/*.dll)
     FILE(GLOB ZLIB_RUNTIME ${ZLIB_INCLUDE_DIRS}/../bin/*.dll)
 
-    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${CURL_RUNTIME}
-	${PROTOBUF_RUNTIME}
+    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${PROTOBUF_RUNTIME}
         ${ZLIB_RUNTIME})
+
+    if(WITH_OTLP_HTTP)
+        FILE(GLOB CURL_RUNTIME ${CURL_INCLUDE_DIRS}/../bin/*.dll)
+	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
+	    ${CURL_RUNTIME})
+    endif()
+
     if(WITH_OTLP_GRPC)
         FILE(GLOB ABSEIL_RUNTIME ${ABSL_INCLUDE_DIRS}/../bin/*.dll)
         FILE(GLOB C_ARES_RUNTIME ${C-ARES_INCLUDE_DIR}/../bin/*.dll)
         FILE(GLOB OPENSSL_RUNTIME ${OPENSSL_INCLUDE_DIR}/../bin/*.dll)
         FILE(GLOB RE2_RUNTIME ${RE2_INCLUDE_DIR}/../bin/*.dll)
-        FILE(GLOB PROTOBUF_RUNTIME ${PROTOBUF_INCLUDE_DIRS}/../bin/*.dll)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
             ${ABSEIL_RUNTIME}
             ${C_ARES_RUNTIME}
@@ -188,6 +211,7 @@ set(TRACE_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/+opentelemetr
 set(CONTEXT_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/context/+opentelemetry)
 set(BAGGAGE_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/+opentelemetry)
 set(TRACE_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/+opentelemetry)
+set(DEFAULT_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m)
 set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m)
 set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m)
 
@@ -197,7 +221,10 @@ install(DIRECTORY ${TRACE_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${CONTEXT_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${BAGGAGE_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${TRACE_SDK_MATLAB_SOURCES} DESTINATION .)
-install(FILES ${OTLP_HTTP_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
+install(FILES ${DEFAULT_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
+if(WITH_OTLP_HTTP)
+    install(FILES ${OTLP_HTTP_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
+endif()
 if(WITH_OTLP_GRPC)
     install(FILES ${OTLP_GRPC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 endif()

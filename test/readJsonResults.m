@@ -5,7 +5,6 @@ function jsonresults = readJsonResults(testCase)
 
 terminateCollector(testCase);
 
-pause(1);
 assert(exist(testCase.TestData.jsonfile, "file"));
 
 fid = fopen(testCase.TestData.jsonfile);
