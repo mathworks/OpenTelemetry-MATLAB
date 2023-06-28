@@ -49,4 +49,4 @@ jobs:
             - name: Run tests
               uses: matlab-actions/run-command@v1
               with:
-                  command: addpath("${{ env.OPENTELEMETRY_MATLAB_INSTALL }}"), cd(fullfile("opentelemetry-matlab","test")), runtests("."); 
+                  command: addpath("${{ env.OPENTELEMETRY_MATLAB_INSTALL }}"), cd(fullfile("opentelemetry-matlab","test")), results = runtests, assertSuccess(results); 
