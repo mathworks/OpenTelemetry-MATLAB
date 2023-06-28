@@ -64,7 +64,8 @@ verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
 resourcekeys = string({results.resourceSpans.resource.attributes.key});
 languageidx = find(resourcekeys == "telemetry.sdk.language");
 verifyNotEmpty(testCase, languageidx);
-verifyEqual(testCase, results.resourceSpans.resource.attributes(languageidx).value.stringValue, 'MATLAB');
+% FIXME: Note the following test is intentionally incorrect to check tests are in fact running
+verifyEqual(testCase, results.resourceSpans.resource.attributes(languageidx).value.stringValue, 'MALTAB');
 
 versionidx = find(resourcekeys == "telemetry.sdk.version");
 verifyNotEmpty(testCase, versionidx);
