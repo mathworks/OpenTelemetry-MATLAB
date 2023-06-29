@@ -7,6 +7,7 @@ jobs:
             OPENTELEMETRY_CPP_INSTALL: "/home/runner/work/otel_cpp_install"
             OPENTELEMETRY_MATLAB_INSTALL: "/home/runner/work/otel_matlab_install"
             OPENTELEMETRY_COLLECTOR_INSTALL: "../../otelcol"
+            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
@@ -48,6 +49,11 @@ jobs:
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
+                 # The version of libstdc++ that is bundled with MATLAB is used when building MEX files.
+                 # This version of libstdc++ is incompatible with the system version of libstdc++.
+                 # As a workaround, set LD_PRELOAD to use the system version of libstdc++ with MATLAB.
+                 LD_PRELOAD: ${{ env.SYSTEM_LIBSTDCPP_PATH }}
+
                  # Add the installation directory to the MATLAB Search Path by
                  # setting the MATLABPATH environment variable.
                  MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
