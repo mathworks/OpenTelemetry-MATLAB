@@ -47,6 +47,10 @@ jobs:
                   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }} -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=${{ env.OPENTELEMETRY_CPP_INSTALL }}/lib/cmake/opentelemetry-cpp
                   cmake --build build --config Release --target install
             - name: Run tests
-              uses: matlab-actions/run-command@v1
+              env:
+                 # Add the installation directory to the MATLAB Search Path by
+                 # setting the MATLABPATH environment variable.
+                 MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              uses: matlab-actions/run-tests@v1
               with:
-                  command: addpath("${{ env.OPENTELEMETRY_MATLAB_INSTALL }}"), cd(fullfile("opentelemetry-matlab","test")), pwd, ls, results = runtests, assertSuccess(results); 
+                 select-by-folder: opentelemetry-matlab/test
