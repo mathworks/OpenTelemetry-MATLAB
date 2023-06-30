@@ -5,13 +5,13 @@ classdef tbaggage < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            testCase.TestData.otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
+            testCase.otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
 
             % set up path
-            addpath(testCase.TestData.otelroot);
+            addpath(testCase.otelroot);
 
-            testCase.TestData.baggageKeys = ["userId", "serverNode", "isProduction"];
-            testCase.TestData.baggageValues = ["alice", "DF28", "false"];
+            testCase.baggageKeys = ["userId", "serverNode", "isProduction"];
+            testCase.baggageValues = ["alice", "DF28", "false"];
         end
     end
 
@@ -20,8 +20,8 @@ classdef tbaggage < matlab.unittest.TestCase
             % testCreate: creating a baggage object
 
             % create a baggage
-            baggagekeys = testCase.TestData.baggageKeys;
-            baggagevalues = testCase.TestData.baggageValues;
+            baggagekeys = testCase.baggageKeys;
+            baggagevalues = testCase.baggageValues;
             bag = opentelemetry.baggage.Baggage(dictionary(baggagekeys, baggagevalues));
             bagentries = bag.Entries;
 
@@ -34,8 +34,8 @@ classdef tbaggage < matlab.unittest.TestCase
             % testSetEntries: setting baggage entries
 
             % create a baggage
-            baggagekeys = testCase.TestData.baggageKeys;
-            baggagevalues = testCase.TestData.baggageValues;
+            baggagekeys = testCase.baggageKeys;
+            baggagevalues = testCase.baggageValues;
             bag = opentelemetry.baggage.Baggage(dictionary(baggagekeys, baggagevalues));
 
             % add a new key-value pair and modify a value
@@ -54,8 +54,8 @@ classdef tbaggage < matlab.unittest.TestCase
             % testDeleteEntries: deleting baggage entries
 
             % create a baggage
-            baggagekeys = testCase.TestData.baggageKeys;
-            baggagevalues = testCase.TestData.baggageValues;
+            baggagekeys = testCase.baggageKeys;
+            baggagevalues = testCase.baggageValues;
             bag = opentelemetry.baggage.Baggage(dictionary(baggagekeys, baggagevalues));
 
             % delete 2 keys: one valid and one nonexistent
@@ -73,8 +73,8 @@ classdef tbaggage < matlab.unittest.TestCase
             % testModify: changing the Entries property of baggage
 
             % create a baggage
-            baggagekeys = testCase.TestData.baggageKeys;
-            baggagevalues = testCase.TestData.baggageValues;
+            baggagekeys = testCase.baggageKeys;
+            baggagevalues = testCase.baggageValues;
             bag = opentelemetry.baggage.Baggage(dictionary(baggagekeys, baggagevalues));
 
             % modify the Entries property

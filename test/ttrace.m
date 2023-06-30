@@ -68,8 +68,7 @@ classdef ttrace < matlab.unittest.TestCase
             resourcekeys = string({results.resourceSpans.resource.attributes.key});
             languageidx = find(resourcekeys == "telemetry.sdk.language");
             verifyNotEmpty(testCase, languageidx);
-            % FIXME: Note the following test is intentionally incorrect to check tests are in fact running
-            verifyEqual(testCase, results.resourceSpans.resource.attributes(languageidx).value.stringValue, 'MALTAB');
+            verifyEqual(testCase, results.resourceSpans.resource.attributes(languageidx).value.stringValue, 'MATLAB');
 
             versionidx = find(resourcekeys == "telemetry.sdk.version");
             verifyNotEmpty(testCase, versionidx);

@@ -8,15 +8,15 @@ terminateCollector(testCase);
 
 % On Windows, a command prompt has popped up, remove it as clean up
 if ispc
-    system(testCase.TestData.list("cmd") + "  > " + testCase.TestData.pidfile);
-    tbl = testCase.TestData.readlist(testCase.TestData.pidfile);
+    system(testCase.list("cmd") + "  > " + testCase.pidfile);
+    tbl = testCase.readlist(testCase.pidfile);
     pid = tbl.Var2(end-1);
-    system(testCase.TestData.sigterm(pid));
+    system(testCase.sigterm(pid));
 end
 
-if exist(testCase.TestData.jsonfile, "file")
-    delete(testCase.TestData.jsonfile);
+if exist(testCase.jsonfile, "file")
+    delete(testCase.jsonfile);
 end
-if exist(testCase.TestData.pidfile, "file")
-    delete(testCase.TestData.pidfile);
+if exist(testCase.pidfile, "file")
+    delete(testCase.pidfile);
 end
