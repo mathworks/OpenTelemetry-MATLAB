@@ -4,7 +4,7 @@ function terminateCollector(testCase)
 %
 % Copyright 2023 The MathWorks, Inc.
 
-system(testCase.ListPid("otelcol") + " > " + testCase.PidFile);
+system(testCase.ListPid(testCase.OtelcolName) + " > " + testCase.PidFile);
 tbl = testCase.ReadPidList(testCase.PidFile);
 pid = testCase.ExtractPid(tbl);
 retry = 0;
@@ -13,7 +13,7 @@ retry = 0;
 while ~isempty(pid) && retry < 4
     system(testCase.Sigint(pid));
     pause(2);  % give a little time for the collector to shut down
-    system(testCase.ListPid("otelcol") + " > " + testCase.PidFile);
+    system(testCase.ListPid(testCase.OtelcolName) + " > " + testCase.PidFile);
     tbl = testCase.ReadPidList(testCase.PidFile);
     pid = testCase.ExtractPid(tbl);
     retry = retry + 1;
