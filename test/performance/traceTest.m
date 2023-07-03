@@ -2,7 +2,16 @@ classdef traceTest < matlab.perftest.TestCase
 % performance tests for tracing
 
     properties
-        TestData
+        OtelConfigFile
+        OtelRoot
+        JsonFile
+        PidFile
+        Otelcol
+        ListPid
+        ReadPidList
+        ExtractPid
+        Sigint
+        Sigterm
     end
     
     methods (TestClassSetup)
