@@ -3,20 +3,40 @@ classdef tcontextPropagation < matlab.unittest.TestCase
 
     % Copyright 2023 The MathWorks, Inc.
 
+    properties
+        OtelConfigFile
+        OtelRoot
+        JsonFile
+        PidFile
+        Otelcol
+        ListPid
+        ReadPidList
+        ExtractPid
+        Sigint
+        Sigterm
+        TraceId
+        SpanId
+        TraceState
+        Headers
+        BaggageKeys
+        BaggageValues
+        BaggageHeaders
+    end
+
     methods (TestClassSetup)
         function setupOnce(testCase)
             commonSetupOnce(testCase);
 
             % simulate an HTTP header with relevant fields, used for extraction
-            testCase.TestData.traceId = "0af7651916cd43dd8448eb211c80319c";
-            testCase.TestData.spanId = "00f067aa0ba902b7";
-            testCase.TestData.traceState = "foo=00f067aa0ba902b7";
-            testCase.TestData.headers = ["traceparent", "00-" + testCase.TestData.traceId + ...
-                "-" + testCase.TestData.spanId + "-01"; "tracestate", testCase.TestData.traceState];
-            testCase.TestData.baggageKeys = ["userId", "serverNode", "isProduction"];
-            testCase.TestData.baggageValues = ["alice", "DF28", "false"];
-            testCase.TestData.baggageHeaders = ["baggage", strjoin(strcat(testCase.TestData.baggageKeys, ...
-                '=', testCase.TestData.baggageValues), ',')];
+            testCase.TraceId = "0af7651916cd43dd8448eb211c80319c";
+            testCase.SpanId = "00f067aa0ba902b7";
+            testCase.TraceState = "foo=00f067aa0ba902b7";
+            testCase.Headers = ["traceparent", "00-" + testCase.TraceId + ...
+                "-" + testCase.SpanId + "-01"; "tracestate", testCase.TraceState];
+            testCase.BaggageKeys = ["userId", "serverNode", "isProduction"];
+            testCase.BaggageValues = ["alice", "DF28", "false"];
+            testCase.BaggageHeaders = ["baggage", strjoin(strcat(testCase.BaggageKeys, ...
+                '=', testCase.BaggageValues), ',')];
         end
     end
 
@@ -35,7 +55,7 @@ classdef tcontextPropagation < matlab.unittest.TestCase
     methods (Test)
         function testExtract(testCase)
             % testExtract: extracting context from HTTP header
-            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.headers);
+            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.Headers);
             propagator = opentelemetry.trace.propagation.TraceContextPropagator();
             newcontext = propagator.extract(carrier);
             tp = opentelemetry.sdk.trace.TracerProvider();
@@ -50,12 +70,12 @@ classdef tcontextPropagation < matlab.unittest.TestCase
 
             % check trace and parent IDs
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ...
-                testCase.TestData.traceId);
+                testCase.TraceId);
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
-                testCase.TestData.spanId);
+                testCase.SpanId);
             % check trace state in span context
             spancontext = getSpanContext(sp);
-            verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
+            verifyEqual(testCase, spancontext.TraceState, testCase.TraceState);
         end
 
         function testInject(testCase)
@@ -100,16 +120,16 @@ classdef tcontextPropagation < matlab.unittest.TestCase
 
             % get the global instance of propagator
             p = opentelemetry.context.propagation.Propagator.getTextMapPropagator();
-            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.headers);
+            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.Headers);
             context = opentelemetry.context.Context();
             newcontext = p.extract(carrier, context);
             span = opentelemetry.trace.Context.extractSpan(newcontext);
             spancontext = getSpanContext(span);
 
             % verify the extracted trace and span ID and trace state match the headers
-            verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
-            verifyEqual(testCase, spancontext.SpanId, testCase.TestData.spanId);
-            verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
+            verifyEqual(testCase, spancontext.TraceId, testCase.TraceId);
+            verifyEqual(testCase, spancontext.SpanId, testCase.SpanId);
+            verifyEqual(testCase, spancontext.TraceState, testCase.TraceState);
         end
 
         function testExtractContext(testCase)
@@ -121,15 +141,15 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             opentelemetry.context.propagation.Propagator.setTextMapPropagator(propagator);
 
             % set up carrier and extract
-            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.headers);
+            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.Headers);
             context = opentelemetry.context.propagation.extractContext(carrier);
             span = opentelemetry.trace.Context.extractSpan(context);
             spancontext = getSpanContext(span);
 
             % verify extracted trace and span IDs and trace state
-            verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
-            verifyEqual(testCase, spancontext.SpanId, testCase.TestData.spanId);
-            verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
+            verifyEqual(testCase, spancontext.TraceId, testCase.TraceId);
+            verifyEqual(testCase, spancontext.SpanId, testCase.SpanId);
+            verifyEqual(testCase, spancontext.TraceState, testCase.TraceState);
         end
 
         function testInjectContext(testCase)
@@ -160,17 +180,17 @@ classdef tcontextPropagation < matlab.unittest.TestCase
         function testExtractBaggage(testCase)
             % testExtractBaggage: extracting baggage from HTTP header
 
-            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.baggageHeaders);
+            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.BaggageHeaders);
             propagator = opentelemetry.baggage.propagation.BaggagePropagator();
             newcontext = propagator.extract(carrier);
             bag = opentelemetry.baggage.Context.extractBaggage(newcontext);
             bag = bag.Entries;
 
-            baggagekeys = testCase.TestData.baggageKeys;
+            baggagekeys = testCase.BaggageKeys;
             nkeys = length(baggagekeys);
             for i = 1:nkeys
                 verifyTrue(testCase, isKey(bag, baggagekeys(i)));
-                verifyEqual(testCase, bag(baggagekeys(i)), testCase.TestData.baggageValues(i));
+                verifyEqual(testCase, bag(baggagekeys(i)), testCase.BaggageValues(i));
             end
 
         end
@@ -179,8 +199,8 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             % testInjectBaggage: injecting baggage into carrier
 
             % create a baggage
-            bag = opentelemetry.baggage.Baggage(dictionary(testCase.TestData.baggageKeys, ...
-                testCase.TestData.baggageValues));
+            bag = opentelemetry.baggage.Baggage(dictionary(testCase.BaggageKeys, ...
+                testCase.BaggageValues));
 
             % insert baggage into context and inject
             propagator = opentelemetry.baggage.propagation.BaggagePropagator();
@@ -191,7 +211,7 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             headers = carrier.Headers;
 
             % verify the baggage header
-            verifyEqual(testCase, headers, testCase.TestData.baggageHeaders);
+            verifyEqual(testCase, headers, testCase.BaggageHeaders);
         end
 
         function testExtractContextBaggage(testCase)
@@ -202,16 +222,16 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             opentelemetry.context.propagation.Propagator.setTextMapPropagator(propagator);
 
             % set up carrier and extract
-            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.TestData.baggageHeaders);
+            carrier = opentelemetry.context.propagation.TextMapCarrier(testCase.BaggageHeaders);
             context = opentelemetry.context.propagation.extractContext(carrier);
             bag = opentelemetry.baggage.Context.extractBaggage(context);
             bag = bag.Entries;
 
-            baggagekeys = testCase.TestData.baggageKeys;
+            baggagekeys = testCase.BaggageKeys;
             nkeys = length(baggagekeys);
             for i = 1:nkeys
                 verifyTrue(testCase, isKey(bag, baggagekeys(i)));
-                verifyEqual(testCase, bag(baggagekeys(i)), testCase.TestData.baggageValues(i));
+                verifyEqual(testCase, bag(baggagekeys(i)), testCase.BaggageValues(i));
             end
 
         end
@@ -224,8 +244,8 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             opentelemetry.context.propagation.Propagator.setTextMapPropagator(propagator);
 
             % create a baggage and put it into the current context
-            bag = opentelemetry.baggage.Baggage(dictionary(testCase.TestData.baggageKeys, ...
-                testCase.TestData.baggageValues));
+            bag = opentelemetry.baggage.Baggage(dictionary(testCase.BaggageKeys, ...
+                testCase.BaggageValues));
             context = opentelemetry.context.getCurrentContext();
             newcontext = opentelemetry.baggage.Context.insertBaggage(context, bag);
             token = setCurrentContext(newcontext); %#ok<NASGU>
@@ -235,14 +255,14 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             headers = carrier.Headers;
 
             % verify the baggage header
-            verifyEqual(testCase, headers, testCase.TestData.baggageHeaders);
+            verifyEqual(testCase, headers, testCase.BaggageHeaders);
         end
 
         function testCompositeExtract(testCase)
             % testCompositeExtract: extracting from HTTP header with a composite propagator
 
-            carrier = opentelemetry.context.propagation.TextMapCarrier([testCase.TestData.headers; ...
-                testCase.TestData.baggageHeaders]);
+            carrier = opentelemetry.context.propagation.TextMapCarrier([testCase.Headers; ...
+                testCase.BaggageHeaders]);
 
             % define composite propagator
             propagator = opentelemetry.context.propagation.CompositePropagator(...
@@ -254,11 +274,11 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             bag = opentelemetry.baggage.Context.extractBaggage(newcontext);
             bag = bag.Entries;
 
-            baggagekeys = testCase.TestData.baggageKeys;
+            baggagekeys = testCase.BaggageKeys;
             nkeys = length(baggagekeys);
             for i = 1:nkeys
                 verifyTrue(testCase, isKey(bag, baggagekeys(i)));
-                verifyEqual(testCase, bag(baggagekeys(i)), testCase.TestData.baggageValues(i));
+                verifyEqual(testCase, bag(baggagekeys(i)), testCase.BaggageValues(i));
             end
 
             % start a span using extracted context as parent
@@ -273,12 +293,12 @@ classdef tcontextPropagation < matlab.unittest.TestCase
 
             % check trace and parent IDs
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ...
-                testCase.TestData.traceId);
+                testCase.TraceId);
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
-                testCase.TestData.spanId);
+                testCase.SpanId);
             % check trace state in span context
             spancontext = getSpanContext(sp);
-            verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
+            verifyEqual(testCase, spancontext.TraceState, testCase.TraceState);
         end
 
         function testCompositeInject(testCase)
@@ -297,8 +317,8 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             context = opentelemetry.context.getCurrentContext();
 
             % create baggage and insert into context
-            bag = opentelemetry.baggage.Baggage(dictionary(testCase.TestData.baggageKeys, ...
-                testCase.TestData.baggageValues));
+            bag = opentelemetry.baggage.Baggage(dictionary(testCase.BaggageKeys, ...
+                testCase.BaggageValues));
             newcontext = opentelemetry.baggage.Context.insertBaggage(context, bag);
 
             % inject context into carrier
@@ -314,7 +334,7 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             % verify the baggage header
             baggagerow = find(headers(:,1) == "baggage");
             verifyNotEmpty(testCase, baggagerow);
-            verifyEqual(testCase, headers(baggagerow, :), testCase.TestData.baggageHeaders);
+            verifyEqual(testCase, headers(baggagerow, :), testCase.BaggageHeaders);
 
             results = readJsonResults(testCase);
             results = results{1};
@@ -338,19 +358,19 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             opentelemetry.context.propagation.Propagator.setTextMapPropagator(propagator);
 
             % set up carrier and extract
-            carrier = opentelemetry.context.propagation.TextMapCarrier([testCase.TestData.headers; ...
-                testCase.TestData.baggageHeaders]);
+            carrier = opentelemetry.context.propagation.TextMapCarrier([testCase.Headers; ...
+                testCase.BaggageHeaders]);
             context = opentelemetry.context.propagation.extractContext(carrier);
 
             % extract baggage and verify
             bag = opentelemetry.baggage.Context.extractBaggage(context);
             bag = bag.Entries;
 
-            baggagekeys = testCase.TestData.baggageKeys;
+            baggagekeys = testCase.BaggageKeys;
             nkeys = length(baggagekeys);
             for i = 1:nkeys
                 verifyTrue(testCase, isKey(bag, baggagekeys(i)));
-                verifyEqual(testCase, bag(baggagekeys(i)), testCase.TestData.baggageValues(i));
+                verifyEqual(testCase, bag(baggagekeys(i)), testCase.BaggageValues(i));
             end
 
             % extract span and verify
@@ -358,9 +378,9 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             spancontext = getSpanContext(span);
 
             % verify extracted trace and span IDs and trace state
-            verifyEqual(testCase, spancontext.TraceId, testCase.TestData.traceId);
-            verifyEqual(testCase, spancontext.SpanId, testCase.TestData.spanId);
-            verifyEqual(testCase, spancontext.TraceState, testCase.TestData.traceState);
+            verifyEqual(testCase, spancontext.TraceId, testCase.TraceId);
+            verifyEqual(testCase, spancontext.SpanId, testCase.SpanId);
+            verifyEqual(testCase, spancontext.TraceState, testCase.TraceState);
         end
 
         function testInjectContextComposite(testCase)
@@ -379,8 +399,8 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             scope = makeCurrent(sp); %#ok<NASGU>
 
             % create a baggage and put it into the current context
-            bag = opentelemetry.baggage.Baggage(dictionary(testCase.TestData.baggageKeys, ...
-                testCase.TestData.baggageValues));
+            bag = opentelemetry.baggage.Baggage(dictionary(testCase.BaggageKeys, ...
+                testCase.BaggageValues));
             context = opentelemetry.context.getCurrentContext();
             newcontext = opentelemetry.baggage.Context.insertBaggage(context, bag);
             token = setCurrentContext(newcontext); %#ok<NASGU>
@@ -393,7 +413,7 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             % verify the baggage header
             baggagerow = find(headers(:,1) == "baggage");
             verifyNotEmpty(testCase, baggagerow);
-            verifyEqual(testCase, headers(baggagerow,:), testCase.TestData.baggageHeaders);
+            verifyEqual(testCase, headers(baggagerow,:), testCase.BaggageHeaders);
 
             % verify the injected traceparent contains the trace and span IDs
             traceparentrow = find(headers(:,1) == "traceparent");

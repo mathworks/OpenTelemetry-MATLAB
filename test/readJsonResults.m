@@ -5,9 +5,9 @@ function jsonresults = readJsonResults(testCase)
 
 terminateCollector(testCase);
 
-assert(exist(testCase.jsonfile, "file"));
+assert(exist(testCase.JsonFile, "file"));
 
-fid = fopen(testCase.jsonfile);
+fid = fopen(testCase.JsonFile);
 raw = fread(fid, inf);
 str = cellstr(strsplit(char(raw'),'\n'));
 % discard the last cell, which is empty

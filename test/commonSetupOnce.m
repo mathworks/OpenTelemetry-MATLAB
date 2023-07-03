@@ -5,36 +5,36 @@ function commonSetupOnce(testCase)
 
 % file definitions
 otelcolroot = getenv("OPENTELEMETRY_COLLECTOR_INSTALL");
-testCase.otelconfigfile = fullfile(fileparts(mfilename("fullpath")), ...
+testCase.OtelConfigFile = fullfile(fileparts(mfilename("fullpath")), ...
     "otelcol_config.yml");
-testCase.otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
-testCase.jsonfile = "myoutput.json";
-testCase.pidfile = "testoutput.txt";
+testCase.OtelRoot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
+testCase.JsonFile = "myoutput.json";
+testCase.PidFile = "testoutput.txt";
 
 % process definitions
-testCase.otelcol = fullfile(otelcolroot, "otelcol");
+testCase.Otelcol = fullfile(otelcolroot, "otelcol");
 if ispc
-   testCase.list = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
-   testCase.readlist = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
-   testCase.extractPid = @(table)table.Var2;
+   testCase.ListPid = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
+   testCase.ReadPidList = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
+   testCase.ExtractPid = @(table)table.Var2;
    windows_killroot = string(getenv("WINDOWS_KILL_INSTALL"));
-   testCase.sigint = @(id)fullfile(windows_killroot,"windows-kill") + " -SIGINT " + id;
-   testCase.sigterm = @(id)"taskkill /pid " + id;
+   testCase.Sigint = @(id)fullfile(windows_killroot,"windows-kill") + " -SIGINT " + id;
+   testCase.Sigterm = @(id)"taskkill /pid " + id;
 elseif isunix && ~ismac
-   testCase.list = @(name)"ps -C " + name;
-   testCase.readlist = @readtable;
-   testCase.extractPid = @(table)table.PID;
-   testCase.sigint = @(id)"kill " + id;  % kill sends a SIGTERM instead of SIGINT but turns out this is sufficient to terminate OTEL collector on Linux
-   testCase.sigterm = @(id)"kill " + id;
+   testCase.ListPid = @(name)"ps -C " + name;
+   testCase.ReadPidList = @readtable;
+   testCase.ExtractPid = @(table)table.PID;
+   testCase.Sigint = @(id)"kill " + id;  % kill sends a SIGTERM instead of SIGINT but turns out this is sufficient to terminate OTEL collector on Linux
+   testCase.Sigterm = @(id)"kill " + id;
 end
 
 % set up path
-addpath(testCase.otelroot);
+testCase.applyFixture(matlab.unittest.fixtures.PathFixture(testCase.OtelRoot));
 
 % remove temporary files if present
-if exist(testCase.jsonfile, "file")
-    delete(testCase.jsonfile);
+if exist(testCase.JsonFile, "file")
+    delete(testCase.JsonFile);
 end
-if exist(testCase.pidfile, "file")
-    delete(testCase.pidfile);
+if exist(testCase.PidFile, "file")
+    delete(testCase.PidFile);
 end

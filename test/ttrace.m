@@ -3,6 +3,19 @@ classdef ttrace < matlab.unittest.TestCase
 
     % Copyright 2023 The MathWorks, Inc.
 
+    properties
+        OtelConfigFile
+        OtelRoot
+        JsonFile
+        PidFile
+        Otelcol
+        ListPid
+        ReadPidList
+        ExtractPid
+        Sigint
+        Sigterm
+    end
+
     methods (TestClassSetup)
         function setupOnce(testCase)
             commonSetupOnce(testCase);
