@@ -30,12 +30,9 @@ classdef Span < handle
 
     methods
         function set.Name(obj, spname)
-            arguments
-     	       obj
-    	       spname (1,:) {mustBeTextScalar}
-            end
-            % ignore new name if span has already ended
-            if ~obj.Ended %#ok<MCSUP>
+            isvalidname = isStringScalar(spname) || (ischar(spname) && isrow(spname));
+            % ignore new name if invalid or span has already ended
+            if isvalidname && ~obj.Ended %#ok<MCSUP>
                 spname = string(spname);
                 obj.Proxy.updateName(spname); %#ok<MCSUP>
                 obj.Name = spname;
@@ -51,9 +48,11 @@ classdef Span < handle
                 endposixtime = NaN;
             else
                 if ~(isdatetime(endtime) && isscalar(endtime) && ~isnat(endtime))
-                    error("End time must be a scalar datetime that is not NaT.");
+                    % invalid end time, ignore
+                    endposixtime = NaN;
+                else
+                    endposixtime = posixtime(endtime);
                 end
-                endposixtime = posixtime(endtime);
             end
             obj.Proxy.endSpan(endposixtime);
             obj.Ended = true;
@@ -85,39 +84,13 @@ classdef Span < handle
             %    name-value pairs.
             %
             %    See also ADDEVENT
-            nin = length(varargin);
-    	    if nin == 1 && isa(varargin{1}, "dictionary")
-                % dictionary case
-     	       attrtbl = entries(varargin{1});
-               nattr = height(attrtbl);
-    	       if ~iscell(attrtbl.(2))   % force attribute values to be cell array
-                   attrtbl.(2) = mat2cell(attrtbl.(2),ones(1, nattr));
-    	       end
-               for i = 1:nattr
-                   attrname = attrtbl{i,1};
-      	          attrvalue = attrtbl{i,2}{1};
-                  [~, attrvalue] = obj.processAttribute(attrname, attrvalue);
-    	          attrtbl{i,2}{1} = attrvalue;
-               end
-    	       for i = 1:nattr
-                   obj.Proxy.setAttribute(string(attrtbl{i,1}), attrtbl{i,2}{1});
-    	       end
-    	    else
-                % NV pairs
-                if rem(nin,2) ~= 0
-                    error("Incorrect number of input arguments.");
-                end
-    	       for i = 1:2:nin
-                   attrname = varargin{i};
-    	          attrvalue = varargin{i+1};
-                  [~, attrvalue] = obj.processAttribute(attrname, attrvalue);
-    	          varargin{i+1} = attrvalue;
-    	       end
-    	       for i = 1:2:nin
-                   obj.Proxy.setAttribute(string(varargin{i}), varargin{i+1});
-    	       end
-    	    end
-    	end
+            attrs = obj.processAttributes(varargin);
+            
+            attrslen = length(attrs);
+            for i = 1:2:attrslen
+                obj.Proxy.setAttribute(attrs{i}, attrs{i+1});
+            end
+        end
 
         function addEvent(obj, eventname, varargin)
             % ADDEVENT  Record a event.
@@ -148,37 +121,8 @@ classdef Span < handle
                 eventtime = posixtime(datetime("now"));
             end
 
-            % TODO: Implement some sort of code sharing with setAttributes
-            nin = length(varargin);
-            if nin == 1 && isa(varargin{1}, "dictionary")
-                % dictionary case
-       	       attrtbl = entries(varargin{1});
-               nattr = height(attrtbl);
-               if ~iscell(attrtbl.(2))   % force attribute values to be cell array
-                   attrtbl.(2) = mat2cell(attrtbl.(2),ones(1, nattr));
-               end
-               attrcarray = cell(2,nattr);
-               for i = 1:nattr
-                   attrname = attrtbl{i,1};
-        	          attrvalue = attrtbl{i,2}{1};
-                      [~, attrvalue] = obj.processAttribute(attrname, attrvalue);
-                      attrcarray{1,i} = string(attrname);                      
-                      attrcarray{2,i} = attrvalue;
-               end
-               obj.Proxy.addEvent(string(eventname), eventtime, attrcarray{:});
-            else
-                % NV pairs
-                if rem(nin,2) ~= 0
-                    error("Incorrect number of input arguments.");
-                end
-      	       for i = 1:2:nin
-                   attrname = varargin{i};
-      	          attrvalue = varargin{i+1};
-                  [~, attrvalue] = obj.processAttribute(attrname, attrvalue);
-                  varargin{i+1} = attrvalue;
-               end
-               obj.Proxy.addEvent(string(eventname), eventtime, varargin{:});
-            end            
+            attrs = obj.processAttributes(varargin);
+            obj.Proxy.addEvent(string(eventname), eventtime, attrs{:});        
         end
 
     	function setStatus(obj, status, description)
@@ -188,12 +132,13 @@ classdef Span < handle
             % 
             %    SETSTATUS(SP, STATUS, DESC) also specifies a description.
             %    Description is only recorded if status is "Error".
-            arguments
-     	       obj
-    	       status (1,:) {mustBeTextScalar}
-    	       description (1,:) {mustBeTextScalar} = ""
-    	    end
-    	    status = validatestring(status, ["Unset", "Ok", "Error"]);
+            try
+                status = validatestring(status, ["Unset", "Ok", "Error"]);
+            catch
+                % new status is not valid, ignore
+                return
+            end
+            description = opentelemetry.utils.mustBeScalarString(description);
     	    obj.Proxy.setStatus(status, description);
     	end
 
@@ -239,10 +184,59 @@ classdef Span < handle
     end
 
     methods (Static, Access=private)
-        function [attrname, attrval] = processAttribute(attrname, attrval)
-            % check for errors, and perform type conversion
+        function attrs = processAttributes(attrsin)
+            import opentelemetry.trace.Span.processAttribute
+
+            nin = length(attrsin);
+            if nin == 1 && isa(attrsin{1}, "dictionary")
+                % dictionary case
+      	       attrtbl = entries(attrsin{1});
+               nattr = height(attrtbl);
+               if ~iscell(attrtbl.(2))   % force attribute values to be cell array
+                   attrtbl.(2) = mat2cell(attrtbl.(2),ones(1, nattr));
+               end
+               validattrs = true(1,nattr);
+               attrs = cell(2,nattr);
+               for i = 1:nattr
+                  attrname = attrtbl{i,1};
+       	          attrvalue = attrtbl{i,2}{1};
+                  [validattrs(i), attrname, attrvalue] = processAttribute(attrname, attrvalue);
+                  attrs{1,i} = attrname;                      
+                  attrs{2,i} = attrvalue;
+               end
+               % remove the invalid attributes
+               attrs(:, ~validattrs) = [];
+               attrs = attrs(:);
+            else
+                % NV pairs
+                if rem(nin,2) ~= 0
+                    % Mismatched name-value pairs. Ignore all attributes.
+                    attrs = cell(1,0);
+                    return
+                end
+                validattrs = true(1,nin);
+                attrs = cell(1,nin);
+                for i = 1:2:nin
+                    attrname = attrsin{i};
+                    attrvalue = attrsin{i+1};
+                    [validattrs(i), attrname, attrvalue] = processAttribute(attrname, attrvalue);
+                    validattrs(i+1) = validattrs(i);
+                    attrs{i} = attrname;
+                    attrs{i+1} = attrvalue;
+                end
+                % remove the invalid attributes
+                attrs(~validattrs) = [];
+            end
+        end
+
+        function [isvalid, attrname, attrval] = processAttribute(attrname, attrval)
+            % check for errors, and perform type conversion for an
+            % individual attribute
             if ~(isStringScalar(attrname) || (ischar(attrname) && isrow(attrname)))
-                error("Invalid attribute name");
+                isvalid = false;
+                return
+            else
+                attrname = string(attrname);
             end
             if isfloat(attrval)
                 attrval = double(attrval);
@@ -257,8 +251,10 @@ classdef Span < handle
             elseif ischar(attrval) && isrow(attrval)
                 attrval = string(attrval);
             elseif ~(isstring(attrval) || islogical(attrval))
-                error("Unsupported attribute value type");
+                isvalid = false;
+                return
             end
+            isvalid = true;
         end
     end
 

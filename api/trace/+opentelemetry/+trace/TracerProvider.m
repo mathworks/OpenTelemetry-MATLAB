@@ -31,13 +31,16 @@ classdef TracerProvider < handle
             %    See also OPENTELEMETRY.TRACE.TRACER
             arguments
                 obj
-                trname (1,:) {mustBeTextScalar}
-                trversion (1,:) {mustBeTextScalar} = ""
-                trschema (1,:) {mustBeTextScalar} = ""
+                trname
+                trversion = ""
+                trschema = ""
             end
-            trname = string(trname);
-            trversion = string(trversion);
-            trschema = string(trschema);
+            % name, version, schema accepts any types that can convert to a
+            % string
+            import opentelemetry.utils.mustBeScalarString
+            trname = mustBeScalarString(trname);          
+            trversion = mustBeScalarString(trversion);
+            trschema = mustBeScalarString(trschema);
             id = obj.Proxy.getTracer(trname, trversion, trschema);
             tracerproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.TracerProxy", "ID", id);

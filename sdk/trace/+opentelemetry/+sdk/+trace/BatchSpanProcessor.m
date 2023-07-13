@@ -55,19 +55,22 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
                 if strcmp(namei, "MaximumQueueSize")
                     if ~isnumeric(valuei) || ~isscalar(valuei) || valuei <= 0 || ...
                             round(valuei) ~= valuei
-                        error("MaximumQueueSize must be a scalar positive integer.");
+                        error("opentelemetry:InvalidMaxQueueSize", ...
+                            "MaximumQueueSize must be a scalar positive integer.");
                     end
                     qsize = double(valuei);
                 elseif strcmp(namei, "ScheduledDelay")
                     if ~isduration(valuei) || ~isscalar(valuei) || valuei <= 0
-                        error("ScheduledDelay must be a positive duration scalar.");
+                        error("opentelemetry:InvalidScheduledDelay", ...
+                            "ScheduledDelay must be a positive duration scalar.");
                     end
                     delay = valuei;
                     delaymillis = milliseconds(valuei);
                 else   % "MaximumExportBatchSize" 
                     if ~isnumeric(valuei) || ~isscalar(valuei) || valuei <= 0 || ...
                             round(valuei) ~= valuei
-                        error("MaximumExportBatchSize must be a scalar positive integer.");
+                        error("opentelemetry:InvalidMaxExportBatchSize", ...
+                            "MaximumExportBatchSize must be a scalar positive integer.");
                     end
                     batchsize = double(valuei);
                 end

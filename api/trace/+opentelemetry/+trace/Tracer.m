@@ -47,10 +47,10 @@ classdef Tracer < handle
             %    OPENTELEMETRY.TRACE.LINK, OPENTELEMETRY.CONTEXT.CONTEXT
     	    arguments
      	       obj
-    	       spname (1,:) {mustBeTextScalar}
+    	       spname
             end
             arguments (Repeating)
-                trailingnames (1,:) {mustBeTextScalar}
+                trailingnames
                 trailingvalues
             end
             % validate the trailing names and values
@@ -64,58 +64,64 @@ classdef Tracer < handle
             links = {};
             % Loop through Name-Value pairs
             for i = 1:length(trailingnames)
-                namei = validatestring(trailingnames{i}, optionnames);
+                try
+                    namei = validatestring(trailingnames{i}, optionnames);
+                catch
+                    % invalid option, ignore
+                    continue
+                end
                 if strcmp(namei, "Context")                    
                     context = trailingvalues{i};
-                    if ~isa(context, "opentelemetry.context.Context")
-                        error("Context must be an opentelemetry.context.Context object");
+                    if isa(context, "opentelemetry.context.Context")
+                        contextid = context.Proxy.ID;
                     end
-                    contextid = context.Proxy.ID;
                 elseif strcmp(namei, "SpanKind")
-                    spankind = validatestring(trailingvalues{i}, ...
-                        ["internal", "server", "client", "producer", "consumer"]);
+                    try
+                        spankind = validatestring(trailingvalues{i}, ...
+                            ["internal", "server", "client", "producer", "consumer"]);
+                    catch
+                        % invalid span kind. Ignore
+                    end
                 elseif strcmp(namei, "StartTime")
                     valuei = trailingvalues{i};
-                    if ~(isdatetime(valuei) && isscalar(valuei) && ~isnat(valuei))
-                        error("StartTime must be a scalar datetime that is not NaT.");
-                    end
-                    starttime = posixtime(valuei);
+                    if isdatetime(valuei) && isscalar(valuei) && ~isnat(valuei)
+                        starttime = posixtime(valuei);
+                    end 
                 elseif strcmp(namei, "Attributes")
                     valuei = trailingvalues{i};
-                    if ~isa(valuei, "dictionary")
-                        error("Attibutes input must be a dictionary.");
-                    end
-                    attributekeys = keys(valuei);
-                    attributevalues = values(valuei,"cell");
-                    % collapse one level of cells, as this may be due to
-                    % a behavior of dictionary.values
-                    if all(cellfun(@iscell, attributevalues))
-                        attributevalues = [attributevalues{:}];
+                    if isa(valuei, "dictionary")
+                        attributekeys = keys(valuei);
+                        attributevalues = values(valuei,"cell");
+                        % collapse one level of cells, as this may be due to
+                        % a behavior of dictionary.values
+                        if all(cellfun(@iscell, attributevalues))
+                            attributevalues = [attributevalues{:}];
+                        end
                     end
                 elseif strcmp(namei, "Links")
                     valuei = trailingvalues{i};
-                    if ~isa(valuei, "opentelemetry.trace.Link")
-                        error("Links input must be a scalar or an array of Link objects.");
-                    end
-                    nlinks = numel(valuei);
-                    links = cell(3,nlinks);
-                    for li = 1:nlinks
-                        links{1,li} = valuei(li).Target.Proxy.ID;
-                        linkattrs = valuei(li).Attributes;
-                        linkattrkeys = keys(linkattrs);
-                        linkattrvalues = values(linkattrs,"cell");
-                        % collapse one level of cells, as this may be due to
-                        % a behavior of dictionary.values
-                        if ~isempty(linkattrvalues) && all(cellfun(@iscell, linkattrvalues))
-                            linkattrvalues = [linkattrvalues{:}];
+                    if isa(valuei, "opentelemetry.trace.Link")
+                        nlinks = numel(valuei);
+                        links = cell(3,nlinks);
+                        for li = 1:nlinks
+                            links{1,li} = valuei(li).Target.Proxy.ID;
+                            linkattrs = valuei(li).Attributes;
+                            linkattrkeys = keys(linkattrs);
+                            linkattrvalues = values(linkattrs,"cell");
+                            % collapse one level of cells, as this may be due to
+                            % a behavior of dictionary.values
+                            if ~isempty(linkattrvalues) && all(cellfun(@iscell, linkattrvalues))
+                                linkattrvalues = [linkattrvalues{:}];
+                            end
+                            links{2,li} = linkattrkeys;
+                            links{3,li} = linkattrvalues;
                         end
-                        links{2,li} = linkattrkeys;
-                        links{3,li} = linkattrvalues;
+                        links = reshape(links,1,[]);  % flatten into a row vector
                     end
-                    links = reshape(links,1,[]);  % flatten into a row vector
+                    
                 end
             end
-            spname = string(spname);
+            spname = opentelemetry.utils.mustBeScalarString(spname);
             id = obj.Proxy.startSpan(spname, contextid, spankind, starttime, ...
                 attributekeys, attributevalues, links{:});
             spanproxy = libmexclass.proxy.Proxy("Name", ...

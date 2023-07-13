@@ -63,7 +63,9 @@ if nargin == 1
     attrs = varargin{1};
 else
     if rem(nargin, 2) == 1
-        error("Attributes must be a dictionary with string keys or name-value pairs.");
+        % Mismatched name-value pairs. Ignore all attributes.
+        attrs = dictionary(string.empty, {});
+        return
     end
     % wrap cells around attribute values to create string->cell dictionary
     varargin = reshape(varargin,2,[]);
@@ -71,6 +73,7 @@ else
     attrs = dictionary(varargin{:});
 end
 if ~(isa(attrs, "dictionary") && isstring(keys(attrs)))
-    error("Attributes must be a dictionary with string keys or name-value pairs.");
+    % Invalid attributes. Ignore.
+    attrs = dictionary(string.empty, {});
 end
 end

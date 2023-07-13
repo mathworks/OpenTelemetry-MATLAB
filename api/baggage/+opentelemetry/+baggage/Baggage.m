@@ -25,7 +25,7 @@ classdef Baggage
             %    See also
             %    OPENTELEMETRY.BAGGAGE.PROPAGATION.BAGGAGEPROPAGATOR
             if nargin < 1
-                entries = dictionary(strings(0,1),strings(0,1));
+                entries = dictionary(string.empty,string.empty);
             end
             if isa(entries, "opentelemetry.context.Context")
                 % called from opentelemetry.baggage.Context.extractBaggage
@@ -44,8 +44,11 @@ classdef Baggage
                         return
                     end
                 end
-                % if it get here, it is an error condition
-                error("Input must be a dictionary with string keys and string values.");
+                % if it get here, it is an error condition. Return an empty
+                % baggage
+                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                            "libmexclass.opentelemetry.BaggageProxy", ...
+                            "ConstructorArguments", {strings(0,1), strings(0,1)});
             end
         end
 
@@ -55,9 +58,9 @@ classdef Baggage
         end
 
         function obj = set.Entries(obj, entries)
-            arguments
-     	       obj
-    	       entries (1,1) dictionary
+            % do nothing if entries is not a dictionary
+            if ~isa(entries, "dictionary")
+                return
             end
             newkeys = keys(entries);
             currentries = obj.Entries;
@@ -84,15 +87,11 @@ classdef Baggage
             %    a key is not in baggage B, the key will be added.
             %
             %    See also DELETEENTRIES
-            arguments
-     	       obj
-    	       keys {mustBeVector, mustBeText}
-               values {mustBeVector, mustBeText}
+     
+            % do nothing if there is a mismatch between keys and values
+            if numel(keys) == numel(values)
+                obj.Proxy.setEntries(string(keys(:)), string(values(:)));
             end
-            if length(keys) ~= length(values)
-                error("Keys and values must be the same length.")
-            end
-            obj.Proxy.setEntries(string(keys(:)), string(values(:)));
         end
 
         function obj = deleteEntries(obj, keys)
@@ -102,10 +101,6 @@ classdef Baggage
             %    ignored.
             %
             %    See also SETENTRIES
-            arguments
-     	       obj
-    	       keys {mustBeVector, mustBeText}
-            end
             obj.Proxy.deleteEntries(string(keys(:)));
         end
 

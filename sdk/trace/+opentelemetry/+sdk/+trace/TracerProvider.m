@@ -57,13 +57,15 @@ classdef TracerProvider < handle
                 valuei = optionvalues{i};
                 if strcmp(namei, "Sampler")
                     if ~isa(valuei, "opentelemetry.sdk.trace.Sampler")
-                        error("Sampler must be an instance of one of the sampler classes");
+                        error("opentelemetry:InvalidSamplerType", ...
+                            "Sampler must be an instance of one of the sampler classes");
                     end
                     sampler = valuei;
                     foundsampler = true;
                 else  % "Resource"
                     if ~isa(valuei, "dictionary")
-                        error("Attibutes input must be a dictionary.");
+                        error("opentelemetry:InvalidResourceType", ...
+                            "Attibutes input must be a dictionary.");
                     end
                     resource = valuei;
                     resourcekeys = keys(valuei);
@@ -116,13 +118,16 @@ classdef TracerProvider < handle
             %    See also OPENTELEMETRY.TRACE.TRACER
     	    arguments
      	       obj
-    	       trname (1,:) {mustBeTextScalar}
-    	       trversion (1,:) {mustBeTextScalar} = ""
-    	       trschema (1,:) {mustBeTextScalar} = ""
+    	       trname
+    	       trversion = ""
+    	       trschema = ""
             end
-            trname = string(trname);
-            trversion = string(trversion);
-            trschema = string(trschema);
+            % name, version, schema accepts any types that can convert to a
+            % string
+            import opentelemetry.utils.mustBeScalarString
+            trname = mustBeScalarString(trname);          
+            trversion = mustBeScalarString(trversion);
+            trschema = mustBeScalarString(trschema);
             id = obj.Proxy.getTracer(trname, trversion, trschema);
     	    tracerproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.TracerProxy", "ID", id);
