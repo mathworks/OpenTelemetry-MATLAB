@@ -105,13 +105,6 @@ classdef Span < handle
             %    dictionary or as trailing inputs.
             %
             %    See also SETATTRIBUTES
-            arguments
-        	       obj
-                   eventname (1,:) {mustBeTextScalar}
-            end
-            arguments (Repeating)
-                varargin
-            end
 
             % process event time input first
             if ~isempty(varargin) && isdatetime(varargin{1})
@@ -121,8 +114,9 @@ classdef Span < handle
                 eventtime = posixtime(datetime("now"));
             end
 
+            eventname = opentelemetry.utils.mustBeScalarString(eventname);
             attrs = obj.processAttributes(varargin);
-            obj.Proxy.addEvent(string(eventname), eventtime, attrs{:});        
+            obj.Proxy.addEvent(eventname, eventtime, attrs{:});        
         end
 
     	function setStatus(obj, status, description)

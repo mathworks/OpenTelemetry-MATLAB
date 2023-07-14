@@ -6,8 +6,13 @@ function str = mustBeScalarString(str)
 %    into string, an error will be thrown.
 
 % Copyright 2023 The MathWorks, Inc.
-
-str = string(str);
+try
+    str = string(str);
+catch
+    % return an empty string if failed to convert to string
+    str = "";
+    return
+end
 if isempty(str)
     str = "";
 else

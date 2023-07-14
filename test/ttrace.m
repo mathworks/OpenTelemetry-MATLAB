@@ -570,5 +570,127 @@ classdef ttrace < matlab.unittest.TestCase
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{2}.traceId), ctxt3.TraceId);
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{2}.spanId), ctxt3.SpanId);
         end
+
+        function testInvalidSpanInputs(testCase)
+            % testInvalidSpanInputs: Invalid inputs should be ignored and
+            % not result in errors
+
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            % span name not a span; invalid context, spankind, attributes,
+            % links; additional invalid option name
+            spanname = [1 2; 3 4];
+            sp = startSpan(tr, spanname, "Context", 1, "SpanKind", 2, ...
+                "Attributes", 3, "Links", 4, "quux", 5);
+            pause(1);
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            results = results{1};
+
+            % check span name and other properties
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), ...
+                string(spanname(1)));
+            verifyEmpty(testCase, results.resourceSpans.scopeSpans.spans.parentSpanId);
+            verifyEqual(testCase, results.resourceSpans.scopeSpans.spans.kind, 1);  % spankind internal
+            verifyFalse(testCase, isfield(results.resourceSpans.scopeSpans.spans, "attributes"));
+            verifyFalse(testCase, isfield(results.resourceSpans.scopeSpans.spans, "links"))
+        end
+
+        function testInvalidTracerInputs(testCase)
+            % testInvalidTracerInputs: Invalid inputs should be ignored and
+            % not result in errors
+
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            % tracer name not a string; empty numeric version; duration
+            % schema
+            tracername = [1 2; 3 4];
+            schema = seconds(1);
+            tr = getTracer(tp, tracername, [], schema);
+            sp = startSpan(tr, "foo");
+            pause(1);
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            results = results{1};
+
+            % check tracer name, version, schema
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), ...
+                string(tracername(1)));
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.schemaUrl), ...
+                string(schema));
+        end
+
+        function testInvalidAttributes(testCase)
+            % testInvalidAttributes: Invalid attributes should be ignored and
+            % not result in errors
+
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar");
+            % numeric attribute name not supported
+            % duration attribute value not supported
+            validattributename = "quux";
+            validattributevalue = "quz";
+            setAttributes(sp, 1, 2, validattributename, validattributevalue, "baz", hours(1));
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            results = results{1};
+
+            % check attributes
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.attributes.key), ...
+                validattributename);
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.attributes.value.stringValue), ...
+                validattributevalue);
+        end
+
+        function testInvalidEvent(testCase)
+            % testInvalidEvent: Invalid event name and attributes should be ignored and
+            % not result in errors
+
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar");
+            % numeric array event name
+            % numeric attribute name not supported
+            % duration attribute value not supported
+            eventname = [1 2; 3 4];
+            validattributename = "fred";
+            validattributevalue = "thud";
+            addEvent(sp, eventname, 10, 20, validattributename, validattributevalue, "baz", hours(1));
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            results = results{1};
+
+            % check event name and attributes
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.events.name), ...
+                string(eventname(1)));
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.events.attributes.key), ...
+                validattributename);
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.events.attributes.value.stringValue), ...
+                validattributevalue);
+        end
+
+        function testInvalidStatus(testCase)
+            % testInvalidStatus: Invalid status should be ignored
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar");
+            setStatus(sp, [10 20 30]);
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            results = results{1};
+
+            % check span status
+            verifyEmpty(testCase, fieldnames(results.resourceSpans.scopeSpans.spans.status));   % status unset
+        end
     end
 end
