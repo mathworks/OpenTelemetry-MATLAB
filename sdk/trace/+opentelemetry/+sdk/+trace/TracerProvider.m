@@ -6,6 +6,7 @@ classdef TracerProvider < handle
 
     properties (Access=private)
         Proxy  % Proxy object to interface C++ code
+        isShutdown (1,1) logical = false
     end
 
     properties (SetAccess=private)
@@ -101,8 +102,10 @@ classdef TracerProvider < handle
                 obj
                 processor (1,1) {mustBeA(processor, "opentelemetry.sdk.trace.SpanProcessor")}
             end
-            obj.Proxy.addSpanProcessor(processor.Proxy.ID);
-            obj.SpanProcessor(end+1) = processor;  % append
+            if ~obj.isShutdown
+                obj.Proxy.addSpanProcessor(processor.Proxy.ID);
+                obj.SpanProcessor(end+1) = processor;  % append
+            end
         end
 
         function tracer = getTracer(obj, trname, trversion, trschema)
@@ -125,13 +128,14 @@ classdef TracerProvider < handle
             % name, version, schema accepts any types that can convert to a
             % string
             import opentelemetry.utils.mustBeScalarString
-            trname = mustBeScalarString(trname);          
+            trname = mustBeScalarString(trname);
             trversion = mustBeScalarString(trversion);
             trschema = mustBeScalarString(trschema);
             id = obj.Proxy.getTracer(trname, trversion, trschema);
-    	    tracerproxy = libmexclass.proxy.Proxy("Name", ...
+            
+            tracerproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.TracerProxy", "ID", id);
-    	    tracer = opentelemetry.trace.Tracer(tracerproxy, trname, trversion, trschema);
+            tracer = opentelemetry.trace.Tracer(tracerproxy, trname, trversion, trschema);
         end
         
         function setTracerProvider(obj)
@@ -141,6 +145,40 @@ classdef TracerProvider < handle
             %
             %    See also OPENTELEMETRY.TRACE.PROVIDER.GETTRACERPROVIDER
             obj.Proxy.setTracerProvider();
+        end
+
+        function success = shutdown(obj)
+            % SHUTDOWN  Shutdown 
+            %    SUCCESS = SHUTDOWN(TP) shuts down all span processors associated with tracer provider TP
+    	    %    and return a logical that indicates whether shutdown was successful.
+            %
+            %    See also FORCEFLUSH
+            if ~obj.isShutdown
+                success = obj.Proxy.shutdown();
+                obj.isShutdown = success;
+            else
+                success = true;
+            end
+        end
+
+        function success = forceFlush(obj, timeout)
+            % FORCEFLUSH Force flush
+            %    SUCCESS = FORCEFLUSH(TP) immediately exports all spans
+            %    that have not yet been exported. Returns a logical that
+            %    indicates whether force flush was successful.
+            %
+            %    SUCCESS = FORCEFLUSH(TP, TIMEOUT) specifies a TIMEOUT
+            %    duration. Force flush must be completed within this time,
+            %    or else it will fail.
+            %
+            %    See also SHUTDOWN
+            if obj.isShutdown
+                success = false;
+            elseif nargin < 2 || ~isa(timeout, "duration")  % ignore timeout if not a duration
+                success = obj.Proxy.forceFlush();
+            else
+                success = obj.Proxy.forceFlush(milliseconds(timeout)*1000); % convert to microseconds
+            end
         end
     end
 end

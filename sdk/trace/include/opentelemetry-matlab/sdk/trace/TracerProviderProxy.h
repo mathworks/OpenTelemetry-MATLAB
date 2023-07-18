@@ -12,10 +12,16 @@ class TracerProviderProxy : public libmexclass::opentelemetry::TracerProviderPro
   public:
     TracerProviderProxy(nostd::shared_ptr<trace_api::TracerProvider> tp) : libmexclass::opentelemetry::TracerProviderProxy(tp) {
         REGISTER_METHOD(TracerProviderProxy, addSpanProcessor);
+        REGISTER_METHOD(TracerProviderProxy, shutdown);
+        REGISTER_METHOD(TracerProviderProxy, forceFlush);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     void addSpanProcessor(libmexclass::proxy::method::Context& context);
+
+    void shutdown(libmexclass::proxy::method::Context& context);
+
+    void forceFlush(libmexclass::proxy::method::Context& context);
 };
 } // namespace libmexclass::opentelemetry

@@ -11,12 +11,14 @@
 #include "opentelemetry/sdk/trace/tracer_provider.h"
 #include "opentelemetry/sdk/resource/resource.h"
 #include "opentelemetry/trace/tracer_provider.h"
+#include "opentelemetry/trace/noop.h"
 #include "opentelemetry/common/key_value_iterable_view.h"
 
 namespace trace_api = opentelemetry::trace;
 namespace trace_sdk = opentelemetry::sdk::trace;
 namespace resource = opentelemetry::sdk::resource;
 namespace common_sdk = opentelemetry::sdk::common;
+namespace nostd = opentelemetry::nostd;
 
 namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult TracerProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
@@ -62,6 +64,25 @@ void TracerProviderProxy::addSpanProcessor(libmexclass::proxy::method::Context& 
     static_cast<trace_sdk::TracerProvider&>(*CppTracerProvider).AddProcessor(
 		    std::static_pointer_cast<SpanProcessorProxy>(
 			    libmexclass::proxy::ProxyManager::getProxy(processorid))->getInstance());
+}
+
+void TracerProviderProxy::shutdown(libmexclass::proxy::method::Context& context) {
+    matlab::data::ArrayFactory factory;
+    auto result_mda = factory.createScalar(static_cast<trace_sdk::TracerProvider&>(*CppTracerProvider).Shutdown());
+    context.outputs[0] = result_mda;
+    CppTracerProvider.swap(nostd::shared_ptr<trace_api::TracerProvider>(new trace_api::NoopTracerProvider));
+}
+
+void TracerProviderProxy::forceFlush(libmexclass::proxy::method::Context& context) {
+    matlab::data::ArrayFactory factory;
+
+    if (context.inputs.getNumberOfElements() == 0) {
+        context.outputs[0] = factory.createScalar(static_cast<trace_sdk::TracerProvider&>(*CppTracerProvider).ForceFlush());
+    } else {  // number of inputs > 0
+        matlab::data::TypedArray<double> timeout_mda = context.inputs[0];
+        auto timeout = std::chrono::microseconds(timeout_mda[0]);
+        context.outputs[0] = factory.createScalar(static_cast<trace_sdk::TracerProvider&>(*CppTracerProvider).ForceFlush(timeout));
+    }
 }
 
 } // namespace libmexclass::opentelemetry
