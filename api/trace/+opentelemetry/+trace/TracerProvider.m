@@ -4,16 +4,19 @@ classdef TracerProvider < handle
 
     % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=private)
+    properties (Access=protected)
         Proxy   % Proxy object to interface C++ code
     end
 
-    methods (Access=?opentelemetry.trace.Provider)
-        function obj = TracerProvider()
+    methods (Access={?opentelemetry.trace.Provider, ?opentelemetry.sdk.trace.TracerProvider})
+        function obj = TracerProvider(skip)
             % constructor
-            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
-                "libmexclass.opentelemetry.TracerProviderProxy", ...
-                "ConstructorArguments", {});
+            % "skip" input signals skipping construction
+            if nargin < 1 || skip ~= "skip"
+                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                    "libmexclass.opentelemetry.TracerProviderProxy", ...
+                    "ConstructorArguments", {});
+            end
         end
     end
 

@@ -1,11 +1,10 @@
-classdef TracerProvider < handle
-% An SDK implementation of tracer provider, which stores a set of configurations used 
-% in a distributed tracing system.
+classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
+    % An SDK implementation of tracer provider, which stores a set of configurations used
+    % in a distributed tracing system.
 
-% Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=private)
-        Proxy  % Proxy object to interface C++ code
+    properties(Access=private)
         isShutdown (1,1) logical = false
     end
 
@@ -47,6 +46,9 @@ classdef TracerProvider < handle
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues
             end
+
+            % explicit call to superclass constructor to make it a no-op
+            obj@opentelemetry.trace.TracerProvider("skip");
 
             validnames = ["Sampler", "Resource"];
             foundsampler = false;
@@ -106,45 +108,6 @@ classdef TracerProvider < handle
                 obj.Proxy.addSpanProcessor(processor.Proxy.ID);
                 obj.SpanProcessor(end+1) = processor;  % append
             end
-        end
-
-        function tracer = getTracer(obj, trname, trversion, trschema)
-            % GETTRACER Create a tracer object used to generate spans
-            %    TR = GETTRACER(TP, NAME) returns a tracer with the name
-            %    NAME that uses all the configurations specified in tracer
-            %    provider TP.
-            %
-            %    TR = GETTRACER(TP, NAME, VERSION, SCHEMA) also specifies
-            %    the tracer version and the URL that documents the schema
-            %    of the generated spans.
-            %
-            %    See also OPENTELEMETRY.TRACE.TRACER
-    	    arguments
-     	       obj
-    	       trname
-    	       trversion = ""
-    	       trschema = ""
-            end
-            % name, version, schema accepts any types that can convert to a
-            % string
-            import opentelemetry.utils.mustBeScalarString
-            trname = mustBeScalarString(trname);
-            trversion = mustBeScalarString(trversion);
-            trschema = mustBeScalarString(trschema);
-            id = obj.Proxy.getTracer(trname, trversion, trschema);
-            
-            tracerproxy = libmexclass.proxy.Proxy("Name", ...
-                "libmexclass.opentelemetry.TracerProxy", "ID", id);
-            tracer = opentelemetry.trace.Tracer(tracerproxy, trname, trversion, trschema);
-        end
-        
-        function setTracerProvider(obj)
-            % SETTRACERPROVIDER Set global instance of tracer provider
-            %    SETTRACERPROVIDER(TP) sets the SDK tracer provider TP as
-            %    the global instance.
-            %
-            %    See also OPENTELEMETRY.TRACE.PROVIDER.GETTRACERPROVIDER
-            obj.Proxy.setTracerProvider();
         end
 
         function success = shutdown(obj)
