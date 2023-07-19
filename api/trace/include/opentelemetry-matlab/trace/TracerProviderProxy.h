@@ -48,7 +48,8 @@ class TracerProviderProxy : public libmexclass::proxy::Proxy {
 
     void postShutdown(libmexclass::proxy::method::Context& context) {
 	// Replace tracer provider with a no-op instance. Subsequent tracers and spans won't be recorded
-        CppTracerProvider.swap(nostd::shared_ptr<trace_api::TracerProvider>(new trace_api::NoopTracerProvider));
+	nostd::shared_ptr<trace_api::TracerProvider> noop(new trace_api::NoopTracerProvider);
+        CppTracerProvider.swap(noop);
     }
 
   protected:

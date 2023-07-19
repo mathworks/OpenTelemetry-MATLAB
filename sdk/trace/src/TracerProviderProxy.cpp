@@ -81,7 +81,8 @@ void TracerProviderProxy::shutdown(libmexclass::proxy::method::Context& context)
     matlab::data::ArrayFactory factory;
     auto result_mda = factory.createScalar(static_cast<trace_sdk::TracerProvider&>(*CppTracerProvider).Shutdown());
     context.outputs[0] = result_mda;
-    CppTracerProvider.swap(nostd::shared_ptr<trace_api::TracerProvider>(new trace_api::NoopTracerProvider));
+    nostd::shared_ptr<trace_api::TracerProvider> noop(new trace_api::NoopTracerProvider);
+    CppTracerProvider.swap(noop);
 }
 
 void TracerProviderProxy::forceFlush(libmexclass::proxy::method::Context& context) {
