@@ -8,6 +8,7 @@ classdef tcontextPropagation < matlab.unittest.TestCase
         OtelRoot
         JsonFile
         PidFile
+	OtelcolName
         Otelcol
         ListPid
         ReadPidList
