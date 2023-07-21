@@ -6,6 +6,7 @@ classdef traceTest < matlab.perftest.TestCase
         OtelRoot
         JsonFile
         PidFile
+	OtelcolName
         Otelcol
         ListPid
         ReadPidList
