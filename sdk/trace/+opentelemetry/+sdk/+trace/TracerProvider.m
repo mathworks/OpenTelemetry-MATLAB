@@ -73,14 +73,14 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
                     valuei = optionvalues{i};
                     if strcmp(namei, "Sampler")
                         if ~isa(valuei, "opentelemetry.sdk.trace.Sampler")
-                            error("opentelemetry:InvalidSamplerType", ...
+                            error("opentelemetry:sdk:trace:TracerProvider:InvalidSamplerType", ...
                                 "Sampler must be an instance of one of the sampler classes");
                         end
                         sampler = valuei;
                         foundsampler = true;
                     else  % "Resource"
                         if ~isa(valuei, "dictionary")
-                            error("opentelemetry:InvalidResourceType", ...
+                            error("opentelemetry:sdk:trace:TracerProvider:InvalidResourceType", ...
                                 "Attibutes input must be a dictionary.");
                         end
                         resource = valuei;

@@ -36,6 +36,10 @@ classdef traceTest < matlab.perftest.TestCase
 
     methods (TestMethodTeardown)
         function teardown(testCase)
+            % Flush all spans that have not yet been exported
+            tp = opentelemetry.trace.Provider.getTracerProvider();
+            opentelemetry.sdk.trace.Cleanup.forceFlush(tp);
+            
             commonTeardown(testCase);
         end
     end

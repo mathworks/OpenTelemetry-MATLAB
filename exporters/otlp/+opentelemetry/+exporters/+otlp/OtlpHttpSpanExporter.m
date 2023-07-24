@@ -58,7 +58,7 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
                 valuei = optionvalues{i};
                 if strcmp(namei, "Endpoint")
                     if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("Endpoint must be a scalar string.");
+                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
                     end
                     endpoint = string(valuei);
                 elseif strcmp(namei, "Format")
@@ -67,24 +67,24 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
                     jsonbytesmapping = validatestring(valuei, ["hex", "hexId", "base64"]);
                 elseif strcmp(namei, "UseJsonName")
                     if ~((islogical(valuei) || isnumeric(valuei)) && isscalar(valuei))
-                        error("UseJsonName must be a scalar logical.")
+                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:UseJsonNameNotScalarLogical", "UseJsonName must be a scalar logical.")
                     end
                     usejsonname = logical(valuei);
                 elseif  strcmp(namei, "Timeout") 
                     if ~(isduration(valuei) && isscalar(valuei)) 
-                        error("Timeout must be a scalar duration.");
+                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
                     end
                     timeout = valuei;
                     timeout_millis = milliseconds(timeout);
                 else  % HttpHeaders
                     if ~isa(valuei, "dictionary")
-                        error("HttpHeaders input must be a dictionary.");
+                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
                     end
                     httpheaders = valuei;
                     headerkeys = keys(valuei);
                     headervalues = values(valuei);
                     if ~isstring(headervalues)
-                        error("HttpHeaders dictionary values must be strings.")
+                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
                     end
                 end
             end

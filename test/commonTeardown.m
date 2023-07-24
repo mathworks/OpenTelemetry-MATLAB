@@ -3,10 +3,6 @@ function commonTeardown(testCase)
 %
 % Copyright 2023 The MathWorks, Inc.
 
-% Flush all spans that have not yet been exported
-tp = opentelemetry.trace.Provider.getTracerProvider();
-opentelemetry.sdk.trace.Cleanup.forceFlush(tp);
-
 % Terminate Collector if it is still running
 terminateCollector(testCase);
 

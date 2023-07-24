@@ -29,6 +29,12 @@ libmexclass::proxy::MakeResult TracerProviderProxy::make(const libmexclass::prox
        libmexclass::proxy::ID tpid = tpid_mda[0];
        auto tp = std::static_pointer_cast<libmexclass::opentelemetry::TracerProviderProxy>(
 		    libmexclass::proxy::ProxyManager::getProxy(tpid))->getInstance();
+       // check if input can be cast to an SDK Tracer Provider 
+       auto tpsdk = dynamic_cast<trace_sdk::TracerProvider*>(tp.get());
+       if (tpsdk == nullptr) {
+          return libmexclass::error::Error{"opentelemetry:sdk:trace:Cleanup:UnsetGlobalInstance", 
+		  "Clean up operations are not supported if global TracerProvider instance is not set."};
+       }
        out = std::make_shared<TracerProviderProxy>(nostd::shared_ptr<trace_api::TracerProvider>(tp));
     } else {
        matlab::data::TypedArray<uint64_t> processorid_mda = constructor_arguments[0];

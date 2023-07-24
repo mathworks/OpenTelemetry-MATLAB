@@ -15,7 +15,12 @@ classdef Cleanup
             % return false if input is not the right type
             if isa(tp, "opentelemetry.trace.TracerProvider")
                 % convert to TracerProvider class in sdk
-                tpsdk = opentelemetry.sdk.trace.TracerProvider(tp.Proxy);
+                try
+                    tpsdk = opentelemetry.sdk.trace.TracerProvider(tp.Proxy);
+                catch 
+                    success = false;
+                    return
+                end
                 success = tpsdk.shutdown;
                 postShutdown(tp);
             else
@@ -38,7 +43,12 @@ classdef Cleanup
             % return false if input is not the right type
             if isa(tp, "opentelemetry.trace.TracerProvider")
                 % convert to TracerProvider class in sdk
-                tpsdk = opentelemetry.sdk.trace.TracerProvider(tp.Proxy);
+                try
+                    tpsdk = opentelemetry.sdk.trace.TracerProvider(tp.Proxy);
+                catch
+                    success = false;
+                    return
+                end
                 if nargin < 2 || ~isa(timeout, "duration")
                     success = tpsdk.forceFlush;
                 else
