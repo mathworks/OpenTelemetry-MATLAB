@@ -30,28 +30,22 @@ classdef traceTest < matlab.perftest.TestCase
 
     methods (TestMethodSetup)
         function setup(testCase)
-            disp("start setup")
             commonSetup(testCase);
-            disp("end setup")
         end
     end
 
     methods (TestMethodTeardown)
         function teardown(testCase)
-            disp("start teardown")
             % Flush all spans that have not yet been exported
             tp = opentelemetry.trace.Provider.getTracerProvider();
-            assert(opentelemetry.sdk.trace.Cleanup.forceFlush(tp));
-            disp("done forceFlush")
+            opentelemetry.sdk.trace.Cleanup.forceFlush(tp);
 
             commonTeardown(testCase);
-            disp("end teardown")
         end
     end
 
     methods (Test)
         function testSpan(testCase)
-            disp("start test")
             % start and end a span
             tr = opentelemetry.trace.getTracer("Tracer");
 
@@ -59,11 +53,9 @@ classdef traceTest < matlab.perftest.TestCase
             sp = startSpan(tr, "Span");
             endSpan(sp);
             testCase.stopMeasuring();
-            disp("end test")
         end
 
         function testCurrentSpan(testCase)
-            disp("start test")
             % start a span, put it in current context, end the span
             tr = opentelemetry.trace.getTracer("Tracer");
 
@@ -72,11 +64,9 @@ classdef traceTest < matlab.perftest.TestCase
             scope = makeCurrent(sp); %#ok<NASGU>
             endSpan(sp);
             testCase.stopMeasuring();
-            disp("end test")
         end
 
         function testNestedSpansImplicitContext(testCase)
-            disp("start test")
             % nested spans, using current span as parent
             tr = opentelemetry.trace.getTracer("Tracer");
 
@@ -93,11 +83,9 @@ classdef traceTest < matlab.perftest.TestCase
             endSpan(isp);
             endSpan(osp);
             testCase.stopMeasuring();
-            disp("end test")
         end
 
         function testNestedSpansExplicitContext(testCase)
-            disp("start test")
             % nested spans, explicitly setting parents
             tr = opentelemetry.trace.getTracer("Tracer");
 
@@ -114,11 +102,9 @@ classdef traceTest < matlab.perftest.TestCase
             endSpan(isp);
             endSpan(osp);
             testCase.stopMeasuring();
-            disp("end test")
         end
 
         function testAttributes(testCase)
-            disp("start test")
             % span with 3 attributes
             tr = opentelemetry.trace.getTracer("Tracer");
             m = magic(4);
@@ -129,11 +115,9 @@ classdef traceTest < matlab.perftest.TestCase
                 "attribute 3", m);
             endSpan(sp);
             testCase.stopMeasuring()
-            disp("end test")
         end
 
         function testEvents(testCase)
-            disp("start test")
             % span with 3 events
             tr = opentelemetry.trace.getTracer("Tracer");
 
@@ -144,11 +128,9 @@ classdef traceTest < matlab.perftest.TestCase
             addEvent(sp, "event 3");
             endSpan(sp);
             testCase.stopMeasuring()
-            disp("end test")
         end
 
         function testLinks(testCase)
-            disp("start test")
             % span with 2 links
             tr = opentelemetry.trace.getTracer("Tracer");
             sp1 = startSpan(tr, "Span 1");
@@ -162,7 +144,6 @@ classdef traceTest < matlab.perftest.TestCase
             sp3 = startSpan(tr, "Span 3", Links=[link1 link2]);
             endSpan(sp3);
             testCase.stopMeasuring()
-            disp("end test")
         end
 
         function testGetTracer(testCase)
@@ -180,7 +161,6 @@ classdef traceTest < matlab.perftest.TestCase
         end
 
         function testSpanContext(testCase)
-            disp("start test")
             % retrieve trace ID and span ID in the span context
             tr = opentelemetry.trace.getTracer("Tracer");
             sp = startSpan(tr, "Span");
@@ -190,7 +170,6 @@ classdef traceTest < matlab.perftest.TestCase
             traceid = spctxt.TraceId; %#ok<NASGU>
             spanid = spctxt.SpanId; %#ok<NASGU>
             testCase.stopMeasuring();
-            disp("end test")
         end
 
     end

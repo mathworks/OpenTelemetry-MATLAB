@@ -6,9 +6,9 @@ jobs:
     build-and-run-tests:
         runs-on: ubuntu-latest
         env:
-            OPENTELEMETRY_CPP_INSTALL: "/home/runner/work/otel_cpp_install"
-            OPENTELEMETRY_MATLAB_INSTALL: "/home/runner/work/otel_matlab_install"
-            OPENTELEMETRY_COLLECTOR_INSTALL: "../../otelcol"
+            OPENTELEMETRY_CPP_INSTALL: "${{ github.workspace }}/otel_cpp_install"
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            OPENTELEMETRY_COLLECTOR_INSTALL: "${{ github.workspace }}/otelcol"
             SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
         steps:
             - name: Download OpenTelemetry-Matlab source
