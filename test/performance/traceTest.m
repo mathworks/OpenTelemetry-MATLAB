@@ -20,12 +20,6 @@ classdef traceTest < matlab.perftest.TestCase
             testdir = fileparts(mfilename("fullpath"));
             addpath(fullfile(testdir, ".."));  % add directory where common setup and teardown code lives
             commonSetupOnce(testCase);
-        end
-    end
-
-    methods (TestMethodSetup)
-        function setup(testCase)
-            commonSetup(testCase);
 
             % create a global tracer provider
             import opentelemetry.sdk.trace.*
@@ -34,11 +28,17 @@ classdef traceTest < matlab.perftest.TestCase
         end
     end
 
+    methods (TestMethodSetup)
+        function setup(testCase)
+            commonSetup(testCase);
+        end
+    end
+
     methods (TestMethodTeardown)
         function teardown(testCase)
             % Flush all spans that have not yet been exported
             tp = opentelemetry.trace.Provider.getTracerProvider();
-            opentelemetry.sdk.trace.Cleanup.forceFlush(tp);
+            assert(opentelemetry.sdk.trace.Cleanup.forceFlush(tp));
             
             commonTeardown(testCase);
         end
