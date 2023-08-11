@@ -1,5 +1,6 @@
 classdef Counter < handle
-   
+    % Counter is a value that accumulates over time,
+    % you can think of this like an odometer on a car; it only ever goes up.
 
     % Copyright 2023 The MathWorks, Inc.
 

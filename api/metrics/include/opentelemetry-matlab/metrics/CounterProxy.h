@@ -15,8 +15,7 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class CounterProxy : public libmexclass::proxy::Proxy {
   public:
-    CounterProxy(nostd::shared_ptr<metrics_api::Counter<double> > counter) {
-       CppCounter = std::move(counter);
+    CounterProxy(nostd::shared_ptr<metrics_api::Counter<double> > ct) : CppCounter(ct) {
        REGISTER_METHOD(CounterProxy, add);
     }
 

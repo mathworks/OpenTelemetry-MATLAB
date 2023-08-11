@@ -1,5 +1,6 @@
 classdef Meter < handle
-    % A Meter that is used to create spans.
+    % A Meter creates metric instruments, capturing measurements about a service at runtime. 
+    % Meters are created from Meter Providers.
 
     % Copyright 2023 The MathWorks, Inc.
 
