@@ -32,5 +32,25 @@ classdef MeterProvider < handle
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
                 "ConstructorArguments", {});
         end
+
+        function meter = getMeter(obj, mtname, mtversion, mtschema)
+            arguments
+                obj
+                mtname
+                mtversion = ""
+                mtschema = ""
+            end
+            % name, version, schema accepts any types that can convert to a
+            % string
+            import opentelemetry.utils.mustBeScalarString
+            mtname = mustBeScalarString(mtname);          
+            mtversion = mustBeScalarString(mtversion);
+            mtschema = mustBeScalarString(mtschema);
+            id = obj.Proxy.getMeter(mtname, mtversion, mtschema);
+            Meterproxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.MeterProxy", "ID", id);
+            meter = opentelemetry.metrics.Meter(Meterproxy, mtname, mtversion, mtschema);
+        end
+        
     end
 end
