@@ -5,8 +5,6 @@
 #include "libmexclass/proxy/ProxyManager.h"
 
 #include <chrono>
-#include <memory>
-#include <thread>
 
 namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
@@ -16,17 +14,13 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
     auto exporter = otlpexporter::OtlpHttpMetricExporterFactory::Create();
     // Initialize and set the periodic metrics reader
     metrics_sdk::PeriodicExportingMetricReaderOptions options;
-    options.export_interval_millis = std::chrono::milliseconds(1000);
-    options.export_timeout_millis  = std::chrono::milliseconds(500);
     auto reader = metrics_sdk::PeriodicExportingMetricReaderFactory::Create(std::move(exporter), options);
 
     auto p = metrics_sdk::MeterProviderFactory::Create();
-    // auto p = nostd::shared_ptr<metrics_api::MeterProvider>(std::move(metrics_sdk::MeterProviderFactory::Create()));
     auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
     p_sdk->AddMetricReader(std::move(reader));
   
     auto p_out = nostd::shared_ptr<metrics_api::MeterProvider>(std::move(p));
-
     out = std::make_shared<MeterProviderProxy>(p_out);
     
     return out;
