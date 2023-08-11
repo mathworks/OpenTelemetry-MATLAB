@@ -10,11 +10,10 @@
 #include "opentelemetry/exporters/otlp/otlp_http_metric_exporter.h"
 #include "opentelemetry/exporters/otlp/otlp_http_metric_exporter_options.h"
 #include "opentelemetry/exporters/otlp/otlp_http_exporter.h"
-#include "opentelemetry/exporters/otlp/protobuf_include_prefix.h"
 
-#include "opentelemetry/sdk/common/global_log_handler.h"
 #include "opentelemetry/metrics/provider.h"
 #include "opentelemetry/metrics/meter_provider.h"
+#include "opentelemetry/sdk/common/global_log_handler.h"
 #include "opentelemetry/sdk/metrics/aggregation/default_aggregation.h"
 #include "opentelemetry/sdk/metrics/aggregation/histogram_aggregation.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader_factory.h"
@@ -22,9 +21,6 @@
 #include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/meter_provider_factory.h"
 #include "opentelemetry/sdk/metrics/push_metric_exporter.h"
-#include "opentelemetry/sdk/metrics/view/instrument_selector_factory.h"
-#include "opentelemetry/sdk/metrics/view/meter_selector_factory.h"
-#include "opentelemetry/sdk/metrics/view/view_factory.h"
 
 #include "opentelemetry-matlab/metrics/MeterProxy.h"
 
