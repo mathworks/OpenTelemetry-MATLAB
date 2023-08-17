@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include "opentelemetry-matlab/sdk/common/Resource.h"
+#include "opentelemetry-matlab/sdk/common/resource.h"
 #include "opentelemetry-matlab/common/attribute.h"
 
 #include "opentelemetry/common/attribute_value.h"
