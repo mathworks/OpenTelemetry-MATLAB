@@ -3,7 +3,8 @@
 #include "opentelemetry-matlab/sdk/trace/TracerProviderProxy.h"
 #include "opentelemetry-matlab/sdk/trace/SpanProcessorProxy.h"
 #include "opentelemetry-matlab/sdk/trace/SamplerProxy.h"
-#include "opentelemetry-matlab/trace/attribute.h"
+#include "opentelemetry-matlab/sdk/common/resource.h"
+#include "opentelemetry-matlab/common/attribute.h"
 
 #include "libmexclass/proxy/ProxyManager.h"
 
@@ -50,25 +51,10 @@ libmexclass::proxy::MakeResult TracerProviderProxy::make(const libmexclass::prox
        auto sampler = std::static_pointer_cast<SamplerProxy>(
 		    libmexclass::proxy::ProxyManager::getProxy(samplerid))->getInstance();
     
-       // resource
-       std::list<std::pair<std::string, common::AttributeValue> > resourceattrs;
-       std::list<std::vector<double> > resourcedims_double; // list of vector, to hold the dimensions of array attributes 
-       std::list<std::string> string_resource_attrs; // list of strings as a buffer to hold the string attributes
-       std::list<std::vector<nostd::string_view> > stringview_resource_attrs; // list of vector of stringviews, used for string array attributes only
-       for (size_t i = 0; i < nresourceattrs; ++i) {
-          std::string resourcename = static_cast<std::string>(resourcenames_mda[i]);
-          matlab::data::Array resourcevalue = resourcevalues_mda[i];
-
-          processAttribute(resourcename, resourcevalue, resourceattrs, string_resource_attrs, stringview_resource_attrs, resourcedims_double);
-       }
-       auto resource_default = resource::Resource::Create({ {"telemetry.sdk.language", "MATLAB"},
-		    {"telemetry.sdk.version", OTEL_MATLAB_VERSION} });
-       auto resource_custom = resource::Resource::Create(common::KeyValueIterableView{resourceattrs});
-       // the order matters, default resource must come after custom. Otherwise the default resource will be overwritten.
-       auto resource_merged = resource_custom.Merge(resource_default);  
+       auto resource_custom = createResource(resourcenames_mda, resourcevalues_mda);
 
        out = std::make_shared<TracerProviderProxy>(nostd::shared_ptr<trace_api::TracerProvider>(
-		    std::move(trace_sdk::TracerProviderFactory::Create(std::move(processor), resource_merged,
+		    std::move(trace_sdk::TracerProviderFactory::Create(std::move(processor), resource_custom,
 		    std::move(sampler)))));
     }
     return out;

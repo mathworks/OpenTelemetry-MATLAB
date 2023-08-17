@@ -23,7 +23,7 @@ if ispc
    windows_killroot = string(getenv("WINDOWS_KILL_INSTALL"));
    assert(~isempty(windows_killroot), "WINDOWS_KILL_INSTALL environment must be defined.")
    testCase.Sigint = @(id)fullfile(windows_killroot,"windows-kill") + " -SIGINT " + id;
-   testCase.Sigterm = @(id)"taskkill /pid " + id;
+   testCase.Sigterm = @(id)"taskkill /F /pid " + id;
 elseif isunix && ~ismac
    testCase.ListPid = @(name)"ps -C " + name;
    testCase.ReadPidList = @readtable;
