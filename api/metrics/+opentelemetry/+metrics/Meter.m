@@ -36,7 +36,8 @@ classdef Meter < handle
                 ctdescription = ""
                 ctunit = ""
             end
-            import opentelemetry.utils.mustBeScalarString
+
+            import opentelemetry.common.mustBeScalarString
             ctname = mustBeScalarString(ctname);          
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);

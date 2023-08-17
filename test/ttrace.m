@@ -86,7 +86,7 @@ classdef ttrace < matlab.unittest.TestCase
 
             versionidx = find(resourcekeys == "telemetry.sdk.version");
             verifyNotEmpty(testCase, versionidx);
-            verifyEqual(testCase, results.resourceSpans.resource.attributes(versionidx).value.stringValue, '0.1.0');
+            verifyEqual(testCase, results.resourceSpans.resource.attributes(versionidx).value.stringValue, '1.2.0');
 
             nameidx = find(resourcekeys == "telemetry.sdk.name");
             verifyNotEmpty(testCase, nameidx);
@@ -550,26 +550,26 @@ classdef ttrace < matlab.unittest.TestCase
             % two links, with attributes
             % first link
             verifyLength(testCase, results{2}.resourceSpans.scopeSpans.spans.links, 2);  % 2 links
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{1}.traceId), ctxt1.TraceId);
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{1}.spanId), ctxt1.SpanId);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links(1).traceId), ctxt1.TraceId);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links(1).spanId), ctxt1.SpanId);
 
-            linkattrkeys = string({results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes.key});
+            linkattrkeys = string({results{2}.resourceSpans.scopeSpans.spans.links(1).attributes.key});
             stringscidx = find(linkattrkeys == "StringScalar");
             verifyNotEmpty(testCase, stringscidx);
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes(stringscidx).value.stringValue), ...
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links(1).attributes(stringscidx).value.stringValue), ...
                 l2attributes{2});
             doublearidx = find(linkattrkeys == "DoubleArray");
             verifyNotEmpty(testCase, doublearidx);
-            verifyEqual(testCase, [results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes(doublearidx).value.arrayValue.values.doubleValue], ...
+            verifyEqual(testCase, [results{2}.resourceSpans.scopeSpans.spans.links(1).attributes(doublearidx).value.arrayValue.values.doubleValue], ...
                 reshape(l2attributes{4},1,[]));
             doubleszidx = find(linkattrkeys == "DoubleArray.size");
             verifyNotEmpty(testCase, doubleszidx);
-            verifyEqual(testCase, [results{2}.resourceSpans.scopeSpans.spans.links{1}.attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
+            verifyEqual(testCase, [results{2}.resourceSpans.scopeSpans.spans.links(1).attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
                 size(l2attributes{4}));
 
             % second link
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{2}.traceId), ctxt3.TraceId);
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links{2}.spanId), ctxt3.SpanId);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links(2).traceId), ctxt3.TraceId);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.links(2).spanId), ctxt3.SpanId);
         end
 
         function testInvalidSpanInputs(testCase)
