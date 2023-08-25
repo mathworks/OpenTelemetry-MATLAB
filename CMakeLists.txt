@@ -1,6 +1,11 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.7.0)
 
 cmake_policy(SET CMP0074 NEW)
+
+# Autodetect vcpkg toolchain from VCPKG_ROOT environment variable
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+endif()
 
 set(CLIENT_PROJECT_NAME otel-matlab)
 
@@ -40,14 +45,35 @@ FetchContent_MakeAvailable(
 )
 
 # ###########################
+# OpenTelemetry-cpp 
+# ###########################
+include(ExternalProject)
+set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
+set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
+set(OTEL_CPP_GIT_TAG "11d5d9e")
+
+if(DEFINED OTEL_CPP_PREFIX)
+    string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
+else()
+    set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
+endif()
+ExternalProject_Add(
+    ${OTEL_CPP_PROJECT_NAME}
+    GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
+    GIT_TAG ${OTEL_CPP_GIT_TAG}
+    PREFIX ${OTEL_CPP_PREFIX}
+    CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    INSTALL_DIR ${OTEL_CPP_PREFIX}
+    INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX}
+)
+
+# ###########################
 # OpenTelemetry Proxy Library
 # ###########################
 
 
 set(OPENTELEMETRY_PROXY_LIBRARY_NAME "OtelMatlabProxy")
 
-# Specify location for find_package to locate opentelemetry-cpp-config.cmake
-find_package(opentelemetry-cpp CONFIG REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(nlohmann_json REQUIRED)
 if(WIN32)
@@ -77,7 +103,7 @@ set(COMMON_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/common/include)
 set(TRACE_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/include)
 set(COMMON_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/common/include)
 set(OTLP_EXPORTER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/include)
-set(OPENTELEMETRY_PROXY_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${TRACE_API_INCLUDE_DIR} ${CONTEXT_API_INCLUDE_DIR} ${BAGGAGE_API_INCLUDE_DIR} ${COMMON_API_INCLUDE_DIR} ${TRACE_SDK_INCLUDE_DIR} ${COMMON_SDK_INCLUDE_DIR} ${OTLP_EXPORTER_INCLUDE_DIR} ${OPENTELEMETRY_CPP_INCLUDE_DIRS})
+set(OPENTELEMETRY_PROXY_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${TRACE_API_INCLUDE_DIR} ${CONTEXT_API_INCLUDE_DIR} ${BAGGAGE_API_INCLUDE_DIR} ${COMMON_API_INCLUDE_DIR} ${TRACE_SDK_INCLUDE_DIR} ${COMMON_SDK_INCLUDE_DIR} ${OTLP_EXPORTER_INCLUDE_DIR} ${OTEL_CPP_PREFIX}/include)
 
 set(OPENTELEMETRY_PROXY_FACTORY_CLASS_NAME OtelMatlabProxyFactory)
 set(OPENTELEMETRY_PROXY_FACTORY_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -140,13 +166,33 @@ endif()
 target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
-target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_CPP_LIBRARIES})
+target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/opentelemetry_common${CMAKE_LINK_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/opentelemetry_otlp_recordable${CMAKE_LINK_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/opentelemetry_proto${CMAKE_LINK_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/opentelemetry_resources${CMAKE_LINK_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/opentelemetry_trace${CMAKE_LINK_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/opentelemetry_version${CMAKE_LINK_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/opentelemetry_logs${CMAKE_LINK_LIBRARY_SUFFIX}
+	${Protobuf_LIBRARIES})
+if(WITH_OTLP_HTTP)
+    target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/opentelemetry_exporter_otlp_http${CMAKE_LINK_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/opentelemetry_exporter_otlp_http_client${CMAKE_LINK_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/opentelemetry_http_client_curl${CMAKE_LINK_LIBRARY_SUFFIX}
+	    ${CURL_LIBRARIES})
+endif()
+if(WITH_OTLP_GRPC)
+    target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/opentelemetry_exporter_otlp_grpc${CMAKE_LINK_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/opentelemetry_exporter_otlp_grpc_client${CMAKE_LINK_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/opentelemetry_proto_grpc${CMAKE_LINK_LIBRARY_SUFFIX}
+	    gRPC::grpc++
+	    absl::synchronization)
+endif()
 
 # On Linux, when linking with certain static libraries, need to force include entire archive to avoid the linker mistakenly leaving out symbols
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
     set(OPENTELEMETRY_PROXY_LINK_OPTIONS -Wl,--whole-archive 
-        "${OPENTELEMETRY_CPP_LIBRARY_DIRS}/libopentelemetry_trace.a"
-        "${OPENTELEMETRY_CPP_LIBRARY_DIRS}/libopentelemetry_common.a"
+	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_trace.a"
+	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_common.a"
         ${ABSL_LIBRARIES}
         ${UPB_LIBRARIES} -Wl,--no-whole-archive)
     target_link_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_OPTIONS})
@@ -184,10 +230,10 @@ if(WIN32)
             ${RE2_RUNTIME})
     endif()
 elseif(UNIX AND NOT APPLE AND NOT CYGWIN)
-    FILE(GLOB OTEL_CPP_RUNTIME ${OPENTELEMETRY_CPP_LIBRARY_DIRS}/*.so)
+    FILE(GLOB OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/*.so)
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 elseif(APPLE)
-    FILE(GLOB OTEL_CPP_RUNTIME ${OPENTELEMETRY_CPP_LIBRARY_DIRS}/*.dylib)
+    FILE(GLOB OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/*.dylib)
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
 
