@@ -1,0 +1,13 @@
+diff --git a/cmake/opentelemetry-proto.cmake b/cmake/opentelemetry-proto.cmake
+index 22082356..e25a89a2 100644
+--- a/cmake/opentelemetry-proto.cmake
++++ b/cmake/opentelemetry-proto.cmake
+@@ -276,7 +276,7 @@ if(WITH_OTLP_GRPC)
+     PUBLIC opentelemetry_proto)
+ 
+   get_target_property(grpc_lib_type gRPC::grpc++ TYPE)
+-  if (grpc_lib_type STREQUAL "SHARED_LIBRARY")
++  if (grpc_lib_type STREQUAL "SHARED_LIBRARY" OR APPLE)
+     target_link_libraries(opentelemetry_proto_grpc
+       PUBLIC gRPC::grpc++)
+   endif()
