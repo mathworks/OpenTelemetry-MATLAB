@@ -9,18 +9,13 @@ jobs:
             OPENTELEMETRY_CPP_INSTALL: "${{ github.workspace }}/otel_cpp_install"
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
             OPENTELEMETRY_COLLECTOR_INSTALL: "${{ github.workspace }}/otelcol"
+            VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
             SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
-            - name: Download OpenTelemetry-cpp source
-              uses: actions/checkout@v3
-              with: 
-                repository: open-telemetry/opentelemetry-cpp
-                path: opentelemetry-cpp
-                ref: v1.9.0
             - name: Download vcpkg
               uses: actions/checkout@v3
               with: 
@@ -38,16 +33,10 @@ jobs:
                   mkdir otelcol && cd otelcol
                   wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.75.0/otelcol_0.75.0_linux_amd64.tar.gz
                   tar -xzf otelcol_0.75.0_linux_amd64.tar.gz
-            - name: Build OpenTelemetry-cpp
-              run: |
-                  cd opentelemetry-cpp
-                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP=ON -DWITH_OTLP_HTTP=ON -DWITH_OTLP_GRPC=OFF -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
-                  cmake --build build --config Release --target all
-                  cmake --install build --prefix ${{ env.OPENTELEMETRY_CPP_INSTALL }}
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
-                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }} -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=${{ env.OPENTELEMETRY_CPP_INSTALL }}/lib/cmake/opentelemetry-cpp
+                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }} 
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
