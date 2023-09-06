@@ -44,8 +44,8 @@ classdef UpDownCounter < handle
                     obj.Proxy.add(value,attrkeys,attrvals);
 
                 else
-                    attrkeys = [varargin{1:2:(nargin-2)}]';
-                    attrvals = [varargin(2:2:(nargin-2))]';
+                    attrkeys = [varargin{1:2:length(varargin)}]';
+                    attrvals = [varargin(2:2:length(varargin))]';
                     obj.Proxy.add(value,attrkeys,attrvals);
                 end
             end

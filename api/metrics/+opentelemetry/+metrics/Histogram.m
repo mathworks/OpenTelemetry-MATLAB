@@ -41,8 +41,8 @@ classdef Histogram < handle
                     end
                     obj.Proxy.record(value,attrkeys,attrvals);
                 else
-                    attrkeys = [varargin{1:2:(nargin-2)}]';
-                    attrvals = [varargin(2:2:(nargin-2))]';
+                    attrkeys = [varargin{1:2:length(varargin)}]';
+                    attrvals = [varargin(2:2:length(varargin))]';
                     obj.Proxy.record(value,attrkeys,attrvals);
                 end
             end
