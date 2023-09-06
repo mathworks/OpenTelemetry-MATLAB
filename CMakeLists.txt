@@ -20,6 +20,9 @@ option(WITH_OTLP_GRPC "Whether to include the OTLP gRPC exporter" OFF)
 if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC)
     message(FATAL_ERROR "At least one of WITH_OTLP_HTTP and WITH_OTLP_GRPC must be ON")
 endif()
+if(APPLE)
+    option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
+endif()
 
 # ######################################
 # libmexclass FetchContent Configuration
@@ -64,13 +67,18 @@ else()
     set(OTEL_CPP_CXX_STANDARD 11)
 endif()
 
-set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+if(NOT APPLE OR SKIP_OTEL_CPP_PATCH)
+    set(patch_command "")
+else()
+    set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+endif()
 
 ExternalProject_Add(
     ${OTEL_CPP_PROJECT_NAME}
     GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
     GIT_TAG ${OTEL_CPP_GIT_TAG}
     PREFIX ${OTEL_CPP_PREFIX}
+    UPDATE_DISCONNECTED 1
     PATCH_COMMAND ${patch_command}
     CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD}
     INSTALL_DIR ${OTEL_CPP_PREFIX}
@@ -180,13 +188,20 @@ if(WITH_OTLP_GRPC)
     endif()
 endif()
     
+# On Windows, suppress a compiler warning about deprecation of result_of
+if(WIN32)
+    set(CUSTOM_CXX_FLAGS -D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
+else()
+    set(CUSTOM_CXX_FLAGS "")
+endif()
+
 if(WIN32)
     set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
     set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
-target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS})
+target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS} ${CUSTOM_CXX_FLAGS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
 target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
