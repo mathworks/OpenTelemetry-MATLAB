@@ -64,7 +64,8 @@ else()
     set(OTEL_CPP_CXX_STANDARD 11)
 endif()
 
-set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+# set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+set(patch_command "")
 
 ExternalProject_Add(
     ${OTEL_CPP_PROJECT_NAME}
@@ -137,6 +138,8 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${COMMON_API_SOURCE_DIR}/attribute.cpp
     ${METRICS_API_SOURCE_DIR}/MeterProxy.cpp
     ${METRICS_API_SOURCE_DIR}/CounterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/UpDownCounterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/HistogramProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapPropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/CompositePropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapCarrierProxy.cpp

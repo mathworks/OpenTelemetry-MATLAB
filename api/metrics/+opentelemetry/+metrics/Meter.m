@@ -36,15 +36,52 @@ classdef Meter < handle
                 ctdescription = ""
                 ctunit = ""
             end
-
             import opentelemetry.common.mustBeScalarString
             ctname = mustBeScalarString(ctname);          
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createCounter(ctname, ctdescription, ctunit);
-            Counterproxy = libmexclass.proxy.Proxy("Name", ...
+            CounterProxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.CounterProxy", "ID", id);
-            counter = opentelemetry.metrics.Counter(Counterproxy, ctname, ctdescription, ctunit);
+            counter = opentelemetry.metrics.Counter(CounterProxy, ctname, ctdescription, ctunit);
+        end
+
+
+        function updowncounter = createUpDownCounter(obj, ctname, ctdescription, ctunit)
+            arguments
+                obj
+                ctname
+                ctdescription = ""
+                ctunit = ""
+            end
+
+            import opentelemetry.common.mustBeScalarString
+            ctname = mustBeScalarString(ctname);          
+            ctdescription = mustBeScalarString(ctdescription);
+            ctunit = mustBeScalarString(ctunit);
+            id = obj.Proxy.createUpDownCounter(ctname, ctdescription, ctunit);
+            UpDownCounterProxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.UpDownCounterProxy", "ID", id);
+            updowncounter = opentelemetry.metrics.UpDownCounter(UpDownCounterProxy, ctname, ctdescription, ctunit);
+        end
+
+
+        function histogram = createHistogram(obj, hiname, hidescription, hiunit)
+            arguments
+                obj
+                hiname
+                hidescription = ""
+                hiunit = ""
+            end
+
+            import opentelemetry.common.mustBeScalarString
+            hiname = mustBeScalarString(hiname);          
+            hidescription = mustBeScalarString(hidescription);
+            hiunit = mustBeScalarString(hiunit);
+            id = obj.Proxy.createHistogram(hiname, hidescription, hiunit);
+            HistogramProxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.HistogramProxy", "ID", id);
+            histogram = opentelemetry.metrics.Histogram(HistogramProxy, hiname, hidescription, hiunit);
         end
 
     end
