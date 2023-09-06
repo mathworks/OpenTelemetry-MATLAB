@@ -64,8 +64,7 @@ else()
     set(OTEL_CPP_CXX_STANDARD 11)
 endif()
 
-# set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
-set(patch_command "")
+set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
 
 ExternalProject_Add(
     ${OTEL_CPP_PROJECT_NAME}
