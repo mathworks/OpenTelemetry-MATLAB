@@ -89,15 +89,9 @@ classdef tmetrics < matlab.unittest.TestCase
             mt = p.getMeter(metername);
             ct = mt.createCounter(countername);
 
-            % verify MATLAB object properties
-            verifyEqual(testCase, mt.Name, metername);
-            verifyEqual(testCase, mt.Version, "");
-            verifyEqual(testCase, mt.Schema, "");
-            verifyEqual(testCase, ct.Name, countername);
-
             % create testing value and dictionary
             dict = dictionary("k1","v1","k2",5);
-            vals = [1,2,3];
+            vals = [1,2.4,3];
             dict_keys = keys(dict);
             dict_vals = values(dict);
 
@@ -124,10 +118,13 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, dp.asDouble, sum(vals));
 
             % verify counter attributes
-            verifyEqual(testCase, string(dp.attributes(1).key), dict_keys(1));
-            verifyEqual(testCase, string(dp.attributes(1).value.stringValue), dict_vals(1));
-            verifyEqual(testCase, string(dp.attributes(2).key), dict_keys(2));
-            verifyEqual(testCase, string(dp.attributes(2).value.stringValue), dict_vals(2));
+            resourcekeys = string({dp.attributes.key});
+            idx1 = find(resourcekeys == dict_keys(1));
+            idx2 = find(resourcekeys == dict_keys(2));
+            verifyEqual(testCase, string(dp.attributes(idx1).key), dict_keys(1));
+            verifyEqual(testCase, string(dp.attributes(idx1).value.stringValue), dict_vals(1));
+            verifyEqual(testCase, string(dp.attributes(idx2).key), dict_keys(2));
+            verifyEqual(testCase, string(dp.attributes(idx2).value.stringValue), dict_vals(2));
 
         end
 
@@ -174,7 +171,7 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, ct.Name, countername);
 
             % create testing value 
-            val = 10;
+            val = -10;
 
             % add value and attributes
             ct.add(val);
@@ -209,15 +206,9 @@ classdef tmetrics < matlab.unittest.TestCase
             mt = p.getMeter(metername);
             ct = mt.createUpDownCounter(countername);
 
-            % verify MATLAB object properties
-            verifyEqual(testCase, mt.Name, metername);
-            verifyEqual(testCase, mt.Version, "");
-            verifyEqual(testCase, mt.Schema, "");
-            verifyEqual(testCase, ct.Name, countername);
-
             % create testing value and dictionary
             dict = dictionary("k1","v1","k2",5);
-            vals = [2,-1,3];
+            vals = [2,-1.9,3];
             dict_keys = keys(dict);
             dict_vals = values(dict);
 
@@ -244,10 +235,13 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, dp.asDouble, sum(vals));
 
             % verify counter attributes
-            verifyEqual(testCase, string(dp.attributes(1).key), dict_keys(1));
-            verifyEqual(testCase, string(dp.attributes(1).value.stringValue), dict_vals(1));
-            verifyEqual(testCase, string(dp.attributes(2).key), dict_keys(2));
-            verifyEqual(testCase, string(dp.attributes(2).value.stringValue), dict_vals(2));
+            resourcekeys = string({dp.attributes.key});
+            idx1 = find(resourcekeys == dict_keys(1));
+            idx2 = find(resourcekeys == dict_keys(2));
+            verifyEqual(testCase, string(dp.attributes(idx1).key), dict_keys(1));
+            verifyEqual(testCase, string(dp.attributes(idx1).value.stringValue), dict_vals(1));
+            verifyEqual(testCase, string(dp.attributes(idx2).key), dict_keys(2));
+            verifyEqual(testCase, string(dp.attributes(idx2).value.stringValue), dict_vals(2));
 
         end
 
@@ -261,6 +255,12 @@ classdef tmetrics < matlab.unittest.TestCase
             p = opentelemetry.sdk.metrics.MeterProvider();
             mt = p.getMeter(metername);
             hist = mt.createHistogram(histname);
+
+            % verify MATLAB object properties
+            verifyEqual(testCase, mt.Name, metername);
+            verifyEqual(testCase, mt.Version, "");
+            verifyEqual(testCase, mt.Schema, "");
+            verifyEqual(testCase, hist.Name, histname);
 
             % create value for histogram
             val = 1;
@@ -278,16 +278,25 @@ classdef tmetrics < matlab.unittest.TestCase
             bounds = dp.explicitBounds;
             counts = dp.bucketCounts;
 
+            % verify meter and histogram names
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), histname);
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+
             % verify statistics
             verifyEqual(testCase, dp.min, val);
             verifyEqual(testCase, dp.max, val);
             verifyEqual(testCase, dp.sum, val);
             
             % verify count in bucket
-            lower = bounds(1);
-            upper = bounds(2);
-            expect_count = sum(val>lower & val<=upper);
-            verifyEqual(testCase, str2double(counts{2}), expect_count);
+            len = length(counts);
+            verifyEqual(testCase, str2double(counts{1}), sum(val<=bounds(1)));
+            for i = 2:(len-1)
+                lower = bounds(i-1);
+                upper = bounds(i);
+                expect_count = sum(val>lower & val<=upper);
+                verifyEqual(testCase, str2double(counts{i}), expect_count);
+            end
+            verifyEqual(testCase, str2double(counts{len}), sum(val>bounds(len-1)));
 
         end
 
@@ -304,7 +313,7 @@ classdef tmetrics < matlab.unittest.TestCase
 
             % create value and attributes for histogram
             dict = dictionary("k1","v1","k2","v2");
-            vals = [1,5,10];
+            vals = [1,5,8.1];
             dict_keys = keys(dict);
             dict_vals = values(dict);
     
@@ -329,18 +338,24 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, dp.sum, sum(vals));
             
             % verify attributes
-            verifyEqual(testCase, string(dp.attributes(1).key), dict_keys(1));
-            verifyEqual(testCase, string(dp.attributes(1).value.stringValue), dict_vals(1));
-            verifyEqual(testCase, string(dp.attributes(2).key), dict_keys(2));
-            verifyEqual(testCase, string(dp.attributes(2).value.stringValue), dict_vals(2));
+            resourcekeys = string({dp.attributes.key});
+            idx1 = find(resourcekeys == dict_keys(1));
+            idx2 = find(resourcekeys == dict_keys(2));
+            verifyEqual(testCase, string(dp.attributes(idx1).key), dict_keys(1));
+            verifyEqual(testCase, string(dp.attributes(idx1).value.stringValue), dict_vals(1));
+            verifyEqual(testCase, string(dp.attributes(idx2).key), dict_keys(2));
+            verifyEqual(testCase, string(dp.attributes(idx2).value.stringValue), dict_vals(2));
             
             % verify count in bucket
-            for i = 2:(length(counts)-1)
+            len = length(counts);
+            verifyEqual(testCase, str2double(counts{1}), sum(vals<=bounds(1)));
+            for i = 2:(len-1)
                 lower = bounds(i-1);
                 upper = bounds(i);
                 expect_count = sum(vals>lower & vals<=upper);
                 verifyEqual(testCase, str2double(counts{i}), expect_count);
             end
+            verifyEqual(testCase, str2double(counts{len}), sum(vals>bounds(len-1)));
 
         end
       
