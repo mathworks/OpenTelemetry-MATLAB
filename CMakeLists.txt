@@ -145,6 +145,8 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${COMMON_API_SOURCE_DIR}/attribute.cpp
     ${METRICS_API_SOURCE_DIR}/MeterProxy.cpp
     ${METRICS_API_SOURCE_DIR}/CounterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/UpDownCounterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/HistogramProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapPropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/CompositePropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapCarrierProxy.cpp

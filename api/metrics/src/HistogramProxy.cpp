@@ -1,6 +1,6 @@
 // Copyright 2023 The MathWorks, Inc.
 
-#include "opentelemetry-matlab/metrics/CounterProxy.h"
+#include "opentelemetry-matlab/metrics/HistogramProxy.h"
 
 #include "libmexclass/proxy/ProxyManager.h"
 
@@ -12,15 +12,18 @@
 namespace libmexclass::opentelemetry {
 
 
-void CounterProxy::add(libmexclass::proxy::method::Context& context){
-  
+void HistogramProxy::record(libmexclass::proxy::method::Context& context){
+    // Get value
     matlab::data::Array value_mda = context.inputs[0];
     double value = static_cast<double>(value_mda[0]);
+    // Create empty context
+    auto ctxt = context_api::Context();
+    // If no attributes input, record value and context
     size_t nin = context.inputs.getNumberOfElements();
     if (nin == 1){
-        CppCounter->Add(value);
+        CppHistogram->Record(value, ctxt);
     } 
-    // add attributes
+    // Otherwise, get attributes, record value, attributes and context
     else { 
         ProcessedAttributes attrs;
         matlab::data::StringArray attrnames_mda = context.inputs[1];
@@ -31,7 +34,7 @@ void CounterProxy::add(libmexclass::proxy::method::Context& context){
             matlab::data::Array attrvalue = attrvalues_mda[i];
             processAttribute(attrname, attrvalue, attrs);
         }
-        CppCounter->Add(value, attrs.Attributes);
+        CppHistogram->Record(value, attrs.Attributes, ctxt);
     }
     
 }

@@ -1,6 +1,5 @@
-classdef Counter < handle
-    % Counter is a value that accumulates over time,
-    % you can think of this like an odometer on a car; it only ever goes up.
+classdef UpDownCounter < handle
+    % UpDownCounter is an instrument that adds or reduce values.
 
     % Copyright 2023 The MathWorks, Inc.
 
@@ -10,15 +9,15 @@ classdef Counter < handle
         Unit        (1,1) string   
     end
 
-    properties (Access=private)
+    properties (Access=public)
         Proxy   % Proxy object to interface C++ code
     end
 
     methods (Access={?opentelemetry.metrics.Meter})
         
-        function obj = Counter(proxy, ctname, ctdescription, ctunit)
-            % Private constructor. Use createCounter method of Meter
-            % to create Counters.
+        function obj = UpDownCounter(proxy, ctname, ctdescription, ctunit)
+            % Private constructor. Use createUpDownCounter method of Meter
+            % to create UpDownCounters.
             obj.Proxy = proxy;
             obj.Name = ctname;
             obj.Description = ctdescription;

@@ -15,17 +15,17 @@ namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;
 
 namespace libmexclass::opentelemetry {
-class CounterProxy : public libmexclass::proxy::Proxy {
+class UpDownCounterProxy : public libmexclass::proxy::Proxy {
   public:
-    CounterProxy(nostd::shared_ptr<metrics_api::Counter<double> > ct) : CppCounter(ct) {
-       REGISTER_METHOD(CounterProxy, add);
+    UpDownCounterProxy(nostd::shared_ptr<metrics_api::UpDownCounter<double> > ct) : CppUpDownCounter(ct) {
+       REGISTER_METHOD(UpDownCounterProxy, add);
     }
 
     void add(libmexclass::proxy::method::Context& context);
 
   private:
 
-    nostd::shared_ptr<metrics_api::Counter<double> > CppCounter;
+    nostd::shared_ptr<metrics_api::UpDownCounter<double> > CppUpDownCounter;
 
 }; 
 } // namespace libmexclass::opentelemetry
