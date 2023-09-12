@@ -2,14 +2,52 @@ cmake_minimum_required(VERSION 3.7.0)
 
 cmake_policy(SET CMP0074 NEW)
 
-# Autodetect vcpkg toolchain from VCPKG_ROOT environment variable
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+
+# ###########################
+# vcpkg
+# ###########################
+
+include(FetchContent)
+
+# check if VCPKG_ROOT is defined, which should point to an existing installation
+if(DEFINED ENV{VCPKG_ROOT})
+   # Autodetect vcpkg toolchain
+   if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+       string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+   endif()
+else()
+   # VCPKG_ROOT not defined, get it using FetchContent
+
+   if(DEFINED VCPKG_PREFIX})
+       # download location specified
+       string(REPLACE "\\" "/" VCPKG_PREFIX "${VCPKG_PREFIX}")
+   else()
+       set(VCPKG_PREFIX ${CMAKE_BINARY_DIR}/vcpkg)
+   endif()
+
+   set(VCPKG_FETCH_CONTENT_NAME vcpkg)
+   set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
+   set(VCPKG_GIT_TAG "9edb1b8")
+   FetchContent_Declare(
+       ${VCPKG_FETCH_CONTENT_NAME}
+       GIT_REPOSITORY ${VCPKG_GIT_REPOSITORY}
+       GIT_TAG ${VCPKG_GIT_TAG}
+       PREFIX ${VCPKG_PREFIX}
+       UPDATE_DISCONNECTED 1
+   )
+
+   FetchContent_MakeAvailable(
+       ${VCPKG_FETCH_CONTENT_NAME}
+   )
+
+   FetchContent_GetProperties(${VCPKG_FETCH_CONTENT_NAME})
+   string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "${vcpkg_SOURCE_DIR}/scripts/buildsystems/vcpkg.cmake")
+
 endif()
 
-set(CLIENT_PROJECT_NAME otel-matlab)
-
-project(${CLIENT_PROJECT_NAME} VERSION 0.1.0)
+if(NOT DEFINED VCPKG_INSTALLED_DIR)
+   set(DVCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
+endif()
 
 # ######################################
 # Options
@@ -24,8 +62,25 @@ if(APPLE)
     option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
 endif()
 
+# set vcpkg features depending on specified options
+set(VCPKG_MANIFEST_FEATURES "")  # start with empty
+if(WITH_OTLP_HTTP)
+    set(VCPKG_MANIFEST_FEATURES ${VCPKG_MANFIEST_FEATURES} "otlp-http")
+endif()
+if(WITH_OTLP_GRPC)
+    set(VCPKG_MANIFEST_FEATURES ${VCPKG_MANIFEST_FEATURES} "otlp-grpc")
+endif()
+
 # ######################################
-# libmexclass FetchContent Configuration
+# Project Declaration
+# ######################################
+
+set(CLIENT_PROJECT_NAME otel-matlab)
+
+project(${CLIENT_PROJECT_NAME} VERSION 0.1.0)
+
+# ######################################
+# libmexclass 
 # ######################################
 
 set(LIBMEXCLASS_FETCH_CONTENT_NAME libmexclass)
@@ -36,7 +91,6 @@ set(LIBMEXCLASS_FETCH_CONTENT_GIT_TAG "77f3d72")
 
 set(LIBMEXCLASS_FETCH_CONTENT_SOURCE_SUBDIR "libmexclass/cpp")
 
-include(FetchContent)
 FetchContent_Declare(
     ${LIBMEXCLASS_FETCH_CONTENT_NAME}
     GIT_REPOSITORY ${LIBMEXCLASS_FETCH_CONTENT_GIT_REPOSITORY}
@@ -47,43 +101,51 @@ FetchContent_MakeAvailable(
     ${LIBMEXCLASS_FETCH_CONTENT_NAME}
 )
 
+
 # ###########################
 # OpenTelemetry-cpp 
 # ###########################
-include(ExternalProject)
-set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
-set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-set(OTEL_CPP_GIT_TAG "11d5d9e")
 
-if(DEFINED OTEL_CPP_PREFIX)
-    string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
+if(DEFINED OTEL_CPP_INSTALLED_DIR)
+   # OTEL_CPP_INSTALLED_DIR should point to an installed location of OpenTelemetry-cpp 
+   string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_INSTALLED_DIR})
 else()
-    set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
-endif()
+   # No installed location supplied. Fetch it as an external project
+   include(ExternalProject)
+   set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
+   set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
+   set(OTEL_CPP_GIT_TAG "11d5d9e")
 
-if(WITH_OTLP_GRPC)
-    set(OTEL_CPP_CXX_STANDARD 14)  # Abseil requires at least Cxx14
-else()
-    set(OTEL_CPP_CXX_STANDARD 11)
-endif()
+   if(DEFINED OTEL_CPP_PREFIX)
+       string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
+   else()
+       set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
+   endif()
 
-if(NOT APPLE OR SKIP_OTEL_CPP_PATCH)
-    set(patch_command "")
-else()
-    set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
-endif()
+   if(WITH_OTLP_GRPC)
+       set(OTEL_CPP_CXX_STANDARD 14)  # Abseil requires at least Cxx14
+   else()
+       set(OTEL_CPP_CXX_STANDARD 11)
+   endif()
 
-ExternalProject_Add(
-    ${OTEL_CPP_PROJECT_NAME}
-    GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
-    GIT_TAG ${OTEL_CPP_GIT_TAG}
-    PREFIX ${OTEL_CPP_PREFIX}
-    UPDATE_DISCONNECTED 1
-    PATCH_COMMAND ${patch_command}
-    CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD}
-    INSTALL_DIR ${OTEL_CPP_PREFIX}
-    INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX}
-)
+   if(NOT APPLE OR SKIP_OTEL_CPP_PATCH)
+       set(patch_command "")
+   else()
+       set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+   endif()
+
+   ExternalProject_Add(
+       ${OTEL_CPP_PROJECT_NAME}
+       GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
+       GIT_TAG ${OTEL_CPP_GIT_TAG}
+       PREFIX ${OTEL_CPP_PREFIX}
+       UPDATE_DISCONNECTED 1
+       PATCH_COMMAND ${patch_command}
+       CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR}
+       INSTALL_DIR ${OTEL_CPP_PREFIX}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX}
+   )
+endif()
 
 # ###########################
 # OpenTelemetry Proxy Library
