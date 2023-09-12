@@ -25,6 +25,16 @@ else()
        set(VCPKG_PREFIX ${CMAKE_BINARY_DIR}/vcpkg)
    endif()
 
+   # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
+   # use libcurl as a shared library and load the MATLAB version at runtime
+   if(APPLE)
+       # run uname -m to determine whether arm64 or x86_64
+       exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
+       set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
+       set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
+       set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
+   endif()
+
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
    set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
    set(VCPKG_GIT_TAG "9edb1b8")

@@ -3,10 +3,11 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
     "protobuf",
-    "zlib"
+    "zlib",
+    "nlohmann-json"
   ],
   "features": {
-    "otlp-http": {"description": "Otlp HTTP Exporter", "dependencies": ["curl", "nlohmann-json"]},
+    "otlp-http": {"description": "Otlp HTTP Exporter", "dependencies": ["curl"]},
     "otlp-grpc": {"description": "Otlp gRPC Exporter", "dependencies": ["grpc", "abseil", "c-ares", "re2", "openssl", "upb"]}
   }
 }
