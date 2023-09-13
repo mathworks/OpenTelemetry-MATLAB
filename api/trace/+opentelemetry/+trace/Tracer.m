@@ -121,7 +121,7 @@ classdef Tracer < handle
                     
                 end
             end
-            spname = opentelemetry.utils.mustBeScalarString(spname);
+            spname = opentelemetry.common.mustBeScalarString(spname);
             id = obj.Proxy.startSpan(spname, contextid, spankind, starttime, ...
                 attributekeys, attributevalues, links{:});
             spanproxy = libmexclass.proxy.Proxy("Name", ...

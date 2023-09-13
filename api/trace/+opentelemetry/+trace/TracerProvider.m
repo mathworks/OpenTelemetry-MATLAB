@@ -41,7 +41,7 @@ classdef TracerProvider < handle
             end
             % name, version, schema accepts any types that can convert to a
             % string
-            import opentelemetry.utils.mustBeScalarString
+            import opentelemetry.common.mustBeScalarString
             trname = mustBeScalarString(trname);          
             trversion = mustBeScalarString(trversion);
             trschema = mustBeScalarString(trschema);

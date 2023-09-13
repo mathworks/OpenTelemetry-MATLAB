@@ -21,29 +21,14 @@ Installation instructions
 Before proceeding, ensure that the below products are installed:
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
 
-1. Download [vcpkg](https://vcpkg.io). Install the following packages:
-- curl
-- nlohmann-json
-- protobuf
-- zlib
-
-2. Download, build and install [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
-```
-cd <opentelemetry-cpp-root>
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_STANDARD=20 -DWITH_OTLP_HTTP=ON -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake
-cmake --build build --config Release --target ALL_BUILD
-cmake --install build --prefix <opentelemetry-cpp-installdir>
-```
-3. Download OpenTelemetry MATLAB
-
-4. Build and install OpenTelemetry MATLAB
+1. Download, Build and install OpenTelemetry MATLAB
 ```
 cd <opentelemetry-matlab-root>
-cmake -S . -B build -DCMAKE_INSTALL_PREFIX=<opentelemetry-matlab-installdir> -DCMAKE_TOOLCHAIN_FILE=<vcpkg_root>\scripts\buildsystems\vcpkg.cmake -DCMAKE_PREFIX_PATH=<path to opentelemetry-cpp-config.cmake>
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=<opentelemetry-matlab-installdir>
 cmake --build build --config Release --target install
 
 ```
-5. Download [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-releases/releases). You can just obtain a pre-built binary for your platform.
+2. Download [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-releases/releases). You can just obtain a pre-built binary for your platform.
 
 ## Getting Started
 1. Start OpenTelemetry Collector

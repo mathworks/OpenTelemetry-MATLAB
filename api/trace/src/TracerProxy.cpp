@@ -3,7 +3,7 @@
 #include "opentelemetry-matlab/trace/TracerProxy.h"
 #include "opentelemetry-matlab/trace/SpanProxy.h"
 #include "opentelemetry-matlab/trace/SpanContextProxy.h"
-#include "opentelemetry-matlab/trace/attribute.h"
+#include "opentelemetry-matlab/common/attribute.h"
 #include "opentelemetry-matlab/context/ContextProxy.h"
 #include "libmexclass/proxy/ProxyManager.h"
 
@@ -62,19 +62,17 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
     }
 
     // attributes
-    std::list<std::pair<std::string, common::AttributeValue> > attrs;
-    std::list<std::vector<double> > attrdims_double; // list of vectors, to hold the dimensions of array attributes 
-    std::list<std::string> stringattrs; // list of strings as a buffer to hold the string attributes
-    std::list<std::vector<nostd::string_view> > stringviews; // list of vector of strings views, used for string array attributes only
+    ProcessedAttributes attrs;
     for (size_t i = 0; i < nattrs; ++i) {
        std::string attrname = static_cast<std::string>(attrnames_mda[i]);
        matlab::data::Array attrvalue = attrvalues_mda[i];
 
-       processAttribute(attrname, attrvalue, attrs, stringattrs, stringviews, attrdims_double);
+       processAttribute(attrname, attrvalue, attrs);
     }
 
     // links
     std::list<std::pair<trace_api::SpanContext, std::list<std::pair<std::string, common::AttributeValue> > > > links;
+    ProcessedAttributes linkattrs;
     for (size_t i = nfixedinputs; i < ninputs; i+=3) {
        // link target
        matlab::data::TypedArray<uint64_t> linktargetid_mda = context.inputs[i];
@@ -83,7 +81,6 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
 		       libmexclass::proxy::ProxyManager::getProxy(linktargetid));
 
        // link attributes
-       std::list<std::pair<std::string, common::AttributeValue> > linkattrs;
        matlab::data::StringArray linkattrnames_mda = context.inputs[i+1];
        size_t nlinkattrs = linkattrnames_mda.getNumberOfElements();
        matlab::data::Array linkattrvalues_mda = context.inputs[i+2];
@@ -91,12 +88,12 @@ void TracerProxy::startSpan(libmexclass::proxy::method::Context& context) {
           std::string linkattrname = static_cast<std::string>(linkattrnames_mda[ii]);
           matlab::data::Array linkattrvalue = linkattrvalues_mda[ii];
   
-          processAttribute(linkattrname, linkattrvalue, linkattrs, stringattrs, stringviews, attrdims_double);
+          processAttribute(linkattrname, linkattrvalue, linkattrs);
        }
-       links.push_back(std::pair(linktarget->getInstance(), linkattrs));
+       links.push_back(std::pair(linktarget->getInstance(), linkattrs.Attributes));
     }
 
-    auto sp = CppTracer->StartSpan(name, attrs, links, options);
+    auto sp = CppTracer->StartSpan(name, attrs.Attributes, links, options);
 
     // instantiate a SpanProxy instance
     SpanProxy* newproxy = new SpanProxy(sp);

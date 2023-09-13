@@ -114,7 +114,7 @@ classdef Span < handle
                 eventtime = posixtime(datetime("now"));
             end
 
-            eventname = opentelemetry.utils.mustBeScalarString(eventname);
+            eventname = opentelemetry.common.mustBeScalarString(eventname);
             attrs = obj.processAttributes(varargin);
             obj.Proxy.addEvent(eventname, eventtime, attrs{:});        
         end
@@ -132,7 +132,7 @@ classdef Span < handle
                 % new status is not valid, ignore
                 return
             end
-            description = opentelemetry.utils.mustBeScalarString(description);
+            description = opentelemetry.common.mustBeScalarString(description);
     	    obj.Proxy.setStatus(status, description);
     	end
 
