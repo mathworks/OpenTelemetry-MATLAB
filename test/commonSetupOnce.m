@@ -20,9 +20,20 @@ if ispc
    testCase.ListPid = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
    testCase.ReadPidList = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
    testCase.ExtractPid = @(table)table.Var2;
-   windows_killroot = string(getenv("WINDOWS_KILL_INSTALL"));
-   assert(~isempty(windows_killroot), "WINDOWS_KILL_INSTALL environment must be defined.")
-   testCase.Sigint = @(id)fullfile(windows_killroot,"windows-kill") + " -SIGINT " + id;
+   windows_killroot = getenv("WINDOWS_KILL_INSTALL");
+   windows_killname = "windows-kill";
+   if isempty(windows_killroot)
+       % windows_kill not pre-installed    
+       windows_kill_url = "https://github.com/ElyDotDev/windows-kill/releases/download/1.1.4";
+       windows_kill_zipfilename = "windows-kill_x64_1.1.4_lib_release";
+       windows_killroot = fullfile(tempdir, windows_kill_zipfilename);
+
+       % look for it in tempdir, download and install if it doesn't exist
+       if ~exist(fullfile(windows_killroot, windows_killname + ".exe"),"file")
+           unzip(fullfile(windows_kill_url, windows_kill_zipfilename + ".zip"), tempdir);
+       end       
+   end
+   testCase.Sigint = @(id)fullfile(windows_killroot,windows_killname) + " -SIGINT " + id;
    testCase.Sigterm = @(id)"taskkill /F /pid " + id;
 elseif isunix && ~ismac
    testCase.ListPid = @(name)"ps -C " + name;
