@@ -1,6 +1,6 @@
 // Copyright 2023 The MathWorks, Inc.
 
-#include "opentelemetry-matlab/metrics/CounterProxy.h"
+#include "opentelemetry-matlab/metrics/UpDownCounterProxy.h"
 
 #include "libmexclass/proxy/ProxyManager.h"
 
@@ -12,13 +12,13 @@
 namespace libmexclass::opentelemetry {
 
 
-void CounterProxy::add(libmexclass::proxy::method::Context& context){
+void UpDownCounterProxy::add(libmexclass::proxy::method::Context& context){
   
     matlab::data::Array value_mda = context.inputs[0];
     double value = static_cast<double>(value_mda[0]);
     size_t nin = context.inputs.getNumberOfElements();
     if (nin == 1){
-        CppCounter->Add(value);
+        CppUpDownCounter->Add(value);
     } 
     // add attributes
     else { 
@@ -31,7 +31,7 @@ void CounterProxy::add(libmexclass::proxy::method::Context& context){
             matlab::data::Array attrvalue = attrvalues_mda[i];
             processAttribute(attrname, attrvalue, attrs);
         }
-        CppCounter->Add(value, attrs.Attributes);
+        CppUpDownCounter->Add(value, attrs.Attributes);
     }
     
 }

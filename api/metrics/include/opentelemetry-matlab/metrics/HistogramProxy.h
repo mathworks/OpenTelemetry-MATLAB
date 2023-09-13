@@ -5,27 +5,30 @@
 #include "libmexclass/proxy/Proxy.h"
 #include "libmexclass/proxy/method/Context.h"
 
+#include "opentelemetry/context/context.h"
 #include "opentelemetry/metrics/meter.h"
 #include "opentelemetry/metrics/sync_instruments.h"
 
 #include "opentelemetry-matlab/common/attribute.h"
 #include "opentelemetry-matlab/common/ProcessedAttributes.h"
+#include "opentelemetry-matlab/context/ContextProxy.h"
 
 namespace metrics_api = opentelemetry::metrics;
+namespace context = opentelemetry::context;
 namespace nostd = opentelemetry::nostd;
 
 namespace libmexclass::opentelemetry {
-class CounterProxy : public libmexclass::proxy::Proxy {
+class HistogramProxy : public libmexclass::proxy::Proxy {
   public:
-    CounterProxy(nostd::shared_ptr<metrics_api::Counter<double> > ct) : CppCounter(ct) {
-       REGISTER_METHOD(CounterProxy, add);
+    HistogramProxy(nostd::shared_ptr<metrics_api::Histogram<double> > hist) : CppHistogram(hist) {
+       REGISTER_METHOD(HistogramProxy, record);
     }
 
-    void add(libmexclass::proxy::method::Context& context);
+    void record(libmexclass::proxy::method::Context& context);
 
   private:
 
-    nostd::shared_ptr<metrics_api::Counter<double> > CppCounter;
+    nostd::shared_ptr<metrics_api::Histogram<double> > CppHistogram;
 
 }; 
 } // namespace libmexclass::opentelemetry
