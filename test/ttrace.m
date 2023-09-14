@@ -5,10 +5,9 @@ classdef ttrace < matlab.unittest.TestCase
 
     properties
         OtelConfigFile
-        OtelRoot
         JsonFile
         PidFile
-	OtelcolName
+    	OtelcolName
         Otelcol
         ListPid
         ReadPidList

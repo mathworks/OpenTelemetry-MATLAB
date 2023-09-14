@@ -5,12 +5,9 @@ function commonSetupOnce(testCase)
 
 % file definitions
 otelcolroot = getenv("OPENTELEMETRY_COLLECTOR_INSTALL");
-assert(~isempty(otelcolroot), "OPENTELEMETRY_COLLECTOR_INSTALL environment must be defined.")
 testCase.OtelConfigFile = fullfile(fileparts(mfilename("fullpath")), ...
     "otelcol_config.yml");
 otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
-assert(~isempty(otelroot), "OPENTELEMETRY_MATLAB_INSTALL environment must be defined.")
-testCase.OtelRoot = otelroot;
 testCase.JsonFile = "myoutput.json";
 testCase.PidFile = "testoutput.txt";
 
@@ -19,7 +16,13 @@ testCase.OtelcolName = "otelcol";
 if ispc
    testCase.ListPid = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
    testCase.ReadPidList = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
-   testCase.ExtractPid = @(table)table.Var2;
+   testCase.ExtractPid = @(table)table.Var2;   
+   
+   % variables to support downloading OpenTelemetry Collector
+   otelcol_arch_name = "windows_amd64";
+   otelcol_exe_ext = ".exe";
+
+   % windows_kill
    windows_killroot = getenv("WINDOWS_KILL_INSTALL");
    windows_killname = "windows-kill";
    if isempty(windows_killroot)
@@ -41,6 +44,10 @@ elseif isunix && ~ismac
    testCase.ExtractPid = @(table)table.PID;
    testCase.Sigint = @(id)"kill " + id;  % kill sends a SIGTERM instead of SIGINT but turns out this is sufficient to terminate OTEL collector on Linux
    testCase.Sigterm = @(id)"kill " + id;
+
+   % variables to support downloading OpenTelemetry Collector
+   otelcol_arch_name = "linux_amd64";
+   otelcol_exe_ext = "";
 elseif ismac
    testCase.ListPid = @(name)"pgrep -x " + name;
    testCase.ReadPidList = @readmatrix;
@@ -53,10 +60,31 @@ elseif ismac
    end
 
 end
+
+% OpenTelemetry Collector
+if isempty(otelcolroot)
+    % collector not pre-installed
+    otelcol_version = "0.85.0";
+    otelcol_url = "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v" ...
+        + otelcol_version;
+    otelcol_zipfilename = "otelcol_" + otelcol_version + "_" + otelcol_arch_name;
+    otelcolroot = fullfile(tempdir, otelcol_zipfilename);
+
+    % look for it in tempdir, download and install if it doesn't exist
+    if ~exist(fullfile(otelcolroot, testCase.OtelcolName + otelcol_exe_ext),"file")
+        otelcol_tar = gunzip(fullfile(otelcol_url, otelcol_zipfilename + ".tar.gz"), otelcolroot);
+        otelcol_tar = otelcol_tar{1}; % should have only extracted 1 tar file
+        untar(otelcol_tar, otelcolroot);
+        delete(otelcol_tar);
+    end
+end
+
 testCase.Otelcol = fullfile(otelcolroot, testCase.OtelcolName);
 
 % set up path
-testCase.applyFixture(matlab.unittest.fixtures.PathFixture(testCase.OtelRoot));
+if ~isempty(otelroot)
+    testCase.applyFixture(matlab.unittest.fixtures.PathFixture(otelroot));
+end
 
 % remove temporary files if present
 if exist(testCase.JsonFile, "file")

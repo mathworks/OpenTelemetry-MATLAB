@@ -4,7 +4,6 @@ classdef tbaggage < matlab.unittest.TestCase
     % Copyright 2023 The MathWorks, Inc.
 
     properties
-        OtelRoot
         BaggageKeys
         BaggageValues
         BaggageHeaders
@@ -12,10 +11,12 @@ classdef tbaggage < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            testCase.OtelRoot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
+            otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
 
             % set up path
-            addpath(testCase.OtelRoot);
+            if ~isempty(otelroot)
+                addpath(otelroot);
+            end
 
             testCase.BaggageKeys = ["userId", "serverNode", "isProduction"];
             testCase.BaggageValues = ["alice", "DF28", "false"];
