@@ -12,7 +12,6 @@ testCase.JsonFile = "myoutput.json";
 testCase.PidFile = "testoutput.txt";
 
 % process definitions
-testCase.OtelcolName = "otelcol";
 if ispc
    testCase.ListPid = @(name)"tasklist /fi ""IMAGENAME eq " + name + ".exe""";
    testCase.ReadPidList = @(file)readtable(file, "VariableNamingRule", "preserve", "NumHeaderLines", 3, "MultipleDelimsAsOne", true, "Delimiter", " ");
@@ -55,13 +54,16 @@ elseif ismac
    testCase.Sigint = @(id)"kill -s INT " + id;  
    testCase.Sigterm = @(id)"kill -s TERM " + id;
    if computer == "MACA64"
-      % only the contrib version of OpenTelemetry Collector is available on Apple silicon
-      testCase.OtelcolName = "otelcol-contrib";
+      otelcol_arch_name = "darwin_arm64";
+   else
+      otelcol_arch_name = "darwin_amd64";
    end
+   otelcol_exe_ext = "";
 
 end
 
 % OpenTelemetry Collector
+otelcolname = "otelcol";
 if isempty(otelcolroot)
     % collector not pre-installed
     otelcol_version = "0.85.0";
@@ -71,12 +73,20 @@ if isempty(otelcolroot)
     otelcolroot = fullfile(tempdir, otelcol_zipfilename);
 
     % look for it in tempdir, download and install if it doesn't exist
-    if ~exist(fullfile(otelcolroot, testCase.OtelcolName + otelcol_exe_ext),"file")
+    if ~(exist(fullfile(otelcolroot, otelcolname + otelcol_exe_ext),"file") || ...
+            exist(fullfile(otelcolroot,otelcolname + "-contrib" + otelcol_exe_ext),"file"))
+        % download and install
         otelcol_tar = gunzip(fullfile(otelcol_url, otelcol_zipfilename + ".tar.gz"), otelcolroot);
         otelcol_tar = otelcol_tar{1}; % should have only extracted 1 tar file
         untar(otelcol_tar, otelcolroot);
         delete(otelcol_tar);
     end
+end
+% check for contrib version
+if exist(fullfile(otelcolroot,otelcolname + "-contrib" + otelcol_exe_ext),"file")
+    testCase.OtelcolName = otelcolname + "-contrib";
+else
+    testCase.OtelcolName = otelcolname;
 end
 
 testCase.Otelcol = fullfile(otelcolroot, testCase.OtelcolName);
