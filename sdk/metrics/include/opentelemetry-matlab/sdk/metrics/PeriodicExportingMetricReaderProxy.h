@@ -7,9 +7,10 @@
 #include "libmexclass/proxy/Proxy.h"
 #include "libmexclass/proxy/method/Context.h"
 
-#include "opentelemetry/sdk/metrics/periodic_exporting_metric_reader_options.h"
+#include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader_factory.h"
+#include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader_options.h"
 
-namespace metric_reader_sdk = opentelemetry::sdk::metrics::MetricReader;
+namespace metric_sdk = opentelemetry::sdk::metrics;
 
 namespace libmexclass::opentelemetry::sdk {
 class PeriodicExportingMetricReaderProxy : public libmexclass::proxy::Proxy {
@@ -18,11 +19,13 @@ class PeriodicExportingMetricReaderProxy : public libmexclass::proxy::Proxy {
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
-    std::unique_ptr<metric_reader_sdk::PeriodicExportingMetricReader> getInstance();
+    std::unique_ptr<metric_sdk::MetricReader> getInstance();
 
     void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
 
   private:
-    metric_reader_sdk::PeriodicExportingMetricReaderOptions CppOptions;
+    metric_sdk::PeriodicExportingMetricReaderOptions CppOptions;
+
+    std::shared_ptr<MetricExporterProxy> MetricExporter;
 };
 } // namespace libmexclass::opentelemetry

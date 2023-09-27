@@ -4,7 +4,7 @@
 
 #include "libmexclass/proxy/ProxyManager.h"
 
-#include "opentelemetry/exporters/otlp/otlp_grpc_exporter_factory.h"
+#include "opentelemetry/exporters/otlp/otlp_grpc_metric_exporter_factory.h"
 
 namespace otlp_exporter = opentelemetry::exporter::otlp;
 
@@ -25,7 +25,7 @@ libmexclass::proxy::MakeResult OtlpGrpcMetricExporterProxy::make(const libmexcla
     matlab::data::StringArray headernames_mda = constructor_arguments[5];
     matlab::data::StringArray headervalues_mda = constructor_arguments[6];
 
-    otlp_exporter::OtlpGrpcExporterOptions options;
+    otlp_exporter::OtlpGrpcMetricExporterOptions options;
     if (!endpoint.empty()) {
         options.endpoint = endpoint;
     } 
@@ -50,11 +50,11 @@ libmexclass::proxy::MakeResult OtlpGrpcMetricExporterProxy::make(const libmexcla
 }
 
 std::unique_ptr<metric_sdk::PushMetricExporter> OtlpGrpcMetricExporterProxy::getInstance() {
-    return otlp_exporter::OtlpGrpcExporterFactory::Create(CppOptions);
+    return otlp_exporter::OtlpGrpcMetricExporterFactory::Create(CppOptions);
 }
 
 void OtlpGrpcMetricExporterProxy::getDefaultOptionValues(libmexclass::proxy::method::Context& context) {
-    otlp_exporter::OtlpGrpcExporterOptions options;
+    otlp_exporter::OtlpGrpcMetricExporterOptions options;
     matlab::data::ArrayFactory factory;
     auto endpoint_mda = factory.createScalar(options.endpoint);
     auto certpath_mda = factory.createScalar(options.ssl_credentials_cacert_path);

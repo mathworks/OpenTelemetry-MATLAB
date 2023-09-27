@@ -36,11 +36,14 @@ class MeterProviderProxy : public libmexclass::proxy::Proxy {
   public:
     MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : CppMeterProvider(mp) {
         REGISTER_METHOD(MeterProviderProxy, getMeter);
+        REGISTER_METHOD(MeterProviderProxy, addMetricReader);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     void getMeter(libmexclass::proxy::method::Context& context);
+
+    void addMetricReader(libmexclass::proxy::method::Context& context);
 
   protected:
     nostd::shared_ptr<metrics_api::MeterProvider> CppMeterProvider;

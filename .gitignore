@@ -4,3 +4,4 @@ build
 # Autosave files
 *.asv
 *.swp
+.vscode/settings.json

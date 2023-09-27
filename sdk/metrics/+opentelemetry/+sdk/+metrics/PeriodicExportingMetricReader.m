@@ -13,7 +13,7 @@ classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
         Timeout (1,1) double
     end
 
-    methods (Access=protected)
+    methods (Access=?opentelemetry.sdk.metrics.MeterProvider)
         function obj = PeriodicExportingMetricReader(metricexporter, optionnames, optionvalues)
            
             arguments
@@ -27,8 +27,8 @@ classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
 
             validnames = ["Interval", "Timeout"];
             % set default values 
-            intervalmills = 60;
-            timeoutmills = 30;
+            intervalmillis = 60;
+            timeoutmillis = 30;
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
@@ -38,17 +38,18 @@ classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
                         error("opentelemetry:sdk:metrics::PeriodicExportingMetricReader::InvalidInterval", ...
                             "Interval must be a scalar positive integer.");
                     end
-                    intervalmills = double(valuei);
+                    intervalmillis = double(valuei);
                 elseif strcmp(namei, "Timeout")
                     if ~isduration(valuei) || ~isscalar(valuei) || valuei <= 0
                         error("opentelemetry:sdk:metrics:PeriodicExportingMetricReader:InvalidTimeout", ...
                             "Timeout must be a positive duration scalar.");
                     end
                     timeoutmillis = milliseconds(valuei);
+                end
             end
             
             obj.MetricExporter = metricexporter;
-            obj.Interval = intervalmills;
+            obj.Interval = intervalmillis;
             obj.Timeout = timeoutmillis;
             obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.PeriodicExportingMetricReaderProxy" , ...
                                                 "ConstructorArguments", [metricexporter.Proxy.ID, Interval, Timeout]);

@@ -6,7 +6,7 @@
 
 #include "opentelemetry/sdk/metrics/push_metric_exporter.h"
 
-namespace metric_sdk = opentelemetry::sdk::metric;
+namespace metric_sdk = opentelemetry::sdk::metrics;
 
 namespace libmexclass::opentelemetry::sdk {
 class MetricExporterProxy : public libmexclass::proxy::Proxy {
