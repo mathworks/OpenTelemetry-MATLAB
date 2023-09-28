@@ -11,14 +11,6 @@ namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     
     libmexclass::proxy::MakeResult out;
-<<<<<<< Updated upstream
-
-    matlab::data::TypedArray<uint64_t> processorid_mda = constructor_arguments[0];
-    libmexclass::proxy::ID processorid = processorid_mda[0];
-    auto reader = std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
-		    libmexclass::proxy::ProxyManager::getProxy(processorid))->getInstance();
-
-=======
   
     auto exporter = otlpexporter::OtlpHttpMetricExporterFactory::Create();
     // Initialize and set the periodic metrics reader
@@ -26,7 +18,6 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
     options.export_interval_millis = std::chrono::milliseconds(1000);
     options.export_timeout_millis = std::chrono::milliseconds(500);
     auto reader = metrics_sdk::PeriodicExportingMetricReaderFactory::Create(std::move(exporter), options);
->>>>>>> Stashed changes
     auto p = metrics_sdk::MeterProviderFactory::Create();
     auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
     p_sdk->AddMetricReader(std::move(reader));
