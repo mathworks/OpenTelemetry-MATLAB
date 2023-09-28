@@ -10,10 +10,7 @@ namespace otlp_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::exporters {
 libmexclass::proxy::MakeResult OtlpHttpMetricExporterProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
-<<<<<<< Updated upstream
-=======
     /*
->>>>>>> Stashed changes
     matlab::data::StringArray endpoint_mda = constructor_arguments[0];
     std::string endpoint = static_cast<std::string>(endpoint_mda[0]);
     matlab::data::StringArray dataformat_mda = constructor_arguments[1];
@@ -28,16 +25,11 @@ libmexclass::proxy::MakeResult OtlpHttpMetricExporterProxy::make(const libmexcla
     size_t nheaders = header_mda.getNumberOfElements();
     matlab::data::StringArray headernames_mda = constructor_arguments[5];
     matlab::data::StringArray headervalues_mda = constructor_arguments[6];
-<<<<<<< Updated upstream
-
-    otlp_exporter::OtlpHttpMetricExporterOptions options;
-=======
     */
 
     otlp_exporter::OtlpHttpMetricExporterOptions options;
     
     /*
->>>>>>> Stashed changes
     if (!endpoint.empty()) {
         options.url = endpoint;
     } 
@@ -67,19 +59,12 @@ libmexclass::proxy::MakeResult OtlpHttpMetricExporterProxy::make(const libmexcla
         options.http_headers.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
 				static_cast<std::string>(headervalues_mda[i])});
     }
-<<<<<<< Updated upstream
-    return std::make_shared<OtlpHttpMetricExporterProxy>(options);
-}
-
-std::unique_ptr<metric_sdk::MetricExporter> OtlpHttpMetricExporterProxy::getInstance() {
-=======
     */
     std::cout << "====================================\n";
     return std::make_shared<OtlpHttpMetricExporterProxy>(options);
 }
 
 std::unique_ptr<metric_sdk::PushMetricExporter> OtlpHttpMetricExporterProxy::getInstance() {
->>>>>>> Stashed changes
     return otlp_exporter::OtlpHttpMetricExporterFactory::Create(CppOptions);
 }
 
@@ -111,11 +96,8 @@ void OtlpHttpMetricExporterProxy::getDefaultOptionValues(libmexclass::proxy::met
     context.outputs[2] = json_bytes_mapping_mda;
     context.outputs[3] = timeout_mda;
 }
-<<<<<<< Updated upstream
-=======
 
 void OtlpHttpMetricExporterProxy::test(libmexclass::proxy::method::Context& context){
     return;
 }
->>>>>>> Stashed changes
 } // namespace libmexclass::opentelemetry
