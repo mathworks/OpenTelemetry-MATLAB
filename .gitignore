@@ -1,7 +1,5 @@
 # build directories
 build
-examples/webread/build
-examples/context_propagation/build
 
 # Autosave files
 *.asv

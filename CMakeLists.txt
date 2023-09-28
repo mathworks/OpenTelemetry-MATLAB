@@ -56,7 +56,7 @@ else()
 endif()
 
 if(NOT DEFINED VCPKG_INSTALLED_DIR)
-   set(DVCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
+   set(VCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
 endif()
 
 # ######################################
@@ -71,6 +71,7 @@ endif()
 if(APPLE)
     option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
 endif()
+option(WITH_EXAMPLES "Whether to build examples" OFF)
 
 # set vcpkg features depending on specified options
 set(VCPKG_MANIFEST_FEATURES "")  # start with empty
@@ -269,7 +270,7 @@ endif()
 target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS} ${CUSTOM_CXX_FLAGS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
-target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
+set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_otlp_recordable${CMAKE_STATIC_LIBRARY_SUFFIX}
         ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto${OTEL_PROTO_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_resources${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -278,18 +279,20 @@ target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PRE
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_logs${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${Protobuf_LIBRARIES})
 if(WITH_OTLP_HTTP)
-    target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
+    set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_LINK_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_client${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_http_client_curl${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${CURL_LIBRARIES})
 endif()
 if(WITH_OTLP_GRPC)
-    target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
+    set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_LINK_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_client${CMAKE_STATIC_LIBRARY_SUFFIX}
             ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX}
 	    gRPC::grpc++
 	    absl::synchronization)
 endif()
+
+target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_LINK_LIBRARIES})
 
 # On Linux, when linking with certain static libraries, need to force include entire archive to avoid the linker mistakenly leaving out symbols
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
@@ -343,6 +346,7 @@ elseif(UNIX AND NOT CYGWIN)
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
 
+
 # ##############################
 # OpenTelemetry MEX Gateway
 # ##############################
@@ -395,3 +399,10 @@ endif()
 
 # Install dependent runtime libraries
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION +libmexclass/+proxy)
+
+# ##############################
+# Subdirectories
+# ##############################
+if(WITH_EXAMPLES)
+   add_subdirectory(examples)
+endif()
