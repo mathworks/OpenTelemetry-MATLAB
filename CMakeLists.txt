@@ -346,7 +346,6 @@ elseif(UNIX AND NOT CYGWIN)
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
 
-
 # ##############################
 # OpenTelemetry MEX Gateway
 # ##############################
@@ -398,7 +397,8 @@ if(WITH_OTLP_GRPC)
 endif()
 
 # Install dependent runtime libraries
-install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION +libmexclass/+proxy)
+set(LIBMEXCLASS_PROXY_INSTALLED_DIR +libmexclass/+proxy)
+install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${LIBMEXCLASS_PROXY_INSTALLED_DIR})
 
 # ##############################
 # Subdirectories
