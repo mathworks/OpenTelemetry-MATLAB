@@ -17,7 +17,7 @@ tr = opentelemetry.trace.getTracer("MATLABTracer");
 sp = startSpan(tr, "mymagic", "SpanKind", "server");
 
 sz = double(request.Body);
-magicsquare = magic(request.Body);  % generate the magic square
+magicsquare = magic(sz);  % generate the magic square
 setAttributes(sp, "input", sz, "output", magicsquare);
 
 % convert magic square to char
@@ -48,7 +48,7 @@ prop = opentelemetry.trace.propagation.TraceContextPropagator();
 setTextMapPropagator(prop);
 end
 
-% Thie helper ensures the input function is only run once
+% This helper ensures the input function is only run once
 function runOnce(fh)
 persistent hasrun
 if isempty(hasrun)
