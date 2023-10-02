@@ -10,7 +10,6 @@ namespace otlp_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::exporters {
 libmexclass::proxy::MakeResult OtlpHttpMetricExporterProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
-    /*
     matlab::data::StringArray endpoint_mda = constructor_arguments[0];
     std::string endpoint = static_cast<std::string>(endpoint_mda[0]);
     matlab::data::StringArray dataformat_mda = constructor_arguments[1];
@@ -25,11 +24,11 @@ libmexclass::proxy::MakeResult OtlpHttpMetricExporterProxy::make(const libmexcla
     size_t nheaders = header_mda.getNumberOfElements();
     matlab::data::StringArray headernames_mda = constructor_arguments[5];
     matlab::data::StringArray headervalues_mda = constructor_arguments[6];
-    */
+    matlab::data::StringArray temporality_mda = constructor_arguments[7];
+    std::string temporality = static_cast<std::string>(temporality_mda[0]);
 
     otlp_exporter::OtlpHttpMetricExporterOptions options;
     
-    /*
     if (!endpoint.empty()) {
         options.url = endpoint;
     } 
@@ -59,8 +58,13 @@ libmexclass::proxy::MakeResult OtlpHttpMetricExporterProxy::make(const libmexcla
         options.http_headers.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
 				static_cast<std::string>(headervalues_mda[i])});
     }
-    */
-    std::cout << "====================================\n";
+    // Preferred Aggregation Temporality
+    if (temporality.compare("Cumulative") == 0) {
+        options.aggregation_temporality = otlp_exporter::PreferredAggregationTemporality::kCumulative;
+    } 
+    else if (temporality.compare("Delta") == 0) {
+        options.aggregation_temporality = otlp_exporter::PreferredAggregationTemporality::kDelta;
+    }
     return std::make_shared<OtlpHttpMetricExporterProxy>(options);
 }
 
@@ -72,7 +76,7 @@ void OtlpHttpMetricExporterProxy::getDefaultOptionValues(libmexclass::proxy::met
     otlp_exporter::OtlpHttpMetricExporterOptions options;
     matlab::data::ArrayFactory factory;
     auto endpoint_mda = factory.createScalar(options.url);
-    std::string dataformat, json_bytes_mapping;
+    std::string dataformat, json_bytes_mapping, aggregation_temporality;
     // dataformat
     if (options.content_type == otlp_exporter::HttpRequestContentType::kJson) {
         dataformat = "JSON";
@@ -87,17 +91,30 @@ void OtlpHttpMetricExporterProxy::getDefaultOptionValues(libmexclass::proxy::met
     } else {   // kBase64
         json_bytes_mapping = "base64";
     }
+    // Preferred Aggregation Temporality
+    if (options.aggregation_temporality == otlp_exporter::PreferredAggregationTemporality::kCumulative){
+        aggregation_temporality = "Cumulative";
+    }
+    else if (options.aggregation_temporality == otlp_exporter::PreferredAggregationTemporality::kDelta){
+        aggregation_temporality = "Delta";
+    }
+    else if (options.aggregation_temporality == otlp_exporter::PreferredAggregationTemporality::kLowMemory){
+        aggregation_temporality = "LowMemory";
+    }
+    else {
+        aggregation_temporality = "Unspecified";
+    }
+
     auto dataformat_mda = factory.createScalar(dataformat);
     auto json_bytes_mapping_mda = factory.createScalar(json_bytes_mapping);
     auto timeout_millis = std::chrono::duration_cast<std::chrono::milliseconds>(options.timeout);
     auto timeout_mda = factory.createScalar(static_cast<double>(timeout_millis.count()));
+    auto aggregation_temporality_mda = factory.createScalar(aggregation_temporality);
     context.outputs[0] = endpoint_mda;
     context.outputs[1] = dataformat_mda;
     context.outputs[2] = json_bytes_mapping_mda;
     context.outputs[3] = timeout_mda;
+    context.outputs[4] = aggregation_temporality_mda;
 }
 
-void OtlpHttpMetricExporterProxy::test(libmexclass::proxy::method::Context& context){
-    return;
-}
 } // namespace libmexclass::opentelemetry

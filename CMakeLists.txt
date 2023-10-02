@@ -232,13 +232,16 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${METRICS_SDK_SOURCE_DIR}/PeriodicExportingMetricReaderProxy.cpp
     ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
 if(WITH_OTLP_HTTP)
-    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
-	${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES} 
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpMetricExporterProxy.cpp)
 endif()
 if(WITH_OTLP_GRPC)
-    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
-        ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp)
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES}
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp)
 endif()
 
 libmexclass_client_add_proxy_library(
@@ -391,11 +394,12 @@ set(COMMON_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/common/+openteleme
 set(TRACE_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/+opentelemetry)
 set(METRICS_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/metrics/+opentelemetry)
 set(DEFAULT_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m)
+set(DEFAULT_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultMetricExporter.m)
 set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m)
+set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpMetricExporter.m)
 set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m)
-set(DEFAULT_METRIC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultMetricExporter.m)
-set(OTLP_HTTP_METRIC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpMetricExporter.m)
-set(OTLP_GRPC_METRIC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m)
+set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m)
+
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
@@ -410,11 +414,9 @@ install(FILES ${DEFAULT_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DI
 install(FILES ${DEFAULT_METRIC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 if(WITH_OTLP_HTTP)
     install(FILES ${OTLP_HTTP_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
-    install(FILES ${OTLP_HTTP_METRIC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 endif()
 if(WITH_OTLP_GRPC)
     install(FILES ${OTLP_GRPC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
-    install(FILES ${OTLP_GRPC_METRIC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 endif()
 
 # Install dependent runtime libraries

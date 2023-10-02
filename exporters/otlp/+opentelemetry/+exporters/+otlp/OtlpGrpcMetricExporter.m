@@ -6,12 +6,13 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
 % Copyright 2023 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Endpoint (1,1) string               % Export destination
-        UseCredentials  (1,1) logical       % Whether to use SSL credentials
-        CertificatePath (1,1) string        % Path to .pem file for SSL encryption
-        CertificateString (1,1) string      % In-memory string representation of .pem file for SSL encryption
-        Timeout (1,1) duration              % Maximum time above which exports will abort
-        HttpHeaders (1,1) dictionary        % Additional HTTP headers
+        Endpoint (1,1) string                           % Export destination
+        UseCredentials  (1,1) logical                   % Whether to use SSL credentials
+        CertificatePath (1,1) string                    % Path to .pem file for SSL encryption
+        CertificateString (1,1) string                  % In-memory string representation of .pem file for SSL encryption
+        Timeout (1,1) duration                          % Maximum time above which exports will abort
+        HttpHeaders (1,1) dictionary                    % Additional HTTP headers
+        PreferredAggregationTemporality (1,1) string    % Preferred Aggregation Temporality 
     end
 
     methods
@@ -44,7 +45,7 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
             end
 
             validnames = ["Endpoint", "UseCredentials ", "CertificatePath", ...
-                "CertificateString", "Timeout", "HttpHeaders"];
+                "CertificateString", "Timeout", "HttpHeaders", "PreferredAggregationTemporality"];
             % set default values to empty or negative
             endpoint = "";
             usessl = false;
@@ -53,6 +54,7 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
             timeout_millis = -1;
             headerkeys = string.empty();
             headervalues = string.empty();
+            temporality = "";
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
@@ -82,7 +84,7 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
                     end
                     timeout = valuei;
                     timeout_millis = milliseconds(timeout);
-                else  % HttpHeaders
+                elseif strcmp(namei, "HttpHeaders")  % HttpHeaders
                     if ~isa(valuei, "dictionary")
                         error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
                     end
@@ -92,16 +94,18 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
                     if ~isstring(headervalues)
                         error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
                     end
+                elseif strcmp(namei, "PreferredAggregationTemporality")
+                    temporality = validatestring(valuei, ["Cumulative", "Delta"]);
                 end
             end
             
             obj = obj@opentelemetry.sdk.metrics.MetricExporter(...
                 "libmexclass.opentelemetry.exporters.OtlpGrpcMetricExporterProxy", ...
                 endpoint, usessl, certificatepath, certificatestring, ...
-                timeout_millis, headerkeys, headervalues);
+                timeout_millis, headerkeys, headervalues, temporality);
 
             % populate immutable properties
-            [defaultendpoint, defaultcertpath, defaultcertstring, defaultmillis] = ...
+            [defaultendpoint, defaultcertpath, defaultcertstring, defaultmillis, defaulttemporality] = ...
                 getDefaultOptionValues(obj);
             if endpoint == ""  % not specified, use default value
                 obj.Endpoint = defaultendpoint;
@@ -129,7 +133,11 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
             else
                 obj.HttpHeaders = httpheaders;
             end
-            
+            if temporality == ""
+                obj.PreferredAggregationTemporality = defaulttemporality;
+            else
+                obj.PreferredAggregationTemporality = temporality;
+            end
         end
     end
 end

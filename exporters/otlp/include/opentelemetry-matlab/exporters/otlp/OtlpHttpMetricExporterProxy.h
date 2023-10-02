@@ -18,7 +18,6 @@ class OtlpHttpMetricExporterProxy: public libmexclass::opentelemetry::sdk::Metri
   public:
     OtlpHttpMetricExporterProxy(otlp_exporter::OtlpHttpMetricExporterOptions options) : CppOptions(options) {
         REGISTER_METHOD(OtlpHttpMetricExporterProxy, getDefaultOptionValues);
-        REGISTER_METHOD(OtlpHttpMetricExporterProxy, test);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
@@ -26,8 +25,6 @@ class OtlpHttpMetricExporterProxy: public libmexclass::opentelemetry::sdk::Metri
     std::unique_ptr<metric_sdk::PushMetricExporter> getInstance() override;
 
     void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
-
-    void test(libmexclass::proxy::method::Context& context);
 
   private:
     otlp_exporter::OtlpHttpMetricExporterOptions CppOptions;

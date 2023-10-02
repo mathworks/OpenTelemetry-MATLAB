@@ -37,13 +37,55 @@ classdef tmetrics < matlab.unittest.TestCase
 
     methods (Test)
         
+        function testDefaultExporter(testCase)
+            exporter = opentelemetry.exporters.otlp.defaultMetricExporter;
+            verifyEqual(testCase, string(class(exporter)), "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
+            verifyEqual(testCase, string(exporter.Endpoint), "http://localhost:4318/v1/metrics");
+            verifyEqual(testCase, exporter.Timeout, seconds(10));
+            verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), "Cumulative");
+        end
+
+
+        function testExporterBasic(testCase)
+            timeout = seconds(5);
+            temporality = "Delta";
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("Timeout", timeout, ...
+                "PreferredAggregationTemporality", temporality);
+            verifyEqual(testCase, exporter.Timeout, timeout);
+            verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), temporality);
+        end
+
+        
+        function testDefaultReader(testCase)
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader();
+            verifyEqual(testCase, string(class(reader.MetricExporter)), "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
+            verifyEqual(testCase, reader.Interval, seconds(60));
+            verifyEqual(testCase, reader.Timeout, seconds(30));
+        end
+
+
+        function testReaderBasic(testCase)
+            exporter = opentelemetry.exporters.otlp.defaultMetricExporter;
+            interval = seconds(1);
+            timeout = seconds(0.5);
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", interval, ...
+                "Timeout", timeout);
+            verifyEqual(testCase, reader.Interval, interval);
+            verifyEqual(testCase, reader.Timeout, timeout);
+        end
+
+
         function testCounterBasic(testCase)
             % test names and added value in Counter
 
             metername = "foo";
             countername = "bar";
-
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             ct = mt.createCounter(countername);
 
@@ -60,7 +102,7 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(val);
 
             % wait for default collector response time (60s)
-            pause(70);
+            pause(2.5);
 
             % fetch result
             results = readJsonResults(testCase);
@@ -85,7 +127,10 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             countername = "bar";
 
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             ct = mt.createCounter(countername);
 
@@ -100,8 +145,8 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(vals(2),dict);
             ct.add(vals(3),dict_keys(1),dict_vals(1),dict_keys(2),dict_vals(2));
 
-            % wait for default collector response time (60s)
-            pause(70);
+            % wait for collector response
+            pause(2.5);
 
             % fetch result
             results = readJsonResults(testCase);
@@ -135,13 +180,16 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             countername = "bar";
 
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             ct = mt.createCounter(countername);
 
             % add negative value to counter
             ct.add(-1);
-            pause(70);
+            pause(2.5);
 
             % fetch results
             results = readJsonResults(testCase);
@@ -160,7 +208,10 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             countername = "bar";
 
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             ct = mt.createUpDownCounter(countername);
 
@@ -176,8 +227,8 @@ classdef tmetrics < matlab.unittest.TestCase
             % add value and attributes
             ct.add(val);
 
-            % wait for default collector response time (60s)
-            pause(70);
+            % wait for collector response time (2s)
+            pause(5);
 
             % fetch result
             results = readJsonResults(testCase);
@@ -202,7 +253,10 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             countername = "bar";
 
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             ct = mt.createUpDownCounter(countername);
 
@@ -217,8 +271,8 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(vals(2),dict);
             ct.add(vals(3),dict_keys(1),dict_vals(1),dict_keys(2),dict_vals(2));
 
-            % wait for default collector response time (60s)
-            pause(70);
+            % wait for collector response
+            pause(5);
 
             % fetch result
             results = readJsonResults(testCase);
@@ -252,7 +306,10 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             histname = "bar";
 
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             hist = mt.createHistogram(histname);
 
@@ -269,7 +326,7 @@ classdef tmetrics < matlab.unittest.TestCase
             hist.record(val);
 
             % wait for collector response
-            pause(75);
+            pause(10);
 
             % fetch results
             results = readJsonResults(testCase);
@@ -307,7 +364,10 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             histname = "bar";
 
-            p = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
             mt = p.getMeter(metername);
             hist = mt.createHistogram(histname);
 
@@ -323,7 +383,7 @@ classdef tmetrics < matlab.unittest.TestCase
             hist.record(vals(3),dict_keys(1),dict_vals(1),dict_keys(2),dict_vals(2));
 
             % wait for collector response
-            pause(75);
+            pause(10);
 
             % fetch results
             results = readJsonResults(testCase);

@@ -37,7 +37,7 @@ classdef MeterProvider < handle
 
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                "ConstructorArguments", {});
+                "ConstructorArguments", {reader.Proxy.ID});
         end
 
         function meter = getMeter(obj, mtname, mtversion, mtschema)
