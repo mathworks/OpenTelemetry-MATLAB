@@ -120,6 +120,42 @@ classdef tmetrics < matlab.unittest.TestCase
 
         end
 
+        function testCounterDelta(testCase)
+            metername = "foo";
+            countername = "bar";
+            
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+                "PreferredAggregationTemporality", "Delta");
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
+            mt = p.getMeter(metername);
+            ct = mt.createCounter(countername);
+
+            % verify MATLAB object properties
+            verifyEqual(testCase, mt.Name, metername);
+            verifyEqual(testCase, mt.Version, "");
+            verifyEqual(testCase, mt.Schema, "");
+            verifyEqual(testCase, ct.Name, countername);
+
+            % create testing value 
+            vals = [10, 20];
+
+            % add value and attributes
+            ct.add(vals(1));
+            pause(3);
+            ct.add(vals(2));
+
+            % fetch results
+            pause(2.5);
+            results = readJsonResults(testCase);
+            dp1 = results{1}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
+            dp2 = results{2}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
+
+            % verify counter value
+            verifyEqual(testCase, dp1.asDouble, vals(1));
+            verifyEqual(testCase, dp2.asDouble, vals(2));
+        end
 
         function testCounterAddAttributes(testCase)
             % test names, added value and attributes in Counter
