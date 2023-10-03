@@ -107,7 +107,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch result
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
+            results = results{end};
 
             % verify meter and counter names
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
@@ -189,7 +189,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch result
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
+            results = results{end};
 
             % verify meter and counter names
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
@@ -233,7 +233,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
+            results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
 
             % verify that the counter value is still 0
@@ -273,7 +273,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch result
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
+            results = results{end};
 
             % verify meter and counter names
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
@@ -318,13 +318,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch result
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
-
-            % verify meter and counter names
-            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
-            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
-
-            % fetch datapoint
+            results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
 
             % verify counter value
@@ -373,7 +367,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
+            results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
             bounds = dp.explicitBounds;
             counts = dp.bucketCounts;
@@ -403,7 +397,6 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testHistogramRecordAttributes(testCase)
             % test recorded values and attributes in histogram
-            
             metername = "foo";
             histname = "bar";
 
@@ -431,7 +424,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            results = results{1};
+            results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
             bounds = dp.explicitBounds;
             counts = dp.bucketCounts;
@@ -460,7 +453,57 @@ classdef tmetrics < matlab.unittest.TestCase
                 verifyEqual(testCase, str2double(counts{i}), expect_count);
             end
             verifyEqual(testCase, str2double(counts{len}), sum(vals>bounds(len-1)));
+        end
 
+
+        function testHistogramDelta(testCase)
+            metername = "foo";
+            histname = "bar";
+
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+                "PreferredAggregationTemporality", "Delta");
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                                        "Interval", seconds(2), "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
+            mt = p.getMeter(metername);
+            hist = mt.createHistogram(histname);
+    
+            % record value and attributes
+            rawvals = [1 6];
+            vals = {[rawvals(1)], [rawvals(2)]};
+            hist.record(rawvals(1));
+            pause(2.5);
+            hist.record(rawvals(2));
+
+            % wait for collector response
+            pause(2.5);
+
+            % fetch results
+            clear p;
+            results = readJsonResults(testCase);
+            rsize = size(results);
+            for i = 1:rsize(2)
+                dp = results{i}.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
+                bounds = dp.explicitBounds;
+                counts = dp.bucketCounts;
+                
+                currentvals = vals{i};
+                % verify statistics
+                verifyEqual(testCase, dp.min, min(currentvals));
+                verifyEqual(testCase, dp.max, max(currentvals));
+                verifyEqual(testCase, dp.sum, sum(currentvals));
+                
+                % verify count in bucket
+                len = length(counts);
+                verifyEqual(testCase, str2double(counts{1}), sum(currentvals<=bounds(1)));
+                for j = 2:(len-1)
+                    lower = bounds(j-1);
+                    upper = bounds(j);
+                    expect_count = sum(currentvals>lower & currentvals<=upper);
+                    verifyEqual(testCase, str2double(counts{j}), expect_count);
+                end
+                verifyEqual(testCase, str2double(counts{len}), sum(currentvals>bounds(len-1)));
+            end
         end
       
     end
