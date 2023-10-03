@@ -12,7 +12,8 @@ Requires MATLAB release R2022b or newer
 - [MATLAB](https://www.mathworks.com/products/matlab.html)
 
 ### 3rd Party Products:
-- [Opentelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
+- [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector-releases/releases)
+- [OpenTelemetry C++](https://github.com/open-telemetry/opentelemetry-cpp)
 - [vcpkg C/C++ dependency manager](https://vcpkg.io)
 
 ## Installation 
@@ -56,6 +57,8 @@ otelcol --config <otelcol-config-yaml>
 >> sp.endSpan();
 ```
 4. If your collector is configured to display the data, you should see your span displayed. 
+
+For more examples, see the "examples" folder.
 
 ## Help
 To view documentation of individual function, type "help \<function_name>\". For example,
