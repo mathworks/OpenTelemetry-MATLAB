@@ -101,10 +101,11 @@ classdef tmetrics < matlab.unittest.TestCase
             % add value and attributes
             ct.add(val);
 
-            % wait for default collector response time (60s)
+            % wait for collector response
             pause(2.5);
 
             % fetch result
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
 
@@ -148,6 +149,7 @@ classdef tmetrics < matlab.unittest.TestCase
 
             % fetch results
             pause(2.5);
+            clear p;
             results = readJsonResults(testCase);
             dp1 = results{1}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
             dp2 = results{2}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -185,6 +187,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch result
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
 
@@ -228,6 +231,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch results
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -267,6 +271,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(5);
 
             % fetch result
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
 
@@ -311,6 +316,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(5);
 
             % fetch result
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
 
@@ -365,6 +371,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(10);
 
             % fetch results
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
@@ -422,6 +429,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(10);
 
             % fetch results
+            clear p;
             results = readJsonResults(testCase);
             results = results{1};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
