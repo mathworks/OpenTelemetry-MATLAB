@@ -75,10 +75,39 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, reader.Timeout, timeout);
         end
 
+        
+        function testAddMetricReader(testCase)
+            metername = "foo";
+            countername = "bar";
+            exporter1 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("PreferredAggregationTemporality", "Delta");
+            exporter2 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("PreferredAggregationTemporality", "Delta");
+            reader1 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter1, ...,
+                "Interval", seconds(2), ...
+                "Timeout", seconds(1));
+            reader2 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter2, ...,
+                "Interval", seconds(2), ...
+                "Timeout", seconds(1));
+            p = opentelemetry.sdk.metrics.MeterProvider(reader1);
+            p.addMetricReader(reader2)
+            mt = p.getMeter(metername);
+            ct = mt.createCounter(countername);
+
+            % verify if the provider has two metric readers
+            reader_size = size(p.MetricReader);
+            verifyEqual(testCase,reader_size(2), 2);
+
+            % verify if the provider has two exported instances
+            ct.add(1);
+            pause(2.5);
+            clear p;
+            results = readJsonResults(testCase);
+            result_size = size(results);
+            verifyEqual(testCase,result_size(2), 2);
+        end
+
 
         function testCounterBasic(testCase)
             % test names and added value in Counter
-
             metername = "foo";
             countername = "bar";
             

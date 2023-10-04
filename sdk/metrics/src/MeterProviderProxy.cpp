@@ -54,14 +54,12 @@ void MeterProviderProxy::getMeter(libmexclass::proxy::method::Context& context) 
 
 
 void MeterProviderProxy::addMetricReader(libmexclass::proxy::method::Context& context) {
-    /*
-    matlab::data::TypedArray<uint64_t> processorid_mda = context.inputs[0];
-    libmexclass::proxy::ID processorid = processorid_mda[0];
+    matlab::data::TypedArray<uint64_t> readerid_mda = context.inputs[0];
+    libmexclass::proxy::ID readerid = readerid_mda[0];
 
-    static_cast<metric_sdk&>(*CppTracerProvider).AddProcessor(
-		    std::static_pointer_cast<SpanProcessorProxy>(
-			    libmexclass::proxy::ProxyManager::getProxy(processorid))->getInstance());
-    */
+    static_cast<metrics_sdk::MeterProvider&>(*CppMeterProvider).AddMetricReader(
+		    std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
+			    libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance());
    return;
 }
 

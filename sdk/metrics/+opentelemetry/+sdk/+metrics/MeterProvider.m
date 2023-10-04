@@ -6,6 +6,9 @@ classdef MeterProvider < handle
 
     properties (Access=private)
 	    Proxy
+    end
+
+    properties (Access=public)
         MetricReader
     end
 
@@ -38,6 +41,7 @@ classdef MeterProvider < handle
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
                 "ConstructorArguments", {reader.Proxy.ID});
+            obj.MetricReader = reader;
         end
 
         function meter = getMeter(obj, mtname, mtversion, mtschema)
@@ -59,6 +63,14 @@ classdef MeterProvider < handle
             meter = opentelemetry.metrics.Meter(Meterproxy, mtname, mtversion, mtschema);
         end
         
+        function addMetricReader(obj, reader)
+        arguments
+     	    obj
+            reader (1,1) {mustBeA(reader, "opentelemetry.sdk.metrics.PeriodicExportingMetricReader")}
+        end
+            obj.Proxy.addMetricReader(reader.Proxy.ID);
+            obj.MetricReader = [obj.MetricReader, reader];
+        end
         
         function success = shutdown(obj)
             if ~obj.isShutdown
