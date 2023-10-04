@@ -58,7 +58,8 @@ classdef tmetrics < matlab.unittest.TestCase
         
         function testDefaultReader(testCase)
             reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader();
-            verifyEqual(testCase, string(class(reader.MetricExporter)), "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
+            verifyEqual(testCase, string(class(reader.MetricExporter)), ...
+                "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
             verifyEqual(testCase, reader.Interval, seconds(60));
             verifyEqual(testCase, reader.Timeout, seconds(30));
         end
@@ -79,24 +80,24 @@ classdef tmetrics < matlab.unittest.TestCase
         function testAddMetricReader(testCase)
             metername = "foo";
             countername = "bar";
-            exporter1 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("PreferredAggregationTemporality", "Delta");
-            exporter2 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("PreferredAggregationTemporality", "Delta");
+            exporter1 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+                "PreferredAggregationTemporality", "Delta");
+            exporter2 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+                "PreferredAggregationTemporality", "Delta");
             reader1 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter1, ...,
-                "Interval", seconds(2), ...
-                "Timeout", seconds(1));
+                "Interval", seconds(2), "Timeout", seconds(1));
             reader2 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter2, ...,
-                "Interval", seconds(2), ...
-                "Timeout", seconds(1));
+                "Interval", seconds(2), "Timeout", seconds(1));
             p = opentelemetry.sdk.metrics.MeterProvider(reader1);
-            p.addMetricReader(reader2)
+            p.addMetricReader(reader2);
             mt = p.getMeter(metername);
             ct = mt.createCounter(countername);
 
-            % verify if the provider has two metric readers
+            % verify if the provider has two metric readers attached
             reader_size = size(p.MetricReader);
             verifyEqual(testCase,reader_size(2), 2);
 
-            % verify if the provider has two exported instances
+            % verify if the json results has two exported instances
             ct.add(1);
             pause(2.5);
             clear p;

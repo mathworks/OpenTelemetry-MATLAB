@@ -1,5 +1,5 @@
 classdef OtlpHttpMetricExporter < opentelemetry.sdk.metrics.MetricExporter
-% OtlpHttpMetricExporter exports Metrics in OpenTelemetry Protocol format via 
+% OtlpHttpMetricExporter exports metrics in OpenTelemetry Protocol format via 
 % HTTP. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
@@ -17,7 +17,31 @@ classdef OtlpHttpMetricExporter < opentelemetry.sdk.metrics.MetricExporter
 
     methods
         function obj = OtlpHttpMetricExporter(optionnames, optionvalues)
-           
+            % OtlpHttpMetricExporter exports metrics in OpenTelemetry Protocol format via HTTP.
+            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMETRICEXPORTER
+            %    creates an exporter that uses default configurations.
+            %
+            %    EXP =
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMETRICEXPORTER(PARAM1,
+            %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
+            %    name/value pairs. Parameters are:
+            %       "Endpoint"          - Endpoint to export to
+            %       "Format"            - Data format: "JSON" (default) or "binary"
+            %       "JsonBytesMapping"  - What to convert JSON bytes to. Supported
+            %                             values are "hex", "hexId" (default), and
+            %                             "base64". Default "hexId"
+            %                             converts to base 64 except for IDs
+            %                             which are converted to hexadecimals.
+            %       "UseJsonName"       - Whether to use JSON name of protobuf 
+            %                             field to set the key of JSON
+            %       "Timeout"           - Maximum time above which exports 
+            %                             will abort
+            %       "HTTPHeaders"       - Additional HTTP Headers
+            %       "PreferredAggregationTemporality"  
+            %                           - An aggregation temporality of 
+            %                           - delta or cumulative
+            %
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMETRICEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

@@ -1,5 +1,5 @@
 classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
-% OtlpGrpcMetricExporter exports Metrics in OpenTelemetry Protocol format via 
+% OtlpGrpcMetricExporter exports metrics in OpenTelemetry Protocol format via 
 % gRPC. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
@@ -17,12 +17,12 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
 
     methods
         function obj = OtlpGrpcMetricExporter(optionnames, optionvalues)
-            % OtlpGrpcMetricExporter exports Metrics in OpenTelemetry Protocol format via gRPC.
-            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMetricEXPORTER
+            % OtlpGrpcMetricExporter exports metrics in OpenTelemetry Protocol format via gRPC.
+            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMETRICEXPORTER
             %    creates an exporter that uses default configurations.
             %
             %    EXP =
-            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMetricEXPORTER(PARAM1,
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMETRICEXPORTER(PARAM1,
             %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
             %    name/value pairs. Parameters are:
             %       "Endpoint"          - Endpoint to export to
@@ -37,8 +37,11 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
             %       "Timeout"           - Maximum time above which exports 
             %                             will abort
             %       "HTTPHeaders"       - Additional HTTP Headers
+            %       "PreferredAggregationTemporality"  
+            %                           - An aggregation temporality of 
+            %                           - delta or cumulative
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMetricEXPORTER
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMETRICEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

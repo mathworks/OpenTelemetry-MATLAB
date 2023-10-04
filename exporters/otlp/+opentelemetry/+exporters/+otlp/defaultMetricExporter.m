@@ -1,6 +1,6 @@
 function dexp = defaultMetricExporter
 % Get the default Metric exporter depending on installation
-%    EXP = OPENTELEMETRY.EXPORTERS.OTLP.DEFAULTMetricEXPORTER returns the 
+%    EXP = OPENTELEMETRY.EXPORTERS.OTLP.DEFAULTMETRICEXPORTER returns the 
 %    default Metric exporter. OtlpHttpMetricExporter is the default if it is 
 %    installed. Otherwise, OtlpGrpcMetricExporter is the default.
 %
