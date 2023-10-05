@@ -34,6 +34,7 @@ libmexclass::proxy::MakeResult
 OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_name,
                                const libmexclass::proxy::FunctionArguments& constructor_arguments) {
 
+    REGISTER_PROXY(libmexclass.opentelemetry.MeterProviderProxy, libmexclass::opentelemetry::MeterProviderProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TracerProviderProxy, libmexclass::opentelemetry::TracerProviderProxy);
     //REGISTER_PROXY(libmexclass.opentelemetry.TracerProxy, libmexclass::opentelemetry::TracerProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.SpanProxy, libmexclass::opentelemetry::SpanProxy);

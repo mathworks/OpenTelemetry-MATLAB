@@ -23,6 +23,7 @@
 #include "opentelemetry/sdk/metrics/push_metric_exporter.h"
 
 #include "opentelemetry-matlab/metrics/MeterProxy.h"
+#include "opentelemetry-matlab/metrics/MeterProviderProxy.h"
 
 namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;
@@ -32,15 +33,12 @@ namespace otlpexporter = opentelemetry::exporter::otlp;
 
 
 namespace libmexclass::opentelemetry::sdk {
-class MeterProviderProxy : public libmexclass::proxy::Proxy {
+class MeterProviderProxy : public libmexclass::opentelemetry::MeterProviderProxy {
   public:
-    MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : CppMeterProvider(mp) {
-        REGISTER_METHOD(MeterProviderProxy, getMeter);
+    MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : libmexclass::opentelemetry::MeterProviderProxy(mp) {
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
-
-    void getMeter(libmexclass::proxy::method::Context& context);
 
   protected:
     nostd::shared_ptr<metrics_api::MeterProvider> CppMeterProvider;

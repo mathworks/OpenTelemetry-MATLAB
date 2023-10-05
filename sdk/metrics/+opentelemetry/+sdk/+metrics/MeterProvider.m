@@ -1,11 +1,11 @@
-classdef MeterProvider < handle
+classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
     % An SDK implementation of meter provider, which stores a set of configurations used
     % in a metrics system.
 
     % Copyright 2023 The MathWorks, Inc.
 
     properties (Access=private)
-	Proxy
+	    isShutdown (1,1) logical = false
     end
 
     methods
@@ -27,29 +27,9 @@ classdef MeterProvider < handle
             %
             %    See also OPENTELEMETRY.SDK.METRICS.PERIODICEXPORTINGMETRICREADER
             %    OPENTELEMETRY.SDK.METRICS.VIEW
-
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
                 "ConstructorArguments", {});
-        end
-
-        function meter = getMeter(obj, mtname, mtversion, mtschema)
-            arguments
-                obj
-                mtname
-                mtversion = ""
-                mtschema = ""
-            end
-            % name, version, schema accepts any types that can convert to a
-            % string
-            import opentelemetry.common.mustBeScalarString
-            mtname = mustBeScalarString(mtname);          
-            mtversion = mustBeScalarString(mtversion);
-            mtschema = mustBeScalarString(mtschema);
-            id = obj.Proxy.getMeter(mtname, mtversion, mtschema);
-            Meterproxy = libmexclass.proxy.Proxy("Name", ...
-                "libmexclass.opentelemetry.MeterProxy", "ID", id);
-            meter = opentelemetry.metrics.Meter(Meterproxy, mtname, mtversion, mtschema);
         end
         
     end

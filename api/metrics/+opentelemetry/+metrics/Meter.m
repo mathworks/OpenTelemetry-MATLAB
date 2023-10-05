@@ -14,7 +14,7 @@ classdef Meter < handle
         Proxy   % Proxy object to interface C++ code
     end
 
-    methods (Access={?opentelemetry.sdk.metrics.MeterProvider})
+    methods (Access={?opentelemetry.sdk.metrics.MeterProvider, ?opentelemetry.metrics.MeterProvider})
 
         function obj = Meter(proxy, mtname, mtversion, mtschema)
             % Private constructor. Use getMeter method of MeterProvider
