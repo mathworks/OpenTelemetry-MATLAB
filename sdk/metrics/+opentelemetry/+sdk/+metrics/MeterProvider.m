@@ -5,11 +5,15 @@ classdef MeterProvider < handle
     % Copyright 2023 The MathWorks, Inc.
 
     properties (Access=private)
-	Proxy
+	    Proxy
+    end
+
+    properties (Access=public)
+        MetricReader
     end
 
     methods
-        function obj = MeterProvider()
+        function obj = MeterProvider(reader)
             % SDK implementation of tracer provider
             %    MP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER creates a meter 
             %    provider that uses a periodic exporting metric reader and default configurations.
@@ -28,11 +32,19 @@ classdef MeterProvider < handle
             %    See also OPENTELEMETRY.SDK.METRICS.PERIODICEXPORTINGMETRICREADER
             %    OPENTELEMETRY.SDK.METRICS.VIEW
 
+            arguments
+     	        reader {mustBeA(reader, ["opentelemetry.sdk.metrics.PeriodicExportingMetricReader", ...
+                   "libmexclass.proxy.Proxy"])} = ...
+    		            opentelemetry.sdk.metrics.PeriodicExportingMetricReader()
+            end
+
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                "ConstructorArguments", {});
+                "ConstructorArguments", {reader.Proxy.ID});
+            obj.MetricReader = reader;
         end
-
+        
+        
         function meter = getMeter(obj, mtname, mtversion, mtschema)
             arguments
                 obj
@@ -52,5 +64,24 @@ classdef MeterProvider < handle
             meter = opentelemetry.metrics.Meter(Meterproxy, mtname, mtversion, mtschema);
         end
         
+
+        function addMetricReader(obj, reader)
+        arguments
+     	    obj
+            reader (1,1) {mustBeA(reader, "opentelemetry.sdk.metrics.PeriodicExportingMetricReader")}
+        end
+            obj.Proxy.addMetricReader(reader.Proxy.ID);
+            obj.MetricReader = [obj.MetricReader, reader];
+        end
+        
+        function success = shutdown(obj)
+            if ~obj.isShutdown
+                success = obj.Proxy.shutdown();
+                obj.isShutdown = success;
+            else
+                success = true;
+            end
+        end
+
     end
 end
