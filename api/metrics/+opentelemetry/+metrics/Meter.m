@@ -38,6 +38,8 @@ classdef Meter < handle
             end
             import opentelemetry.common.mustBeScalarString
             ctname = mustBeScalarString(ctname);
+            % cpp-opentelemetry end does not allow string input with spaces,
+            % replace any spaces with underscores as a temporary fix
             ctname = strrep(ctname, ' ', '_');
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
@@ -58,6 +60,8 @@ classdef Meter < handle
 
             import opentelemetry.common.mustBeScalarString
             ctname = mustBeScalarString(ctname);
+            % cpp-opentelemetry end does not allow string input with spaces,
+            % replace any spaces with underscores as a temporary fix
             ctname = strrep(ctname, ' ', '_');
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
@@ -78,6 +82,8 @@ classdef Meter < handle
 
             import opentelemetry.common.mustBeScalarString
             hiname = mustBeScalarString(hiname);
+            % cpp-opentelemetry end does not allow string input with spaces,
+            % replace any spaces with underscores as a temporary fix
             hiname = strrep(hiname, ' ', '_');
             hidescription = mustBeScalarString(hidescription);
             hiunit = mustBeScalarString(hiunit);
