@@ -94,16 +94,17 @@ classdef tmetrics < matlab.unittest.TestCase
             ct = mt.createCounter(countername);
 
             % verify if the provider has two metric readers attached
-            reader_size = size(p.MetricReader);
-            verifyEqual(testCase,reader_size(2), 2);
+            reader_count = numel(p.MetricReader);
+            verifyEqual(testCase,reader_count, 2);
 
-            % verify if the json results has two exported instances
+            % verify if the json results has two exported instances after
+            % adding a single value
             ct.add(1);
             pause(2.5);
             clear p;
             results = readJsonResults(testCase);
-            result_size = size(results);
-            verifyEqual(testCase,result_size(2), 2);
+            result_count = numel(results);
+            verifyEqual(testCase,result_count, 2);
         end
 
 
@@ -188,6 +189,7 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, dp1.asDouble, vals(1));
             verifyEqual(testCase, dp2.asDouble, vals(2));
         end
+
 
         function testCounterAddAttributes(testCase)
             % test names, added value and attributes in Counter
