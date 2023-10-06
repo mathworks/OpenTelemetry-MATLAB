@@ -10,7 +10,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
     methods
         function obj = MeterProvider()
-            % SDK implementation of tracer provider
+            % SDK implementation of meter provider
             %    MP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER creates a meter 
             %    provider that uses a periodic exporting metric reader and default configurations.
             %

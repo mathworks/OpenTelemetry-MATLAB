@@ -59,11 +59,4 @@ classdef MeterProvider < handle
             obj.Proxy.setMeterProvider();
         end
     end
-
-    % methods(Access=?opentelemetry.sdk.metrics.Cleanup)
-    %     function postShutdown(obj)
-    %         % POSTSHUTDOWN  Handle post-shutdown tasks
-    %         obj.Proxy.postShutdown();
-    %     end
-    % end
 end
