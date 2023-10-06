@@ -37,7 +37,8 @@ classdef Meter < handle
                 ctunit = ""
             end
             import opentelemetry.common.mustBeScalarString
-            ctname = mustBeScalarString(ctname);          
+            ctname = mustBeScalarString(ctname);
+            ctname = strrep(ctname, ' ', '_');
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createCounter(ctname, ctdescription, ctunit);
@@ -56,7 +57,8 @@ classdef Meter < handle
             end
 
             import opentelemetry.common.mustBeScalarString
-            ctname = mustBeScalarString(ctname);          
+            ctname = mustBeScalarString(ctname);
+            ctname = strrep(ctname, ' ', '_');
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createUpDownCounter(ctname, ctdescription, ctunit);
@@ -75,7 +77,8 @@ classdef Meter < handle
             end
 
             import opentelemetry.common.mustBeScalarString
-            hiname = mustBeScalarString(hiname);          
+            hiname = mustBeScalarString(hiname);
+            hiname = strrep(hiname, ' ', '_');
             hidescription = mustBeScalarString(hidescription);
             hiunit = mustBeScalarString(hiunit);
             id = obj.Proxy.createHistogram(hiname, hidescription, hiunit);
