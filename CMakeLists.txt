@@ -56,7 +56,7 @@ else()
 endif()
 
 if(NOT DEFINED VCPKG_INSTALLED_DIR)
-   set(DVCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
+   set(VCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
 endif()
 
 # ######################################
@@ -71,6 +71,7 @@ endif()
 if(APPLE)
     option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
 endif()
+option(WITH_EXAMPLES "Whether to build examples" OFF)
 
 # set vcpkg features depending on specified options
 set(VCPKG_MANIFEST_FEATURES "")  # start with empty
@@ -230,14 +231,19 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${TRACE_SDK_SOURCE_DIR}/BatchSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp
     ${METRICS_SDK_SOURCE_DIR}/MeterProviderProxy.cpp
+    ${METRICS_SDK_SOURCE_DIR}/PeriodicExportingMetricReaderProxy.cpp
     ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
 if(WITH_OTLP_HTTP)
-    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
-	${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp)
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES} 
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpMetricExporterProxy.cpp)
 endif()
 if(WITH_OTLP_GRPC)
-    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
-        ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp)
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES}
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp)
 endif()
 
 libmexclass_client_add_proxy_library(
@@ -279,7 +285,7 @@ endif()
 target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS} ${CUSTOM_CXX_FLAGS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
-target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
+set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_otlp_recordable${CMAKE_STATIC_LIBRARY_SUFFIX}
         ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto${OTEL_PROTO_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_resources${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -289,20 +295,22 @@ target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PRE
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${Protobuf_LIBRARIES})
 if(WITH_OTLP_HTTP)
-    target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
+    set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_LINK_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_client${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_metric${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_http_client_curl${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${CURL_LIBRARIES})
 endif()
 if(WITH_OTLP_GRPC)
-    target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
+    set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_LINK_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_client${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
             ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX}
 	    gRPC::grpc++
 	    absl::synchronization)
 endif()
+
+target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_LINK_LIBRARIES})
 
 # On Linux, when linking with certain static libraries, need to force include entire archive to avoid the linker mistakenly leaving out symbols
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
@@ -389,9 +397,16 @@ set(BAGGAGE_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/+opentele
 set(COMMON_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/common/+opentelemetry)
 set(TRACE_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/+opentelemetry)
 set(METRICS_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/metrics/+opentelemetry)
-set(DEFAULT_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m)
-set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m)
-set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m)
+set(DEFAULT_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultMetricExporter.m)
+set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpMetricExporter.m)
+set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m)
+
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
@@ -411,4 +426,12 @@ if(WITH_OTLP_GRPC)
 endif()
 
 # Install dependent runtime libraries
-install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION +libmexclass/+proxy)
+set(LIBMEXCLASS_PROXY_INSTALLED_DIR +libmexclass/+proxy)
+install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${LIBMEXCLASS_PROXY_INSTALLED_DIR})
+
+# ##############################
+# Subdirectories
+# ##############################
+if(WITH_EXAMPLES)
+   add_subdirectory(examples)
+endif()

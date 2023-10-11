@@ -1,6 +1,7 @@
 // Copyright 2023 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
+#include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
 
 #include "libmexclass/proxy/ProxyManager.h"
 
@@ -10,12 +11,12 @@ namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     
     libmexclass::proxy::MakeResult out;
-  
-    auto exporter = otlpexporter::OtlpHttpMetricExporterFactory::Create();
-    // Initialize and set the periodic metrics reader
-    metrics_sdk::PeriodicExportingMetricReaderOptions options;
-    auto reader = metrics_sdk::PeriodicExportingMetricReaderFactory::Create(std::move(exporter), options);
 
+    matlab::data::TypedArray<uint64_t> readerid_mda = constructor_arguments[0];
+    libmexclass::proxy::ID readerid = readerid_mda[0];
+    
+    auto reader = std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
+	        libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance();
     auto p = metrics_sdk::MeterProviderFactory::Create();
     auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
     p_sdk->AddMetricReader(std::move(reader));
@@ -25,5 +26,16 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
     
     return out;
 }
+
+void MeterProviderProxy::addMetricReader(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<uint64_t> readerid_mda = context.inputs[0];
+    libmexclass::proxy::ID readerid = readerid_mda[0];
+
+    static_cast<metrics_sdk::MeterProvider&>(*CppMeterProvider).AddMetricReader(
+		    std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
+			    libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance());
+   return;
+}
+
 
 } // namespace libmexclass::opentelemetry

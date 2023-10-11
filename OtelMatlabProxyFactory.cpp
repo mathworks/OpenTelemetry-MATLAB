@@ -23,11 +23,14 @@
 #include "opentelemetry-matlab/sdk/trace/TraceIdRatioBasedSamplerProxy.h"
 #include "opentelemetry-matlab/sdk/trace/ParentBasedSamplerProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
+#include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
 #ifdef WITH_OTLP_HTTP
     #include "opentelemetry-matlab/exporters/otlp/OtlpHttpSpanExporterProxy.h"
+    #include "opentelemetry-matlab/exporters/otlp/OtlpHttpMetricExporterProxy.h"
 #endif
 #ifdef WITH_OTLP_GRPC
     #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcSpanExporterProxy.h"
+    #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcMetricExporterProxy.h"
 #endif
 
 libmexclass::proxy::MakeResult
@@ -58,12 +61,15 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.ParentBasedSamplerProxy, libmexclass::opentelemetry::sdk::ParentBasedSamplerProxy);
 
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.MeterProviderProxy, libmexclass::opentelemetry::sdk::MeterProviderProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.sdk.PeriodicExportingMetricReaderProxy, libmexclass::opentelemetry::sdk::PeriodicExportingMetricReaderProxy);
 
     #ifdef WITH_OTLP_HTTP
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpHttpSpanExporterProxy);
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpHttpMetricExporterProxy, libmexclass::opentelemetry::exporters::OtlpHttpMetricExporterProxy);
     #endif
     #ifdef WITH_OTLP_GRPC
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcSpanExporterProxy);
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcMetricExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcMetricExporterProxy);
     #endif
     return nullptr;
 }

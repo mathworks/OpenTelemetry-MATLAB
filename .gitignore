@@ -1,6 +1,7 @@
-# build directory
+# build directories
 build
 
 # Autosave files
 *.asv
 *.swp
+.vscode/settings.json
