@@ -35,7 +35,7 @@ namespace otlpexporter = opentelemetry::exporter::otlp;
 namespace libmexclass::opentelemetry::sdk {
 class MeterProviderProxy : public libmexclass::opentelemetry::MeterProviderProxy {
   public:
-    MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : libmexclass::opentelemetry::MeterProviderProxy(mp) {
+    MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : libmexclass::opentelemetry::MeterProviderProxy(mp), CppMeterProvider(mp) {
         REGISTER_METHOD(MeterProviderProxy, addMetricReader);
     }
 
