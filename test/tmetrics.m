@@ -358,6 +358,35 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, str2double(counts{len}), sum(vals>bounds(len-1)));
 
         end
+
+        function testGetSetMeterProvider(testCase)
+            % testGetSetMeterProvider: setting and getting global instance of MeterProvider
+            mp = opentelemetry.sdk.metrics.MeterProvider();
+            setMeterProvider(mp);
+
+            metername = "foo";
+            countername = "bar";
+            m = getMeter(mp, metername);
+            c = createCounter(m, countername);
+            
+            % create testing value 
+            val = 10;
+
+            % add value and attributes
+            c.add(val);
+
+            pause(75);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            results = results{1};
+            % check a counter has been created, and check its resource to identify the
+            % correct MeterProvider has been used
+            verifyNotEmpty(testCase, results);
+
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+        end
       
     end
 
