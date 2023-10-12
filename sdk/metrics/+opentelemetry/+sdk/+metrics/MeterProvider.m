@@ -4,11 +4,6 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
     % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=private)
-        isShutdown (1,1) logical = false
-    end
-
-
     properties (Access=public)
         MetricReader
     end
@@ -38,6 +33,9 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                    "libmexclass.proxy.Proxy"])} = ...
     		            opentelemetry.sdk.metrics.PeriodicExportingMetricReader()
             end
+            
+            % explicit call to superclass constructor to make it a no-op
+            obj@opentelemetry.metrics.MeterProvider("skip");
 
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
@@ -52,15 +50,6 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
         end
             obj.Proxy.addMetricReader(reader.Proxy.ID);
             obj.MetricReader = [obj.MetricReader, reader];
-        end
-        
-        function success = shutdown(obj)
-            if ~obj.isShutdown
-                success = obj.Proxy.shutdown();
-                obj.isShutdown = success;
-            else
-                success = true;
-            end
         end
 
     end

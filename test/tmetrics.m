@@ -549,7 +549,7 @@ classdef tmetrics < matlab.unittest.TestCase
 
             metername = "foo";
             countername = "bar";
-            m = getMeter(mp, metername);
+            m = opentelemetry.metrics.getMeter(metername);
             c = createCounter(m, countername);
             
             % create testing value 

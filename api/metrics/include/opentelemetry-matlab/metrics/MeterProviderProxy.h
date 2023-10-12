@@ -13,10 +13,7 @@
 #include "opentelemetry/metrics/noop.h"
 
 namespace metrics_api = opentelemetry::metrics;
-namespace metrics_sdk = opentelemetry::sdk::metrics;
-namespace metrics_exporter = opentelemetry::exporter::otlp;
 namespace nostd = opentelemetry::nostd;
-namespace resource = opentelemetry::sdk::resource;
 
 namespace libmexclass::opentelemetry {
 class MeterProviderProxy : public libmexclass::proxy::Proxy {
