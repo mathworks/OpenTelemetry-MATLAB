@@ -13,8 +13,12 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
         MetricReader
     end
 
+    properties (Access=public)
+        Resource
+    end
+
     methods
-        function obj = MeterProvider(reader)
+        function obj = MeterProvider(reader, optionnames, optionvalues)
             % SDK implementation of tracer provider
             %    MP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER creates a meter 
             %    provider that uses a periodic exporting metric reader and default configurations.
@@ -38,11 +42,40 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                    "libmexclass.proxy.Proxy"])} = ...
     		            opentelemetry.sdk.metrics.PeriodicExportingMetricReader()
             end
+            
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+
+            validnames = ["Resource"];
+            resourcekeys = string.empty();
+            resourcevalues = {};
+            resource = dictionary(resourcekeys, resourcevalues);
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                if strcmp(namei, "Resource")
+                    if ~isa(valuei, "dictionary")
+                        error("opentelemetry:sdk:metrics:MeterProvider:InvalidResourceType", ...
+                            "Attibutes input must be a dictionary.");
+                    end
+                    resource = valuei;
+                    resourcekeys = keys(valuei);
+                    resourcevalues = values(valuei,"cell");
+                    % collapse one level of cells, as this may be due to
+                    % a behavior of dictionary.values
+                    if all(cellfun(@iscell, resourcevalues))
+                        resourcevalues = [resourcevalues{:}];
+                    end
+                end
+            end
 
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                "ConstructorArguments", {reader.Proxy.ID});
+                "ConstructorArguments", {reader.Proxy.ID, resourcekeys, resourcevalues});
             obj.MetricReader = reader;
+            obj.Resource = resource;
         end
         
         function addMetricReader(obj, reader)

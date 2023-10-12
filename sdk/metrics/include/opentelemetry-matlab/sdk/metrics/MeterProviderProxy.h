@@ -21,15 +21,19 @@
 #include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/meter_provider_factory.h"
 #include "opentelemetry/sdk/metrics/push_metric_exporter.h"
+#include "opentelemetry/sdk/resource/resource.h"
+
 
 #include "opentelemetry-matlab/metrics/MeterProxy.h"
 #include "opentelemetry-matlab/metrics/MeterProviderProxy.h"
+#include "opentelemetry-matlab/sdk/common/resource.h"
 
 namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;
 namespace metrics_sdk = opentelemetry::sdk::metrics;
 namespace common          = opentelemetry::common;
 namespace otlpexporter = opentelemetry::exporter::otlp;
+namespace resource = opentelemetry::sdk::resource;
 
 
 namespace libmexclass::opentelemetry::sdk {
