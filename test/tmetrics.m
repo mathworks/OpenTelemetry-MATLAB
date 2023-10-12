@@ -540,7 +540,11 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testGetSetMeterProvider(testCase)
             % testGetSetMeterProvider: setting and getting global instance of MeterProvider
-            mp = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+                "PreferredAggregationTemporality", "Delta");
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", seconds(2), "Timeout", seconds(1));
+            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
             setMeterProvider(mp);
 
             metername = "foo";
@@ -554,7 +558,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % add value and attributes
             c.add(val);
 
-            pause(75);
+            pause(2.5);
 
             % perform test comparisons
             results = readJsonResults(testCase);
