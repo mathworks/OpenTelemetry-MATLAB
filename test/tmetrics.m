@@ -561,7 +561,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % perform test comparisons
-            clear p;
+            clear mp;
             results = readJsonResults(testCase);
             results = results{1};
             % check a counter has been created, and check its resource to identify the
