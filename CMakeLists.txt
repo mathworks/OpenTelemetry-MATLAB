@@ -216,6 +216,7 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${TRACE_API_SOURCE_DIR}/SpanProxy.cpp
     ${TRACE_API_SOURCE_DIR}/SpanContextProxy.cpp
     ${COMMON_API_SOURCE_DIR}/attribute.cpp
+    ${METRICS_API_SOURCE_DIR}/MeterProviderProxy.cpp
     ${METRICS_API_SOURCE_DIR}/MeterProxy.cpp
     ${METRICS_API_SOURCE_DIR}/CounterProxy.cpp
     ${METRICS_API_SOURCE_DIR}/UpDownCounterProxy.cpp

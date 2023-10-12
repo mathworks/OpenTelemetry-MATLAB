@@ -1,12 +1,8 @@
-classdef MeterProvider < handle
+classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
     % An SDK implementation of meter provider, which stores a set of configurations used
     % in a metrics system.
 
     % Copyright 2023 The MathWorks, Inc.
-
-    properties (Access=private)
-	    Proxy
-    end
 
     properties (Access=public)
         MetricReader
@@ -37,6 +33,9 @@ classdef MeterProvider < handle
                    "libmexclass.proxy.Proxy"])} = ...
     		            opentelemetry.sdk.metrics.PeriodicExportingMetricReader()
             end
+            
+            % explicit call to superclass constructor to make it a no-op
+            obj@opentelemetry.metrics.MeterProvider("skip");
 
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
@@ -44,27 +43,6 @@ classdef MeterProvider < handle
             obj.MetricReader = reader;
         end
         
-        
-        function meter = getMeter(obj, mtname, mtversion, mtschema)
-            arguments
-                obj
-                mtname
-                mtversion = ""
-                mtschema = ""
-            end
-            % name, version, schema accepts any types that can convert to a
-            % string
-            import opentelemetry.common.mustBeScalarString
-            mtname = mustBeScalarString(mtname);          
-            mtversion = mustBeScalarString(mtversion);
-            mtschema = mustBeScalarString(mtschema);
-            id = obj.Proxy.getMeter(mtname, mtversion, mtschema);
-            Meterproxy = libmexclass.proxy.Proxy("Name", ...
-                "libmexclass.opentelemetry.MeterProxy", "ID", id);
-            meter = opentelemetry.metrics.Meter(Meterproxy, mtname, mtversion, mtschema);
-        end
-        
-
         function addMetricReader(obj, reader)
         arguments
      	    obj
@@ -72,15 +50,6 @@ classdef MeterProvider < handle
         end
             obj.Proxy.addMetricReader(reader.Proxy.ID);
             obj.MetricReader = [obj.MetricReader, reader];
-        end
-        
-        function success = shutdown(obj)
-            if ~obj.isShutdown
-                success = obj.Proxy.shutdown();
-                obj.isShutdown = success;
-            else
-                success = true;
-            end
         end
 
     end
