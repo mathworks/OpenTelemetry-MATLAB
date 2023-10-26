@@ -538,38 +538,40 @@ classdef tmetrics < matlab.unittest.TestCase
             end
         end
 
-        % function testGetSetMeterProvider(testCase)
-        %     % testGetSetMeterProvider: setting and getting global instance of MeterProvider
-        %     exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
-        %     reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
-        %         "Interval", seconds(2), "Timeout", seconds(1));
-        %     mp = opentelemetry.sdk.metrics.MeterProvider(reader);
-        %     setMeterProvider(mp);
-        % 
-        %     metername = "foo";
-        %     countername = "bar";
-        %     m = opentelemetry.metrics.getMeter(metername);
-        %     c = createCounter(m, countername);
-        % 
-        %     % create testing value 
-        %     val = 10;
-        % 
-        %     % add value and attributes
-        %     c.add(val);
-        % 
-        %     pause(2.5);
-        % 
-        %     % perform test comparisons
-        %     clear mp;
-        %     results = readJsonResults(testCase);
-        %     results = results{1};
-        %     % check a counter has been created, and check its resource to identify the
-        %     % correct MeterProvider has been used
-        %     verifyNotEmpty(testCase, results);
-        % 
-        %     verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
-        %     verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
-        % end
+        function testGetSetMeterProvider(testCase)
+            % testGetSetMeterProvider: setting and getting global instance of MeterProvider
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", seconds(2), "Timeout", seconds(1));
+            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
+            setMeterProvider(mp);
+
+            metername = "foo";
+            countername = "bar";
+            m = opentelemetry.metrics.getMeter(metername);
+            c = createCounter(m, countername);
+
+            % create testing value 
+            val = 10;
+
+            % add value and attributes
+            c.add(val);
+
+            pause(2.5);
+
+            % perform test comparisons
+            verifyTrue(testCase, opentelemetry.sdk.metrics.Cleanup.shutdown(mp));
+            clear mp;
+
+            results = readJsonResults(testCase);
+            results = results{1};
+            % check a counter has been created, and check its resource to identify the
+            % correct MeterProvider has been used
+            verifyNotEmpty(testCase, results);
+
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+        end
       
     end
 
