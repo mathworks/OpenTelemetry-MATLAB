@@ -49,12 +49,12 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                 % assert(mpproxy.Name == "libmexclass.opentelemetry.MeterProviderProxy");
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                    "ConstructorArguments", {mpproxy.ID});
+                    "ConstructorArguments", {mpproxy.ID, true});
                 % leave other properties unassigned, they won't be used
             else
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                    "ConstructorArguments", {reader.Proxy.ID, 0});
+                    "ConstructorArguments", {reader.Proxy.ID, false});
                 obj.MetricReader = reader;
             end
         end

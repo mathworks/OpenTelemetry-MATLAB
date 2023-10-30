@@ -11,7 +11,8 @@ namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     
     libmexclass::proxy::MakeResult out;
-    if (constructor_arguments.getNumberOfElements() == 1)  {
+    matlab::data::TypedArray<bool> is_api = constructor_arguments[1];
+    if (is_api[0])  {
         // if argument is 1, assume it is an API Meter Provider to support type conversion
         matlab::data::TypedArray<uint64_t> mpid_mda = constructor_arguments[0];
         libmexclass::proxy::ID mpid = mpid_mda[0];
