@@ -46,7 +46,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                 % MeterProvider to SDK equivalent, needed internally by
                 % opentelemetry.sdk.metrics.Cleanup
                 mpproxy = reader;  % rename the variable
-                % assert(mpproxy.Name == "libmexclass.opentelemetry.MeterProviderProxy");
+                assert(mpproxy.Name == "libmexclass.opentelemetry.MeterProviderProxy");
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
                     "ConstructorArguments", {mpproxy.ID, true});
@@ -70,7 +70,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
         function success = shutdown(obj)
             % SHUTDOWN  Shutdown 
-            %    SUCCESS = SHUTDOWN(MP) shuts down all span processors associated with meter provider MP
+            %    SUCCESS = SHUTDOWN(MP) shuts down all metric readers associated with meter provider MP
     	    %    and return a logical that indicates whether shutdown was successful.
             %
             %    See also FORCEFLUSH
@@ -84,7 +84,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
         function success = forceFlush(obj, timeout)
             % FORCEFLUSH Force flush
-            %    SUCCESS = FORCEFLUSH(MP) immediately exports all spans
+            %    SUCCESS = FORCEFLUSH(MP) immediately exports all metrics
             %    that have not yet been exported. Returns a logical that
             %    indicates whether force flush was successful.
             %

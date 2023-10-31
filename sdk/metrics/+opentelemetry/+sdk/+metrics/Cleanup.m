@@ -6,7 +6,7 @@ classdef Cleanup
     methods (Static)
         function success = shutdown(mp)
             % SHUTDOWN  Shutdown 
-            %    SUCCESS = SHUTDOWN(MP) shuts down all span processors associated with 
+            %    SUCCESS = SHUTDOWN(MP) shuts down all metric readers associated with 
             %    API meter provider MP and return a logical that indicates 
             %    whether shutdown was successful.
             %
@@ -30,7 +30,7 @@ classdef Cleanup
 
         function success = forceFlush(mp, timeout)
             % FORCEFLUSH Force flush
-            %    SUCCESS = FORCEFLUSH(MP) immediately exports all spans
+            %    SUCCESS = FORCEFLUSH(MP) immediately exports all metrics
             %    that have not yet been exported. Returns a logical that
             %    indicates whether force flush was successful.
             %
