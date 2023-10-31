@@ -59,7 +59,7 @@ jobs:
             - name: Download OpenTelemetry Collector binary
               run: |
                   mkdir otelcol && cd otelcol
-                  wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.83.0/otelcol_0.83.0_windows_amd64.tar.gz -outfile otelcol.tar.gz
+                  wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.83.0/otelcol_0.83.0_windows_amd64.tar.gz -O otelcol.tar.gz
                   tar xzvf otelcol.tar.gz
             - name: Build OpenTelemetry-Matlab
               run: |
