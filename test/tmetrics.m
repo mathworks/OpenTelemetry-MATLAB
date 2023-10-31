@@ -101,7 +101,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % adding a single value
             ct.add(1);
             pause(2.5);
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             result_count = numel(results);
             verifyEqual(testCase,result_count, 2);
@@ -136,7 +136,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch result
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -180,7 +180,7 @@ classdef tmetrics < matlab.unittest.TestCase
 
             % fetch results
             pause(2.5);
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             dp1 = results{1}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
             dp2 = results{2}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -219,7 +219,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch result
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -263,7 +263,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch results
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -303,7 +303,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(5);
 
             % fetch result
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -348,7 +348,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(5);
 
             % fetch result
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -397,7 +397,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(10);
 
             % fetch results
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
@@ -454,7 +454,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(10);
 
             % fetch results
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
@@ -511,7 +511,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch results
-            clear p;
+            verifyTrue(testCase, p.shutdown());
             results = readJsonResults(testCase);
             rsize = size(results);
             for i = 1:rsize(2)
@@ -540,21 +540,27 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testGetSetMeterProvider(testCase)
             % testGetSetMeterProvider: setting and getting global instance of MeterProvider
-            mp = opentelemetry.sdk.metrics.MeterProvider();
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", seconds(2), "Timeout", seconds(1));
+            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
             setMeterProvider(mp);
 
             metername = "foo";
             countername = "bar";
-            m = getMeter(mp, metername);
+            m = opentelemetry.metrics.getMeter(metername);
             c = createCounter(m, countername);
-            
+
             % create testing value 
             val = 10;
 
             % add value and attributes
             c.add(val);
 
-            pause(75);
+            pause(2.5);
+
+            %Shutdown the Meter Provider
+            verifyTrue(testCase, mp.shutdown());
 
             % perform test comparisons
             results = readJsonResults(testCase);
