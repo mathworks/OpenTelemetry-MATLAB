@@ -21,6 +21,7 @@ class MeterProviderProxy : public libmexclass::proxy::Proxy {
     MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : CppMeterProvider(mp) {
         REGISTER_METHOD(MeterProviderProxy, getMeter);
         REGISTER_METHOD(MeterProviderProxy, setMeterProvider);
+        REGISTER_METHOD(MeterProviderProxy, postShutdown);
     }
 
     // Static make method should only be used by getMeterProvider. It gets the global instance 
@@ -35,6 +36,12 @@ class MeterProviderProxy : public libmexclass::proxy::Proxy {
 
     nostd::shared_ptr<metrics_api::MeterProvider> getInstance() {
         return CppMeterProvider;
+    }
+    
+    void postShutdown(libmexclass::proxy::method::Context& context) {
+	    // Replace meter provider with a no-op instance. Subsequent metrics won't be recorded
+	    nostd::shared_ptr<metrics_api::MeterProvider> noop(new metrics_api::NoopMeterProvider);
+        CppMeterProvider.swap(noop);
     }
 
   protected:

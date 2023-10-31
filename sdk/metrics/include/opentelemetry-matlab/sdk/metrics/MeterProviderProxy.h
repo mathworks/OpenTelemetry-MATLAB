@@ -37,10 +37,16 @@ class MeterProviderProxy : public libmexclass::opentelemetry::MeterProviderProxy
   public:
     MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : libmexclass::opentelemetry::MeterProviderProxy(mp) {
         REGISTER_METHOD(MeterProviderProxy, addMetricReader);
+        REGISTER_METHOD(MeterProviderProxy, shutdown);
+        REGISTER_METHOD(MeterProviderProxy, forceFlush);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     void addMetricReader(libmexclass::proxy::method::Context& context);
+
+    void shutdown(libmexclass::proxy::method::Context& context);
+
+    void forceFlush(libmexclass::proxy::method::Context& context);
 };
 } // namespace libmexclass::opentelemetry
