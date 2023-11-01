@@ -3,10 +3,10 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (SetAccess=immutable)
-        MaximumQueueSize (1,1) double    % Maximum queue size. After queue size is reached, spans are dropped.
-        ScheduledDelay (1,1) duration    % Time interval between span exports
-        MaximumExportBatchSize (1,1) double   % Maximum batch size to export. 
+    properties
+        MaximumQueueSize (1,1) double = 2048       % Maximum queue size. After queue size is reached, spans are dropped.
+        ScheduledDelay (1,1) duration = seconds(5) % Time interval between span exports
+        MaximumExportBatchSize (1,1) double = 512  % Maximum batch size to export. 
     end
 
     methods
@@ -44,61 +44,46 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
                 optionvalues
             end
 
+            obj = obj@opentelemetry.sdk.trace.SpanProcessor(spanexporter, ...
+                "libmexclass.opentelemetry.sdk.BatchSpanProcessorProxy");
+
             validnames = ["MaximumQueueSize", "ScheduledDelay", "MaximumExportBatchSize"];
-            % set default values to negative
-            qsize = -1;
-            delaymillis = -1;
-            batchsize = -1;
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
-                if strcmp(namei, "MaximumQueueSize")
-                    if ~isnumeric(valuei) || ~isscalar(valuei) || valuei <= 0 || ...
-                            round(valuei) ~= valuei
-                        error("opentelemetry:sdk:trace:BatchSpanProcessor:InvalidMaxQueueSize", ...
-                            "MaximumQueueSize must be a scalar positive integer.");
-                    end
-                    qsize = double(valuei);
-                elseif strcmp(namei, "ScheduledDelay")
-                    if ~isduration(valuei) || ~isscalar(valuei) || valuei <= 0
-                        error("opentelemetry:sdk:trace:BatchSpanProcessor:InvalidScheduledDelay", ...
-                            "ScheduledDelay must be a positive duration scalar.");
-                    end
-                    delay = valuei;
-                    delaymillis = milliseconds(valuei);
-                else   % "MaximumExportBatchSize" 
-                    if ~isnumeric(valuei) || ~isscalar(valuei) || valuei <= 0 || ...
-                            round(valuei) ~= valuei
-                        error("opentelemetry:sdk:trace:BatchSpanProcessor:InvalidMaxExportBatchSize", ...
-                            "MaximumExportBatchSize must be a scalar positive integer.");
-                    end
-                    batchsize = double(valuei);
-                end
+                obj.(namei) = valuei;
             end
-            
-            obj = obj@opentelemetry.sdk.trace.SpanProcessor(spanexporter, ...
-                "libmexclass.opentelemetry.sdk.BatchSpanProcessorProxy", ...
-                qsize, delaymillis, batchsize);
+        end
 
-            % populate immutable properties
-            if qsize < 0 || delaymillis < 0 || batchsize < 0
-                [defaultqsize, defaultmillis, defaultbatchsize] = obj.Proxy.getDefaultOptionValues();
+        function obj = set.MaximumQueueSize(obj, maxqsz)
+            if ~isnumeric(maxqsz) || ~isscalar(maxqsz) || maxqsz <= 0 || ...
+                    round(maxqsz) ~= maxqsz
+                error("opentelemetry:sdk:trace:BatchSpanProcessor:InvalidMaxQueueSize", ...
+                    "MaximumQueueSize must be a scalar positive integer.");
             end
-            if qsize < 0  % not specified, use default value
-                obj.MaximumQueueSize = defaultqsize;
-            else
-                obj.MaximumQueueSize = qsize;
+            maxqsz = double(maxqsz);
+            obj.Proxy.setMaximumQueueSize(maxqsz);
+            obj.MaximumQueueSize = maxqsz;
+        end
+
+        function obj = set.ScheduledDelay(obj, delay)
+            if ~isduration(delay) || ~isscalar(delay) || delay <= 0
+                error("opentelemetry:sdk:trace:BatchSpanProcessor:InvalidScheduledDelay", ...
+                    "ScheduledDelay must be a positive duration scalar.");
             end
-            if delaymillis < 0  % not specified, use default value
-                obj.ScheduledDelay = milliseconds(defaultmillis);
-            else
-                obj.ScheduledDelay = delay;
+            obj.Proxy.setScheduledDelay(milliseconds(delay));
+            obj.ScheduledDelay = delay;
+        end
+
+        function obj = set.MaximumExportBatchSize(obj, maxbatch)
+            if ~isnumeric(maxbatch) || ~isscalar(maxbatch) || maxbatch <= 0 || ...
+                    round(maxbatch) ~= maxbatch
+                error("opentelemetry:sdk:trace:BatchSpanProcessor:InvalidMaxExportBatchSize", ...
+                    "MaximumExportBatchSize must be a scalar positive integer.");
             end
-            if batchsize < 0  % not specified, use default value
-                obj.MaximumExportBatchSize = defaultbatchsize;
-            else
-                obj.MaximumExportBatchSize = batchsize;
-            end
+            maxbatch = double(maxbatch);
+            obj.Proxy.setMaximumExportBatchSize(maxbatch);
+            obj.MaximumExportBatchSize = maxbatch;
         end
     end
 end

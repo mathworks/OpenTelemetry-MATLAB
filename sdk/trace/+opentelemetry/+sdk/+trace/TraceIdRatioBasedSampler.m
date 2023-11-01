@@ -3,7 +3,7 @@ classdef TraceIdRatioBasedSampler < opentelemetry.sdk.trace.Sampler
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (SetAccess=immutable)
+    properties
         Ratio (1,1) double  % Sampling ratio between 0 and 1
     end
 
@@ -16,12 +16,18 @@ classdef TraceIdRatioBasedSampler < opentelemetry.sdk.trace.Sampler
             %    See also OPENTELEMETRY.SDK.TRACE.ALWAYSONSAMPLER,
             %    OPENTELEMETRY.SDK.TRACE.ALWAYSOFFSAMPLER,
             %    OPENTELEMETRY.SDK.TRACE.PARENTBASEDSAMPLER
-            arguments
-                ratio (1,1) {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(ratio,1)}
+            
+            obj.Ratio = ratio;
+        end
+
+        function obj = set.Ratio(obj, ratio)
+            if ~(ratio >= 0 && ratio <= 1)
+                error("opentelemetry:sdk:trace:TraceIdRatioBasedSampler:InvalidRatio", ...
+                    "Ratio must be a numeric scalar between 0 and 1.");
             end
-            ratio = double(ratio);
-            obj = obj@opentelemetry.sdk.trace.Sampler(...
-                "libmexclass.opentelemetry.sdk.TraceIdRatioBasedSamplerProxy", ratio);
+            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.sdk.TraceIdRatioBasedSamplerProxy", ...
+                "ConstructorArguments", {ratio});
             obj.Ratio = ratio;
         end
     end

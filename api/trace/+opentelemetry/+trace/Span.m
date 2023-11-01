@@ -132,7 +132,11 @@ classdef Span < handle
                 % new status is not valid, ignore
                 return
             end
-            description = opentelemetry.common.mustBeScalarString(description);
+            if nargin < 3
+                description = "";
+            else
+                description = opentelemetry.common.mustBeScalarString(description);
+            end
     	    obj.Proxy.setStatus(status, description);
     	end
 
@@ -181,8 +185,7 @@ classdef Span < handle
         function attrs = processAttributes(attrsin)
             import opentelemetry.trace.Span.processAttribute
 
-            nin = length(attrsin);
-            if nin == 1 && isa(attrsin{1}, "dictionary")
+            if isscalar(attrsin) && isa(attrsin{1}, "dictionary")
                 % dictionary case
       	       attrtbl = entries(attrsin{1});
                nattr = height(attrtbl);
@@ -203,6 +206,7 @@ classdef Span < handle
                attrs = attrs(:);
             else
                 % NV pairs
+                nin = length(attrsin);
                 if rem(nin,2) ~= 0
                     % Mismatched name-value pairs. Ignore all attributes.
                     attrs = cell(1,0);

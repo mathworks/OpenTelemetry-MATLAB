@@ -5,10 +5,9 @@ classdef ttrace < matlab.unittest.TestCase
 
     properties
         OtelConfigFile
-        OtelRoot
         JsonFile
         PidFile
-	OtelcolName
+    	OtelcolName
         Otelcol
         ListPid
         ReadPidList
@@ -261,6 +260,28 @@ classdef ttrace < matlab.unittest.TestCase
             verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
                 results{1}.resourceSpans.scopeSpans.spans.endTimeUnixNano))/1e9, ...
                 "convertFrom", "posixtime") - endtime), seconds(2));
+        end
+
+        function testStatus(testCase)
+            % testStatus: setting status
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar");
+            setStatus(sp, "ok");
+            endSpan(sp);
+
+            sp1 = startSpan(tr, "quz");
+            setStatus(sp1, "Error", "Something went wrong.")  % with description
+            endSpan(sp1);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            % status codes
+            %   Unset: 0
+            %   Ok:    1
+            %   Error: 2
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 1);
+            verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.status.code, 2);
         end
 
         function testAttributes(testCase)

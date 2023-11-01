@@ -10,8 +10,10 @@ terminateCollector(testCase);
 if ispc
     system(testCase.ListPid("cmd") + "  > " + testCase.PidFile);
     tbl = testCase.ReadPidList(testCase.PidFile);
-    pid = tbl.Var2(end-1);
-    system(testCase.Sigterm(pid));
+    if height(tbl) > 1
+        pid = tbl.Var2(end-1);
+        system(testCase.Sigterm(pid));
+    end
 end
 
 if exist(testCase.JsonFile, "file")
