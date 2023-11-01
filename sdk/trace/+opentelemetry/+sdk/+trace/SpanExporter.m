@@ -3,7 +3,9 @@ classdef SpanExporter
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (GetAccess=?opentelemetry.sdk.trace.SpanProcessor)
+    properties (GetAccess={?opentelemetry.sdk.trace.SpanProcessor, ...
+            ?opentelemetry.exporters.otlp.OtlpHttpSpanExporter, ...
+            ?opentelemetry.exporters.otlp.OtlpGrpcSpanExporter})
         Proxy   % Proxy object to interface C++ code
     end
 

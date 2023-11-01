@@ -5,13 +5,13 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (SetAccess=immutable)
-        Endpoint (1,1) string               % Export destination
-        UseCredentials  (1,1) logical       % Whether to use SSL credentials
-        CertificatePath (1,1) string        % Path to .pem file for SSL encryption
-        CertificateString (1,1) string      % In-memory string representation of .pem file for SSL encryption
-        Timeout (1,1) duration              % Maximum time above which exports will abort
-        HttpHeaders (1,1) dictionary        % Additional HTTP headers
+    properties 
+        Endpoint (1,1) string = "http://localhost:4317"   % Export destination
+        UseCredentials  (1,1) logical = false    % Whether to use SSL credentials
+        CertificatePath (1,1) string = ""        % Path to .pem file for SSL encryption
+        CertificateString (1,1) string = ""      % In-memory string representation of .pem file for SSL encryption
+        Timeout (1,1) duration = seconds(10)     % Maximum time above which exports will abort
+        HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
     methods
@@ -43,93 +43,73 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
                 optionvalues
             end
 
+            obj = obj@opentelemetry.sdk.trace.SpanExporter(...
+                "libmexclass.opentelemetry.exporters.OtlpGrpcSpanExporterProxy");
+
             validnames = ["Endpoint", "UseCredentials ", "CertificatePath", ...
                 "CertificateString", "Timeout", "HttpHeaders"];
-            % set default values to empty or negative
-            endpoint = "";
-            usessl = false;
-            certificatepath = "";
-            certificatestring = "";
-            timeout_millis = -1;
-            headerkeys = string.empty();
-            headervalues = string.empty();
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
-                if strcmp(namei, "Endpoint")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
-                    end
-                    endpoint = string(valuei);
-                elseif strcmp(namei, "UseCredentials ")
-                    if ~((islogical(valuei) || isnumeric(valuei)) && isscalar(valuei))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:UseCredentialsNotScalarLogical", "UseCredentials  must be a scalar logical.")
-                    end
-                    usessl = logical(valuei);
-                elseif strcmp(namei, "CertificatePath")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:CertificatePathNotScalarText", "CertificatePath must be a scalar string.");
-                    end
-                    certificatepath = string(valuei);
-                elseif strcmp(namei, "CertificateString")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:CertificateStringNotScalarText", "CertificateString must be a scalar string.");
-                    end
-                    certificatestring = string(valuei);
-                elseif  strcmp(namei, "Timeout") 
-                    if ~(isduration(valuei) && isscalar(valuei)) 
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
-                    end
-                    timeout = valuei;
-                    timeout_millis = milliseconds(timeout);
-                else  % HttpHeaders
-                    if ~isa(valuei, "dictionary")
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
-                    end
-                    httpheaders = valuei;
-                    headerkeys = keys(valuei);
-                    headervalues = values(valuei);
-                    if ~isstring(headervalues)
-                        error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
-                    end
-                end
+                obj.(namei) = valuei;                
             end
-            
-            obj = obj@opentelemetry.sdk.trace.SpanExporter(...
-                "libmexclass.opentelemetry.exporters.OtlpGrpcSpanExporterProxy", ...
-                endpoint, usessl, certificatepath, certificatestring, ...
-                timeout_millis, headerkeys, headervalues);
+        end
 
-            % populate immutable properties
-            [defaultendpoint, defaultcertpath, defaultcertstring, defaultmillis] = ...
-                getDefaultOptionValues(obj);
-            if endpoint == ""  % not specified, use default value
-                obj.Endpoint = defaultendpoint;
-            else
-                obj.Endpoint = endpoint;
-            end            
-            obj.UseCredentials  = usessl;
-            if certificatepath == ""  % not specified, use default value
-                obj.CertificatePath = defaultcertpath;
-            else
-                obj.CertificatePath = certificatepath;
+        function obj = set.Endpoint(obj, ep)
+            if ~(isStringScalar(ep) || (ischar(ep) && isrow(ep)))
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
             end
-            if certificatestring == ""  % not specified, use default value
-                obj.CertificateString = defaultcertstring;
-            else
-                obj.CertificateString = certificatestring;
+            ep = string(ep);
+            obj.Proxy.setEndpoint(ep);
+            obj.Endpoint = ep;
+        end
+
+        function obj = set.UseCredentials(obj, uc)
+            if ~((islogical(uc) || isnumeric(uc)) && isscalar(uc))
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:UseCredentialsNotScalarLogical", "UseCredentials  must be a scalar logical.")
             end
-            if timeout_millis < 0  % not specified, use default value
-                obj.Timeout = milliseconds(defaultmillis);
-            else
-                obj.Timeout = timeout;
+            uc = logical(uc);
+            obj.Proxy.setUseCredentials(uc);
+            obj.UseCredentials = uc;
+        end
+
+        function obj = set.CertificatePath(obj, certpath)
+            if ~(isStringScalar(certpath) || (ischar(certpath) && isrow(certpath)))
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:CertificatePathNotScalarText", "CertificatePath must be a scalar string.");
             end
-            if isempty(headerkeys)  % not specified, return empty dictionary
-                obj.HttpHeaders = dictionary(headerkeys, headervalues);
-            else
-                obj.HttpHeaders = httpheaders;
+            certpath = string(certpath);
+            obj.Proxy.setCertificatePath(certpath);
+            obj.CertificatePath = certpath;
+        end
+
+        function obj = set.CertificateString(obj, certstr)
+            if ~(isStringScalar(certstr) || (ischar(certstr) && isrow(certstr)))
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:CertificateStringNotScalarText", "CertificateString must be a scalar string.");
             end
-            
+            certstr = string(certstr);
+            obj.Proxy.setCertificateString(certstr);
+            obj.CertificateString = certstr;
+        end
+
+        function obj = set.Timeout(obj, timeout)
+            if ~(isduration(timeout) && isscalar(timeout))
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
+            end
+            obj.Proxy.setTimeout(milliseconds(timeout));
+            obj.Timeout = timeout;
+        end
+
+        function obj = set.HttpHeaders(obj, httpheaders)
+            if ~isa(httpheaders, "dictionary")
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
+            end
+            headerkeys = keys(httpheaders);
+            headervalues = values(httpheaders);
+            if ~isstring(headervalues)
+                error("opentelemetry:exporters:otlp:OtlpGrpcSpanExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
+            end
+            obj.Proxy.setHttpHeaders(headerkeys, headervalues);
+            obj.HttpHeaders = httpheaders;
         end
     end
 end

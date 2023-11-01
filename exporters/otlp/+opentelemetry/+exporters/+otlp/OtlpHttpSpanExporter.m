@@ -5,13 +5,13 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (SetAccess=immutable)
-        Endpoint (1,1) string           % Export destination
-        Format (1,1) string             % Data format, JSON or binary
-        JsonBytesMapping (1,1) string   % What to convert JSON bytes to
-        UseJsonName (1,1) logical       % Whether to use JSON name of protobuf field to set the key of JSON 
-        Timeout (1,1) duration          % Maximum time above which exports will abort
-        HttpHeaders (1,1) dictionary    % Additional HTTP headers
+    properties
+        Endpoint (1,1) string = "http://localhost:4318/v1/traces" % Export destination
+        Format (1,1) string = "JSON"             % Data format, JSON or binary
+        JsonBytesMapping (1,1) string = "hexId"  % What to convert JSON bytes to
+        UseJsonName (1,1) logical = false        % Whether to use JSON name of protobuf field to set the key of JSON      
+        Timeout (1,1) duration = seconds(10)     % Maximum time above which exports will abort
+        HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
     methods
@@ -43,89 +43,67 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
                 optionvalues
             end
 
+            obj = obj@opentelemetry.sdk.trace.SpanExporter(...
+                "libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy");
+
             validnames = ["Endpoint", "Format", "JsonBytesMapping", ...
                 "UseJsonName", "Timeout", "HttpHeaders"];
-            % set default values to empty or negative
-            endpoint = "";
-            dataformat = "";
-            jsonbytesmapping = "";
-            usejsonname = false;
-            timeout_millis = -1;
-            headerkeys = string.empty();
-            headervalues = string.empty();
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
-                if strcmp(namei, "Endpoint")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
-                    end
-                    endpoint = string(valuei);
-                elseif strcmp(namei, "Format")
-                    dataformat = validatestring(valuei, ["JSON", "binary"]);
-                elseif strcmp(namei, "JsonBytesMapping")
-                    jsonbytesmapping = validatestring(valuei, ["hex", "hexId", "base64"]);
-                elseif strcmp(namei, "UseJsonName")
-                    if ~((islogical(valuei) || isnumeric(valuei)) && isscalar(valuei))
-                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:UseJsonNameNotScalarLogical", "UseJsonName must be a scalar logical.")
-                    end
-                    usejsonname = logical(valuei);
-                elseif  strcmp(namei, "Timeout") 
-                    if ~(isduration(valuei) && isscalar(valuei)) 
-                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
-                    end
-                    timeout = valuei;
-                    timeout_millis = milliseconds(timeout);
-                else  % HttpHeaders
-                    if ~isa(valuei, "dictionary")
-                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
-                    end
-                    httpheaders = valuei;
-                    headerkeys = keys(valuei);
-                    headervalues = values(valuei);
-                    if ~isstring(headervalues)
-                        error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
-                    end
-                end
+                obj.(namei) = valuei;
             end
-            
-            obj = obj@opentelemetry.sdk.trace.SpanExporter(...
-                "libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy", ...
-                endpoint, dataformat, jsonbytesmapping, usejsonname, ...
-                timeout_millis, headerkeys, headervalues);
+        end
 
-            % populate immutable properties
-            if endpoint == "" || dataformat == "" || jsonbytesmapping == "" || ...
-                    timeout_millis < 0
-                [defaultendpoint, defaultformat, defaultmapping, defaultmillis] = ...
-                    getDefaultOptionValues(obj);
+        function obj = set.Endpoint(obj, ep)
+            if ~(isStringScalar(ep) || (ischar(ep) && isrow(ep)))
+                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
             end
-            if endpoint == ""  % not specified, use default value
-                obj.Endpoint = defaultendpoint;
-            else
-                obj.Endpoint = endpoint;
+            ep = string(ep);
+            obj.Proxy.setEndpoint(ep);
+            obj.Endpoint = ep;
+        end
+
+        function obj = set.Format(obj, newformat)
+            newformat = validatestring(newformat, ["JSON", "binary"]);
+            obj.Proxy.setFormat(newformat);
+            obj.Format = newformat;
+        end
+
+        function obj = set.JsonBytesMapping(obj, jbm)
+            jbm = validatestring(jbm, ["hex", "hexId", "base64"]);
+            obj.Proxy.setJsonBytesMapping(jbm);
+            obj.JsonBytesMapping = jbm;
+        end
+
+        function obj = set.UseJsonName(obj, ujn)
+            if ~((islogical(ujn) || isnumeric(ujn)) && isscalar(ujn))
+                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:UseJsonNameNotScalarLogical", "UseJsonName must be a scalar logical.")
             end
-            if dataformat == ""  % not specified, use default value
-                obj.Format = defaultformat;
-            else
-                obj.Format = dataformat;
+            ujn = logical(ujn);
+            obj.Proxy.setUseJsonName(ujn);
+            obj.UseJsonName = ujn;
+        end
+
+        function obj = set.Timeout(obj, timeout)
+            if ~(isduration(timeout) && isscalar(timeout))
+                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
             end
-            if jsonbytesmapping == ""  % not specified, use default value
-                obj.JsonBytesMapping = defaultmapping;
-            else
-                obj.JsonBytesMapping = jsonbytesmapping;
+            obj.Proxy.setTimeout(milliseconds(timeout));
+            obj.Timeout = timeout;
+        end
+
+        function obj = set.HttpHeaders(obj, httpheaders)
+            if ~isa(httpheaders, "dictionary")
+                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
             end
-            obj.UseJsonName = usejsonname;
-            if timeout_millis < 0  % not specified, use default value
-                obj.Timeout = milliseconds(defaultmillis);
-            else
-                obj.Timeout = timeout;
+            headerkeys = keys(httpheaders);
+            headervalues = values(httpheaders);
+            if ~isstring(headervalues)
+                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
             end
-            if isempty(headerkeys)  % not specified, return empty dictionary
-                obj.HttpHeaders = dictionary(headerkeys, headervalues);
-            else
-                obj.HttpHeaders = httpheaders;
-            end
+            obj.Proxy.setHttpHeaders(headerkeys, headervalues);
+            obj.HttpHeaders = httpheaders;
         end
     end
 end

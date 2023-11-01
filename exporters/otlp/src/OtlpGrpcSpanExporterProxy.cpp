@@ -10,42 +10,7 @@ namespace otlp_exporter = opentelemetry::exporter::otlp;
 
 namespace libmexclass::opentelemetry::exporters {
 libmexclass::proxy::MakeResult OtlpGrpcSpanExporterProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
-    matlab::data::StringArray endpoint_mda = constructor_arguments[0];
-    std::string endpoint = static_cast<std::string>(endpoint_mda[0]);
-    matlab::data::TypedArray<bool> use_ssl_mda = constructor_arguments[1];
-    bool use_ssl = use_ssl_mda[0];
-    matlab::data::StringArray certpath_mda = constructor_arguments[2];
-    std::string certpath = static_cast<std::string>(certpath_mda[0]);
-    matlab::data::StringArray certstring_mda = constructor_arguments[3];
-    std::string certstring = static_cast<std::string>(certstring_mda[0]);
-    matlab::data::TypedArray<double> timeout_mda = constructor_arguments[4];
-    double timeout = timeout_mda[0];
-    matlab::data::Array header_mda = constructor_arguments[5];
-    size_t nheaders = header_mda.getNumberOfElements();
-    matlab::data::StringArray headernames_mda = constructor_arguments[5];
-    matlab::data::StringArray headervalues_mda = constructor_arguments[6];
-
     otlp_exporter::OtlpGrpcExporterOptions options;
-    if (!endpoint.empty()) {
-        options.endpoint = endpoint;
-    } 
-    // use_ssl
-    options.use_ssl_credentials = use_ssl;
-    if (!certpath.empty()) {
-        options.ssl_credentials_cacert_path = certpath;
-    } 
-    if (!certstring.empty()) {
-        options.ssl_credentials_cacert_as_string = certstring;
-    } 
-    // timeout
-    if (timeout >= 0) {
-        options.timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout));
-    }
-    // http headers
-    for (size_t i = 0; i < nheaders; ++i) {
-        options.metadata.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
-				static_cast<std::string>(headervalues_mda[i])});
-    }
     return std::make_shared<OtlpGrpcSpanExporterProxy>(options);
 }
 
@@ -53,17 +18,55 @@ std::unique_ptr<trace_sdk::SpanExporter> OtlpGrpcSpanExporterProxy::getInstance(
     return otlp_exporter::OtlpGrpcExporterFactory::Create(CppOptions);
 }
 
-void OtlpGrpcSpanExporterProxy::getDefaultOptionValues(libmexclass::proxy::method::Context& context) {
-    otlp_exporter::OtlpGrpcExporterOptions options;
-    matlab::data::ArrayFactory factory;
-    auto endpoint_mda = factory.createScalar(options.endpoint);
-    auto certpath_mda = factory.createScalar(options.ssl_credentials_cacert_path);
-    auto certstring_mda = factory.createScalar(options.ssl_credentials_cacert_as_string);
-    auto timeout_millis = std::chrono::duration_cast<std::chrono::milliseconds>(options.timeout);
-    auto timeout_mda = factory.createScalar(static_cast<double>(timeout_millis.count()));
-    context.outputs[0] = endpoint_mda;
-    context.outputs[1] = certpath_mda;
-    context.outputs[2] = certstring_mda;
-    context.outputs[3] = timeout_mda;
+void OtlpGrpcSpanExporterProxy::setEndpoint(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray endpoint_mda = context.inputs[0];
+    std::string endpoint = static_cast<std::string>(endpoint_mda[0]);
+
+    if (!endpoint.empty()) {
+        CppOptions.endpoint = endpoint;
+    }
+}
+
+
+void OtlpGrpcSpanExporterProxy::setUseCredentials(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<bool> use_credentials_mda = context.inputs[0];
+    CppOptions.use_ssl_credentials = use_credentials_mda[0];
+}
+
+void OtlpGrpcSpanExporterProxy::setCertificatePath(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray certpath_mda = context.inputs[0];
+    std::string certpath = static_cast<std::string>(certpath_mda[0]);
+
+    if (!certpath.empty()) {
+        CppOptions.ssl_credentials_cacert_path = certpath;
+    }
+}
+
+void OtlpGrpcSpanExporterProxy::setCertificateString(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray certstr_mda = context.inputs[0];
+    std::string certstr = static_cast<std::string>(certstr_mda[0]);
+
+    if (!certstr.empty()) {
+        CppOptions.ssl_credentials_cacert_as_string = certstr;
+    }
+}
+
+void OtlpGrpcSpanExporterProxy::setTimeout(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<double> timeout_mda = context.inputs[0];
+    double timeout = timeout_mda[0];
+
+    if (timeout >= 0) {
+        CppOptions.timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout));
+    }
+}
+
+void OtlpGrpcSpanExporterProxy::setHttpHeaders(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray headernames_mda = context.inputs[0];
+    matlab::data::StringArray headervalues_mda = context.inputs[1];
+    size_t nheaders = headernames_mda.getNumberOfElements();
+    for (size_t i = 0; i < nheaders; ++i) {
+        CppOptions.metadata.insert(std::pair{static_cast<std::string>(headernames_mda[i]),
+                                static_cast<std::string>(headervalues_mda[i])});
+    }
 }
 } // namespace libmexclass::opentelemetry
