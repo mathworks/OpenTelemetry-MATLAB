@@ -10,9 +10,6 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
     properties (Access=public)
         MetricReader
-    end
-
-    properties (Access=public)
         Resource
     end
 

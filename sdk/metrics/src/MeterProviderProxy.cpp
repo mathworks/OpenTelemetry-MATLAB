@@ -36,10 +36,12 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
 
         auto reader = std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
 	            libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance();
-        auto p = metrics_sdk::MeterProviderFactory::Create();
+        
+        auto view = metrics_sdk::ViewRegistryFactory::Create();
+        auto p = metrics_sdk::MeterProviderFactory::Create(std::move(view), resource_custom);
         auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
         p_sdk->AddMetricReader(std::move(reader));
-      
+
         auto p_out = nostd::shared_ptr<metrics_api::MeterProvider>(std::move(p));
         out = std::make_shared<MeterProviderProxy>(p_out);
     }
