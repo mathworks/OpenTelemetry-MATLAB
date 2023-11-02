@@ -68,7 +68,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                     if strcmp(namei, "Resource")
                         if ~isa(valuei, "dictionary")
                             error("opentelemetry:sdk:metrics:MeterProvider:InvalidResourceType", ...
-                                "Attibutes input must be a dictionary.");
+                                "Resource input must be a dictionary.");
                         end
                         resource = valuei;
                         resourcekeys = keys(valuei);
