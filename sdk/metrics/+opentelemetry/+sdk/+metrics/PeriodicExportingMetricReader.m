@@ -9,8 +9,11 @@ classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
 
     properties (SetAccess=immutable)
         MetricExporter  % Metric exporter object responsible for exporting telemetry data to an OpenTelemetry Collector or a compatible backend.
-        Interval (1,1) duration   
-        Timeout (1,1) duration
+    end
+
+    properties
+        Interval (1,1) duration = minutes(1)  
+        Timeout (1,1) duration = seconds(30)
     end
 
     methods %(Access=?opentelemetry.sdk.metrics.MeterProvider)
@@ -24,46 +27,36 @@ classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues
             end
+
+            obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.PeriodicExportingMetricReaderProxy" , ...
+                "ConstructorArguments", {metricexporter.Proxy.ID});
+            obj.MetricExporter = metricexporter;
+
             validnames = ["Interval", "Timeout"];
-            % set default values 
-            intervalmillis = -1;
-            timeoutmillis = -1;
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
-                if strcmp(namei, "Interval")
-                    if ~isduration(valuei) || ~isscalar(valuei) || valuei <= 0 || ...
-                            round(valuei) ~= valuei
-                        error("opentelemetry:sdk:metrics::PeriodicExportingMetricReader::InvalidInterval", ...
-                            "Interval must be a positive duration integer.");
-                    end
-                    intervalmillis = milliseconds(valuei);
-                elseif strcmp(namei, "Timeout")
-                    if ~isduration(valuei) || ~isscalar(valuei) || valuei <= 0
-                        error("opentelemetry:sdk:metrics:PeriodicExportingMetricReader:InvalidTimeout", ...
-                            "Timeout must be a positive duration scalar.");
-                    end
-                    timeoutmillis = milliseconds(valuei);
-                end
+                obj.(namei) = valuei;
             end
-            
-            obj.MetricExporter = metricexporter;
-            obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.PeriodicExportingMetricReaderProxy" , ...
-                                                "ConstructorArguments", {metricexporter.Proxy.ID, intervalmillis, timeoutmillis});
+        end
 
-            [defaultinterval, defaulttimeout] = obj.Proxy.getDefaultOptionValues();
-            if intervalmillis <= 0
-                obj.Interval = milliseconds(defaultinterval);
-            else
-                obj.Interval = milliseconds(intervalmillis);
+        function obj = set.Interval(obj, interval)
+            if ~isduration(interval) || ~isscalar(interval) || interval <= 0 || ...
+                    round(interval) ~= interval
+                error("opentelemetry:sdk:metrics:PeriodicExportingMetricReader:InvalidInterval", ...
+                    "Interval must be a positive duration integer.");
             end
-            if timeoutmillis <= 0
-                obj.Timeout = milliseconds(defaulttimeout);
-            else
-                obj.Timeout = milliseconds(timeoutmillis);
-            end
-            
+            obj.Proxy.setInterval(milliseconds(interval)); %#ok<MCSUP>
+            obj.Interval = interval;
+        end
 
+        function obj = set.Timeout(obj, timeout)
+            if ~isduration(timeout) || ~isscalar(timeout) || timeout <= 0
+                error("opentelemetry:sdk:metrics:PeriodicExportingMetricReader:InvalidTimeout", ...
+                    "Timeout must be a positive duration scalar.");
+            end
+            obj.Proxy.setTimeout(milliseconds(timeout)); %#ok<MCSUP>
+            obj.Timeout = timeout;
         end
     end
 end

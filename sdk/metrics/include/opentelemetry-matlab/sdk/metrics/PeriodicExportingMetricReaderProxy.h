@@ -15,13 +15,15 @@ namespace metric_sdk = opentelemetry::sdk::metrics;
 namespace libmexclass::opentelemetry::sdk {
 class PeriodicExportingMetricReaderProxy : public libmexclass::proxy::Proxy {
   public:
-    PeriodicExportingMetricReaderProxy(std::shared_ptr<MetricExporterProxy> exporter, double interval, double timeout);
+    PeriodicExportingMetricReaderProxy(std::shared_ptr<MetricExporterProxy> exporter);
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<metric_sdk::MetricReader> getInstance();
 
-    void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
+    void setInterval(libmexclass::proxy::method::Context& context);
+
+    void setTimeout(libmexclass::proxy::method::Context& context);
 
   private:
     metric_sdk::PeriodicExportingMetricReaderOptions CppOptions;

@@ -17,14 +17,26 @@ namespace libmexclass::opentelemetry::exporters {
 class OtlpHttpMetricExporterProxy: public libmexclass::opentelemetry::sdk::MetricExporterProxy {
   public:
     OtlpHttpMetricExporterProxy(otlp_exporter::OtlpHttpMetricExporterOptions options) : CppOptions(options) {
-        REGISTER_METHOD(OtlpHttpMetricExporterProxy, getDefaultOptionValues);
+        REGISTER_METHOD(OtlpHttpMetricExporterProxy, setEndpoint);
+	REGISTER_METHOD(OtlpHttpMetricExporterProxy, setFormat);
+        REGISTER_METHOD(OtlpHttpMetricExporterProxy, setJsonBytesMapping);
+        REGISTER_METHOD(OtlpHttpMetricExporterProxy, setUseJsonName);
+        REGISTER_METHOD(OtlpHttpMetricExporterProxy, setTimeout);
+        REGISTER_METHOD(OtlpHttpMetricExporterProxy, setHttpHeaders);
+        REGISTER_METHOD(OtlpHttpMetricExporterProxy, setTemporality);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<metric_sdk::PushMetricExporter> getInstance() override;
 
-    void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
+    void setEndpoint(libmexclass::proxy::method::Context& context);
+    void setFormat(libmexclass::proxy::method::Context& context);
+    void setJsonBytesMapping(libmexclass::proxy::method::Context& context);
+    void setUseJsonName(libmexclass::proxy::method::Context& context);
+    void setTimeout(libmexclass::proxy::method::Context& context);
+    void setHttpHeaders(libmexclass::proxy::method::Context& context);
+    void setTemporality(libmexclass::proxy::method::Context& context);
 
   private:
     otlp_exporter::OtlpHttpMetricExporterOptions CppOptions;

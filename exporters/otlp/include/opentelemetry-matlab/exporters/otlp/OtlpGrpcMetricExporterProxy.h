@@ -17,14 +17,26 @@ namespace libmexclass::opentelemetry::exporters {
 class OtlpGrpcMetricExporterProxy: public libmexclass::opentelemetry::sdk::MetricExporterProxy {
   public:
     OtlpGrpcMetricExporterProxy(otlp_exporter::OtlpGrpcMetricExporterOptions options) : CppOptions(options) {
-        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, getDefaultOptionValues);
+	REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setEndpoint);
+        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setUseCredentials);
+        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setCertificatePath);
+        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setCertificateString);
+        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setTimeout);
+        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setHttpHeaders);
+        REGISTER_METHOD(OtlpGrpcMetricExporterProxy, setTemporality);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<metric_sdk::PushMetricExporter> getInstance() override;
 
-    void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
+    void setEndpoint(libmexclass::proxy::method::Context& context);
+    void setUseCredentials(libmexclass::proxy::method::Context& context);
+    void setCertificatePath(libmexclass::proxy::method::Context& context);
+    void setCertificateString(libmexclass::proxy::method::Context& context);
+    void setTimeout(libmexclass::proxy::method::Context& context);
+    void setHttpHeaders(libmexclass::proxy::method::Context& context);
+    void setTemporality(libmexclass::proxy::method::Context& context);
 
   private:
     otlp_exporter::OtlpGrpcMetricExporterOptions CppOptions;

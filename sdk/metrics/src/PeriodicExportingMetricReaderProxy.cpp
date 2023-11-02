@@ -10,18 +10,10 @@
 
 namespace libmexclass::opentelemetry::sdk {
 
-PeriodicExportingMetricReaderProxy::PeriodicExportingMetricReaderProxy(std::shared_ptr<MetricExporterProxy> exporter, 
-                                                                        double interval, double timeout)
+PeriodicExportingMetricReaderProxy::PeriodicExportingMetricReaderProxy(std::shared_ptr<MetricExporterProxy> exporter)
 	: MetricExporter(exporter) {
-
-    if (interval > 0) {
-        CppOptions.export_interval_millis = std::chrono::milliseconds(static_cast<int64_t>(interval));
-    } 
-    if (timeout > 0) {
-        CppOptions.export_timeout_millis = std::chrono::milliseconds(static_cast<int64_t>(timeout));
-    }
-   
-    REGISTER_METHOD(PeriodicExportingMetricReaderProxy, getDefaultOptionValues);
+    REGISTER_METHOD(PeriodicExportingMetricReaderProxy, setInterval);
+    REGISTER_METHOD(PeriodicExportingMetricReaderProxy, setTimeout);
 }
 
 
@@ -30,12 +22,8 @@ libmexclass::proxy::MakeResult PeriodicExportingMetricReaderProxy::make(const li
     libmexclass::proxy::ID exporterid = exporterid_mda[0];
     std::shared_ptr<MetricExporterProxy> exporter = std::static_pointer_cast<MetricExporterProxy>(
         libmexclass::proxy::ProxyManager::getProxy(exporterid));
-    matlab::data::TypedArray<double> interval_mda = constructor_arguments[1];
-    double interval = interval_mda[0];
-    matlab::data::TypedArray<double> timeout_mda = constructor_arguments[2];
-    double timeout = timeout_mda[0];
     
-    return std::make_shared<PeriodicExportingMetricReaderProxy>(exporter, interval, timeout);
+    return std::make_shared<PeriodicExportingMetricReaderProxy>(exporter);
 }
 
 
@@ -45,15 +33,14 @@ std::unique_ptr<metric_sdk::MetricReader> PeriodicExportingMetricReaderProxy::ge
 }
 
 
-void PeriodicExportingMetricReaderProxy::getDefaultOptionValues(libmexclass::proxy::method::Context& context){
-    metric_sdk::PeriodicExportingMetricReaderOptions options;
-    matlab::data::ArrayFactory factory;
-    auto interval_mda = factory.createScalar<double>(static_cast<double>(
-			    options.export_interval_millis.count()));
-    auto timeout_mda = factory.createScalar<double>(static_cast<double>(
-			    options.export_timeout_millis.count()));
-    context.outputs[0] = interval_mda;
-    context.outputs[1] = timeout_mda;
+void PeriodicExportingMetricReaderProxy::setInterval(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<double> interval_mda = context.inputs[0];
+    CppOptions.export_interval_millis = std::chrono::milliseconds(static_cast<int64_t>(interval_mda[0]));
+}
+
+void PeriodicExportingMetricReaderProxy::setTimeout(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<double> timeout_mda = context.inputs[0];
+    CppOptions.export_timeout_millis = std::chrono::milliseconds(static_cast<int64_t>(timeout_mda[0]));
 }
 
 } // namespace libmexclass::opentelemetry

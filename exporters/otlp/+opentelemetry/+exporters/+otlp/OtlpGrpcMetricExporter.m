@@ -5,14 +5,14 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (SetAccess=immutable)
-        Endpoint (1,1) string                           % Export destination
-        UseCredentials  (1,1) logical                   % Whether to use SSL credentials
-        CertificatePath (1,1) string                    % Path to .pem file for SSL encryption
-        CertificateString (1,1) string                  % In-memory string representation of .pem file for SSL encryption
-        Timeout (1,1) duration                          % Maximum time above which exports will abort
-        HttpHeaders (1,1) dictionary                    % Additional HTTP headers
-        PreferredAggregationTemporality (1,1) string    % Preferred Aggregation Temporality 
+    properties
+        Endpoint (1,1) string = "http://localhost:4317"   % Export destination
+        UseCredentials  (1,1) logical = false   % Whether to use SSL credentials
+        CertificatePath (1,1) string = ""       % Path to .pem file for SSL encryption
+        CertificateString (1,1) string = ""     % In-memory string representation of .pem file for SSL encryption
+        Timeout (1,1) duration = seconds(10)    % Maximum time above which exports will abort
+        HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)   % Additional HTTP headers
+        PreferredAggregationTemporality (1,1) string = "cumulative"   % Preferred Aggregation Temporality 
     end
 
     methods
@@ -47,100 +47,79 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
                 optionvalues
             end
 
+            obj = obj@opentelemetry.sdk.metrics.MetricExporter(...
+                "libmexclass.opentelemetry.exporters.OtlpGrpcMetricExporterProxy");
+
             validnames = ["Endpoint", "UseCredentials ", "CertificatePath", ...
                 "CertificateString", "Timeout", "HttpHeaders", "PreferredAggregationTemporality"];
-            % set default values to empty or negative
-            endpoint = "";
-            usessl = false;
-            certificatepath = "";
-            certificatestring = "";
-            timeout_millis = -1;
-            headerkeys = string.empty();
-            headervalues = string.empty();
-            temporality = "";
             for i = 1:length(optionnames)
                 namei = validatestring(optionnames{i}, validnames);
                 valuei = optionvalues{i};
-                if strcmp(namei, "Endpoint")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
-                    end
-                    endpoint = string(valuei);
-                elseif strcmp(namei, "UseCredentials ")
-                    if ~((islogical(valuei) || isnumeric(valuei)) && isscalar(valuei))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:UseCredentialsNotScalarLogical", "UseCredentials  must be a scalar logical.")
-                    end
-                    usessl = logical(valuei);
-                elseif strcmp(namei, "CertificatePath")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:CertificatePathNotScalarText", "CertificatePath must be a scalar string.");
-                    end
-                    certificatepath = string(valuei);
-                elseif strcmp(namei, "CertificateString")
-                    if ~(isStringScalar(valuei) || (ischar(valuei) && isrow(valuei)))
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:CertificateStringNotScalarText", "CertificateString must be a scalar string.");
-                    end
-                    certificatestring = string(valuei);
-                elseif  strcmp(namei, "Timeout") 
-                    if ~(isduration(valuei) && isscalar(valuei)) 
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
-                    end
-                    timeout = valuei;
-                    timeout_millis = milliseconds(timeout);
-                elseif strcmp(namei, "HttpHeaders")  % HttpHeaders
-                    if ~isa(valuei, "dictionary")
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
-                    end
-                    httpheaders = valuei;
-                    headerkeys = keys(valuei);
-                    headervalues = values(valuei);
-                    if ~isstring(headervalues)
-                        error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
-                    end
-                elseif strcmp(namei, "PreferredAggregationTemporality")
-                    temporality = validatestring(valuei, ["Cumulative", "Delta"]);
-                end
+                obj.(namei) = valuei;
             end
-            
-            obj = obj@opentelemetry.sdk.metrics.MetricExporter(...
-                "libmexclass.opentelemetry.exporters.OtlpGrpcMetricExporterProxy", ...
-                endpoint, usessl, certificatepath, certificatestring, ...
-                timeout_millis, headerkeys, headervalues, temporality);
+        end
 
-            % populate immutable properties
-            [defaultendpoint, defaultcertpath, defaultcertstring, defaultmillis, defaulttemporality] = ...
-                getDefaultOptionValues(obj);
-            if endpoint == ""  % not specified, use default value
-                obj.Endpoint = defaultendpoint;
-            else
-                obj.Endpoint = endpoint;
-            end            
-            obj.UseCredentials  = usessl;
-            if certificatepath == ""  % not specified, use default value
-                obj.CertificatePath = defaultcertpath;
-            else
-                obj.CertificatePath = certificatepath;
+        function obj = set.Endpoint(obj, ep)
+            if ~(isStringScalar(ep) || (ischar(ep) && isrow(ep)))
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
             end
-            if certificatestring == ""  % not specified, use default value
-                obj.CertificateString = defaultcertstring;
-            else
-                obj.CertificateString = certificatestring;
+            ep = string(ep);
+            obj.Proxy.setEndpoint(ep);
+            obj.Endpoint = ep;
+        end
+
+        function obj = set.UseCredentials(obj, uc)
+            if ~((islogical(uc) || isnumeric(uc)) && isscalar(uc))
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:UseCredentialsNotScalarLogical", "UseCredentials  must be a scalar logical.")
             end
-            if timeout_millis < 0  % not specified, use default value
-                obj.Timeout = milliseconds(defaultmillis);
-            else
-                obj.Timeout = timeout;
+            uc = logical(uc);
+            obj.Proxy.setUseCredentials(uc);
+            obj.UseCredentials = uc;
+        end
+
+        function obj = set.CertificatePath(obj, certpath)
+            if ~(isStringScalar(certpath) || (ischar(certpath) && isrow(certpath)))
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:CertificatePathNotScalarText", "CertificatePath must be a scalar string.");
             end
-            if isempty(headerkeys)  % not specified, return empty dictionary
-                obj.HttpHeaders = dictionary(headerkeys, headervalues);
-            else
-                obj.HttpHeaders = httpheaders;
+            certpath = string(certpath);
+            obj.Proxy.setCertificatePath(certpath);
+            obj.CertificatePath = certpath;
+        end
+
+        function obj = set.CertificateString(obj, certstr)
+            if ~(isStringScalar(certstr) || (ischar(certstr) && isrow(certstr)))
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:CertificateStringNotScalarText", "CertificateString must be a scalar string.");
             end
-            if temporality == ""
-                obj.PreferredAggregationTemporality = defaulttemporality;
-            else
-                obj.PreferredAggregationTemporality = temporality;
+            certstr = string(certstr);
+            obj.Proxy.setCertificateString(certstr);
+            obj.CertificateString = certstr;
+        end
+
+        function obj = set.Timeout(obj, timeout)
+            if ~(isduration(timeout) && isscalar(timeout))
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
             end
+            obj.Proxy.setTimeout(milliseconds(timeout));
+            obj.Timeout = timeout;
+        end
+
+        function obj = set.HttpHeaders(obj, httpheaders)
+            if ~isa(httpheaders, "dictionary")
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
+            end
+            headerkeys = keys(httpheaders);
+            headervalues = values(httpheaders);
+            if ~isstring(headervalues)
+                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
+            end
+            obj.Proxy.setHttpHeaders(headerkeys, headervalues);
+            obj.HttpHeaders = httpheaders;
+        end
+
+        function obj = set.PreferredAggregationTemporality(obj, temporality)
+            temporality = validatestring(temporality, ["cumulative", "delta"]);
+            obj.Proxy.setTemporality(temporality);
+            obj.PreferredAggregationTemporality = temporality;
         end
     end
 end
