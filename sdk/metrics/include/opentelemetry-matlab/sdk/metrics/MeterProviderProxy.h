@@ -35,7 +35,6 @@ namespace nostd = opentelemetry::nostd;
 namespace metrics_sdk = opentelemetry::sdk::metrics;
 namespace common          = opentelemetry::common;
 namespace otlpexporter = opentelemetry::exporter::otlp;
-namespace resource = opentelemetry::sdk::resource;
 
 
 namespace libmexclass::opentelemetry::sdk {

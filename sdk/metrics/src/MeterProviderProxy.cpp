@@ -12,7 +12,7 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
     
     libmexclass::proxy::MakeResult out;
     if (constructor_arguments.getNumberOfElements() == 1)  {
-        // if only one input, assume it is an API Tracer Provider to support type conversion
+        // if only one input, assume it is an API Meter Provider to support type conversion
         matlab::data::TypedArray<uint64_t> mpid_mda = constructor_arguments[0];
         libmexclass::proxy::ID mpid = mpid_mda[0];
         auto mp = std::static_pointer_cast<libmexclass::opentelemetry::MeterProviderProxy>(
