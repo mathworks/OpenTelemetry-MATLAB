@@ -3,7 +3,9 @@ classdef MetricExporter
 
 % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access=?opentelemetry.sdk.metrics.PeriodicExportingMetricReader)
+    properties (Access={?opentelemetry.sdk.metrics.PeriodicExportingMetricReader, ...
+            ?opentelemetry.exporters.otlp.OtlpHttpMetricExporter, ...
+            ?opentelemetry.exporters.otlp.OtlpGrpcMetricExporter})
         Proxy   % Proxy object to interface C++ code
     end
 
