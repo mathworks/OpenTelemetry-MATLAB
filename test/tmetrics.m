@@ -61,19 +61,23 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, string(class(reader.MetricExporter)), ...
                 "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
             verifyEqual(testCase, reader.Interval, minutes(1));
+            verifyEqual(testCase, reader.Interval.Format, 'm');  
             verifyEqual(testCase, reader.Timeout, seconds(30));
+            verifyEqual(testCase, reader.Timeout.Format, 's');
         end
 
 
         function testReaderBasic(testCase)
             exporter = opentelemetry.exporters.otlp.defaultMetricExporter;
-            interval = seconds(1);
-            timeout = seconds(0.5);
+            interval = hours(1);
+            timeout = minutes(30);
             reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
                 "Interval", interval, ...
                 "Timeout", timeout);
             verifyEqual(testCase, reader.Interval, interval);
+            verifyEqual(testCase, reader.Interval.Format, 'h');  % should not be converted to other units  
             verifyEqual(testCase, reader.Timeout, timeout);
+            verifyEqual(testCase, reader.Timeout.Format, 'm');
         end
 
         
