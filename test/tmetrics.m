@@ -42,13 +42,13 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, string(class(exporter)), "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
             verifyEqual(testCase, string(exporter.Endpoint), "http://localhost:4318/v1/metrics");
             verifyEqual(testCase, exporter.Timeout, seconds(10));
-            verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), "Cumulative");
+            verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), "cumulative");
         end
 
 
         function testExporterBasic(testCase)
             timeout = seconds(5);
-            temporality = "Delta";
+            temporality = "delta";
             exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("Timeout", timeout, ...
                 "PreferredAggregationTemporality", temporality);
             verifyEqual(testCase, exporter.Timeout, timeout);
@@ -60,7 +60,7 @@ classdef tmetrics < matlab.unittest.TestCase
             reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader();
             verifyEqual(testCase, string(class(reader.MetricExporter)), ...
                 "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
-            verifyEqual(testCase, reader.Interval, seconds(60));
+            verifyEqual(testCase, reader.Interval, minutes(1));
             verifyEqual(testCase, reader.Timeout, seconds(30));
         end
 
@@ -81,9 +81,9 @@ classdef tmetrics < matlab.unittest.TestCase
             metername = "foo";
             countername = "bar";
             exporter1 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
-                "PreferredAggregationTemporality", "Delta");
+                "PreferredAggregationTemporality", "delta");
             exporter2 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
-                "PreferredAggregationTemporality", "Delta");
+                "PreferredAggregationTemporality", "delta");
             reader1 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter1, ...,
                 "Interval", seconds(2), "Timeout", seconds(1));
             reader2 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter2, ...,
