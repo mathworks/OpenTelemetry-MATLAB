@@ -11,9 +11,8 @@ namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
     
     libmexclass::proxy::MakeResult out;
-    matlab::data::TypedArray<bool> is_api = constructor_arguments[1];
-    if (is_api[0])  {
-        // if argument is 1, assume it is an API Meter Provider to support type conversion
+    if (constructor_arguments.getNumberOfElements() == 1)  {
+        // if only one input, assume it is an API Meter Provider to support type conversion
         matlab::data::TypedArray<uint64_t> mpid_mda = constructor_arguments[0];
         libmexclass::proxy::ID mpid = mpid_mda[0];
         auto mp = std::static_pointer_cast<libmexclass::opentelemetry::MeterProviderProxy>(
@@ -29,12 +28,20 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
         matlab::data::TypedArray<uint64_t> readerid_mda = constructor_arguments[0];
         libmexclass::proxy::ID readerid = readerid_mda[0];
         
+        matlab::data::StringArray resourcenames_mda = constructor_arguments[1];
+        size_t nresourceattrs = resourcenames_mda.getNumberOfElements();
+        matlab::data::CellArray resourcevalues_mda = constructor_arguments[2];
+    
+        auto resource_custom = createResource(resourcenames_mda, resourcevalues_mda);
+
         auto reader = std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
 	            libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance();
-        auto p = metrics_sdk::MeterProviderFactory::Create();
+        
+        auto view = metrics_sdk::ViewRegistryFactory::Create();
+        auto p = metrics_sdk::MeterProviderFactory::Create(std::move(view), resource_custom);
         auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
         p_sdk->AddMetricReader(std::move(reader));
-      
+
         auto p_out = nostd::shared_ptr<metrics_api::MeterProvider>(std::move(p));
         out = std::make_shared<MeterProviderProxy>(p_out);
     }

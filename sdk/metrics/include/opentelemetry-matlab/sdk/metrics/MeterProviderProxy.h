@@ -21,9 +21,14 @@
 #include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/meter_provider_factory.h"
 #include "opentelemetry/sdk/metrics/push_metric_exporter.h"
+#include "opentelemetry/sdk/resource/resource.h"
+#include "opentelemetry/sdk/metrics/view/view_registry.h"
+#include "opentelemetry/sdk/metrics/view/view_registry_factory.h"
+
 
 #include "opentelemetry-matlab/metrics/MeterProxy.h"
 #include "opentelemetry-matlab/metrics/MeterProviderProxy.h"
+#include "opentelemetry-matlab/sdk/common/resource.h"
 
 namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;

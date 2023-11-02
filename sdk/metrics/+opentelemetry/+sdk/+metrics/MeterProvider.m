@@ -10,11 +10,12 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
     properties (Access=public)
         MetricReader
+        Resource
     end
 
     methods
-        function obj = MeterProvider(reader)
-            % SDK implementation of tracer provider
+        function obj = MeterProvider(reader, optionnames, optionvalues)
+            % SDK implementation of meter provider
             %    MP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER creates a meter 
             %    provider that uses a periodic exporting metric reader and default configurations.
             %
@@ -38,6 +39,11 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
     		            opentelemetry.sdk.metrics.PeriodicExportingMetricReader()
             end
             
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+
             % explicit call to superclass constructor to make it a no-op
             obj@opentelemetry.metrics.MeterProvider("skip");
 
@@ -49,13 +55,37 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                 assert(mpproxy.Name == "libmexclass.opentelemetry.MeterProviderProxy");
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                    "ConstructorArguments", {mpproxy.ID, true});
+                    "ConstructorArguments", {mpproxy.ID});
                 % leave other properties unassigned, they won't be used
             else
+                validnames = ["Resource"];
+                resourcekeys = string.empty();
+                resourcevalues = {};
+                resource = dictionary(resourcekeys, resourcevalues);
+                for i = 1:length(optionnames)
+                    namei = validatestring(optionnames{i}, validnames);
+                    valuei = optionvalues{i};
+                    if strcmp(namei, "Resource")
+                        if ~isa(valuei, "dictionary")
+                            error("opentelemetry:sdk:metrics:MeterProvider:InvalidResourceType", ...
+                                "Resource input must be a dictionary.");
+                        end
+                        resource = valuei;
+                        resourcekeys = keys(valuei);
+                        resourcevalues = values(valuei,"cell");
+                        % collapse one level of cells, as this may be due to
+                        % a behavior of dictionary.values
+                        if all(cellfun(@iscell, resourcevalues))
+                            resourcevalues = [resourcevalues{:}];
+                        end
+                    end
+                end
+    
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                    "ConstructorArguments", {reader.Proxy.ID, false});
+                    "ConstructorArguments", {reader.Proxy.ID, resourcekeys, resourcevalues});
                 obj.MetricReader = reader;
+                obj.Resource = resource;
             end
         end
         
