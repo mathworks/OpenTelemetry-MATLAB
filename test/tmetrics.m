@@ -105,7 +105,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % adding a single value
             ct.add(1);
             pause(2.5);
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             result_count = numel(results);
             verifyEqual(testCase,result_count, 2);
@@ -140,7 +140,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch result
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -184,7 +184,7 @@ classdef tmetrics < matlab.unittest.TestCase
 
             % fetch results
             pause(2.5);
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             dp1 = results{1}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
             dp2 = results{2}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -223,7 +223,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch result
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -267,7 +267,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch results
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -307,7 +307,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(5);
 
             % fetch result
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -352,7 +352,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(5);
 
             % fetch result
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
@@ -401,7 +401,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(10);
 
             % fetch results
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
@@ -458,7 +458,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(10);
 
             % fetch results
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             results = results{end};
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
@@ -515,7 +515,7 @@ classdef tmetrics < matlab.unittest.TestCase
             pause(2.5);
 
             % fetch results
-            verifyTrue(testCase, p.shutdown());
+            clear p;
             results = readJsonResults(testCase);
             rsize = size(results);
             for i = 1:rsize(2)

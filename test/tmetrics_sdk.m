@@ -53,6 +53,8 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             pause(2.5);
 
+            clear mp;
+
             % perform test comparisons
             results = readJsonResults(testCase);
             results = results{1};
