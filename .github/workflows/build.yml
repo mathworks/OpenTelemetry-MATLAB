@@ -48,7 +48,7 @@ jobs:
               run: |
                   cd opentelemetry-matlab
                   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
-                  cmake --build build --config Release --target install
+                  cmake --build build --config Release --target install -v
             - name: Run tests
               env:
                  # Add the installation directory to the MATLAB Search Path by
