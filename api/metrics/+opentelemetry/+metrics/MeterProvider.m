@@ -4,7 +4,7 @@ classdef MeterProvider < handle
 
     % Copyright 2023 The MathWorks, Inc.
 
-    properties (Access={?opentelemetry.sdk.metrics.MeterProvider, ?opentelemetry.sdk.metrics.Cleanup})
+    properties (Access={?opentelemetry.sdk.metrics.MeterProvider, ?opentelemetry.sdk.common.Cleanup})
         Proxy   % Proxy object to interface C++ code
     end
 
@@ -60,7 +60,7 @@ classdef MeterProvider < handle
         end
     end
 
-    methods(Access=?opentelemetry.sdk.metrics.Cleanup)
+    methods(Access=?opentelemetry.sdk.common.Cleanup)
         function postShutdown(obj)
             % POSTSHUTDOWN  Handle post-shutdown tasks
             obj.Proxy.postShutdown();
