@@ -67,5 +67,85 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             end
         end
 
+        function testShutdown(testCase)
+            % testShutdown: shutdown method should stop exporting
+            % of metrics
+            commonSetup(testCase)
+
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", seconds(2), "Timeout", seconds(1));
+            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
+
+            % shutdown the meter provider
+            verifyTrue(testCase, shutdown(mp));
+
+            % create an instrument and add some values
+            m = getMeter(mp, "foo");
+            c = createCounter(m, "bar");
+            c.add(5);
+
+            % wait a little and then gather results, verify no metrics are
+            % generated
+            pause(2.5);
+            clear mp;
+            results = readJsonResults(testCase);
+            verifyEmpty(testCase, results);
+        end
+
+        function testCleanupSdk(testCase)
+            % testCleanupSdk: shutdown an SDK meter provider through the Cleanup class
+            commonSetup(testCase)
+
+            % Shut down an SDK meter provider instance
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", seconds(2), "Timeout", seconds(1));
+            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
+
+            % shutdown the meter provider through the Cleanup class
+            verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(mp));
+
+            % create an instrument and add some values
+            m = getMeter(mp, "foo");
+            c = createCounter(m, "bar");
+            c.add(5);
+
+            % wait a little and then gather results, verify no metrics are
+            % generated
+            pause(2.5);
+            clear mp;
+            results = readJsonResults(testCase);
+            verifyEmpty(testCase, results);
+        end
+
+        function testCleanupApi(testCase)
+            % testCleanupApi: shutdown an API meter provider through the Cleanup class
+            commonSetup(testCase)
+
+            % Shut down an API meter provider instance
+            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+                "Interval", seconds(2), "Timeout", seconds(1));
+            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
+            setMeterProvider(mp);
+            clear("mp");
+            mp_api = opentelemetry.metrics.Provider.getMeterProvider();
+
+            % shutdown the API meter provider through the Cleanup class
+            verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(mp_api));
+
+            % create an instrument and add some values
+            m = getMeter(mp_api, "foo");
+            c = createCounter(m, "bar");
+            c.add(5);
+
+            % wait a little and then gather results, verify no metrics are
+            % generated
+            pause(2.5);
+            clear("mp_api");
+            results = readJsonResults(testCase);
+            verifyEmpty(testCase, results);
+        end
     end
 end
