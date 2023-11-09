@@ -317,7 +317,8 @@ if(WIN32)
     FILE(GLOB ZLIB_RUNTIME ${ZLIB_INCLUDE_DIRS}/../bin/*.dll)
 
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${PROTOBUF_RUNTIME}
-        ${ZLIB_RUNTIME})
+        ${ZLIB_RUNTIME}
+        ${Matlab_ROOT_DIR}/extern/lib/win64/microsoft/libMatlabDataArray.lib)
 
     if(WITH_OTLP_HTTP)
         FILE(GLOB CURL_RUNTIME ${CURL_INCLUDE_DIRS}/../bin/*.dll)
