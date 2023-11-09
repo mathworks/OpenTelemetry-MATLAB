@@ -40,7 +40,6 @@ classdef Meter < handle
             ctname = mustBeScalarString(ctname);
             % cpp-opentelemetry end does not allow string input with spaces,
             % replace any spaces with underscores as a temporary fix
-            ctname = strrep(ctname, ' ', '_');
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createCounter(ctname, ctdescription, ctunit);
@@ -62,7 +61,6 @@ classdef Meter < handle
             ctname = mustBeScalarString(ctname);
             % cpp-opentelemetry end does not allow string input with spaces,
             % replace any spaces with underscores as a temporary fix
-            ctname = strrep(ctname, ' ', '_');
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createUpDownCounter(ctname, ctdescription, ctunit);
@@ -84,7 +82,6 @@ classdef Meter < handle
             hiname = mustBeScalarString(hiname);
             % cpp-opentelemetry end does not allow string input with spaces,
             % replace any spaces with underscores as a temporary fix
-            hiname = strrep(hiname, ' ', '_');
             hidescription = mustBeScalarString(hidescription);
             hiunit = mustBeScalarString(hiunit);
             id = obj.Proxy.createHistogram(hiname, hidescription, hiunit);
