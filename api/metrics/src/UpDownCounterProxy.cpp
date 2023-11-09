@@ -12,7 +12,7 @@
 namespace libmexclass::opentelemetry {
 
 
-void UpDownCounterProxy::add(libmexclass::proxy::method::Context& context){
+void UpDownCounterProxy::processValue(libmexclass::proxy::method::Context& context){
   
     matlab::data::Array value_mda = context.inputs[0];
     double value = static_cast<double>(value_mda[0]);

@@ -13,23 +13,7 @@ classdef Histogram < opentelemetry.metrics.SynchronousInstrument
        
     methods
         function record(obj, value, varargin)
-            % input value must be a numerical scalar
-            if isnumeric(value) && isscalar(value)
-                if nargin == 2
-                    obj.Proxy.record(value);
-                elseif isa(varargin{1}, "dictionary")
-                    attrkeys = keys(varargin{1});
-                    attrvals = values(varargin{1},"cell");
-                    if all(cellfun(@iscell, attrvals))
-                        attrvals = [attrvals{:}];
-                    end
-                    obj.Proxy.record(value, attrkeys, attrvals);
-                else
-                    attrkeys = [varargin{1:2:length(varargin)}]';
-                    attrvals = [varargin(2:2:length(varargin))]';
-                    obj.Proxy.record(value, attrkeys, attrvals);
-                end
-            end
+            obj.processValue(value, varargin{:});
         end
     end
 end
