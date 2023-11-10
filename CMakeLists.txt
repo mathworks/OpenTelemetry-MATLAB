@@ -231,6 +231,7 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${TRACE_SDK_SOURCE_DIR}/BatchSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp
     ${METRICS_SDK_SOURCE_DIR}/MeterProviderProxy.cpp
+    ${METRICS_SDK_SOURCE_DIR}/ViewProxy.cpp
     ${METRICS_SDK_SOURCE_DIR}/PeriodicExportingMetricReaderProxy.cpp
     ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
 if(WITH_OTLP_HTTP)

@@ -2,6 +2,7 @@
 
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
+#include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 
 #include "libmexclass/proxy/ProxyManager.h"
 
@@ -55,6 +56,17 @@ void MeterProviderProxy::addMetricReader(libmexclass::proxy::method::Context& co
     static_cast<metrics_sdk::MeterProvider&>(*CppMeterProvider).AddMetricReader(
 		    std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
 			    libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance());
+   return;
+}
+
+void MeterProviderProxy::addView(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<uint64_t> viewid_mda = context.inputs[0];
+    libmexclass::proxy::ID viewid = viewid_mda[0];
+
+    static_cast<metrics_sdk::MeterProvider&>(*CppMeterProvider).AddView(
+		    std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getInstrumentSelector(context),
+            std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getMeterSelector(context),
+		    std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getView(context));
    return;
 }
 

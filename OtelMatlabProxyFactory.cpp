@@ -23,6 +23,7 @@
 #include "opentelemetry-matlab/sdk/trace/TraceIdRatioBasedSamplerProxy.h"
 #include "opentelemetry-matlab/sdk/trace/ParentBasedSamplerProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
+#include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
 #ifdef WITH_OTLP_HTTP
     #include "opentelemetry-matlab/exporters/otlp/OtlpHttpSpanExporterProxy.h"
@@ -61,6 +62,7 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.ParentBasedSamplerProxy, libmexclass::opentelemetry::sdk::ParentBasedSamplerProxy);
 
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.MeterProviderProxy, libmexclass::opentelemetry::sdk::MeterProviderProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.sdk.ViewProxy, libmexclass::opentelemetry::sdk::ViewProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.PeriodicExportingMetricReaderProxy, libmexclass::opentelemetry::sdk::PeriodicExportingMetricReaderProxy);
 
     #ifdef WITH_OTLP_HTTP
