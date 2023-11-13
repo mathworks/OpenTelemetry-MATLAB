@@ -212,6 +212,11 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${TRACE_API_SOURCE_DIR}/SpanProxy.cpp
     ${TRACE_API_SOURCE_DIR}/SpanContextProxy.cpp
     ${COMMON_API_SOURCE_DIR}/attribute.cpp
+    ${METRICS_API_SOURCE_DIR}/MeterProviderProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/MeterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/CounterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/UpDownCounterProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/HistogramProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapPropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/CompositePropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapCarrierProxy.cpp
@@ -221,14 +226,21 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${TRACE_SDK_SOURCE_DIR}/SimpleSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/BatchSpanProcessorProxy.cpp
     ${TRACE_SDK_SOURCE_DIR}/ParentBasedSamplerProxy.cpp
+    ${METRICS_SDK_SOURCE_DIR}/MeterProviderProxy.cpp
+    ${METRICS_SDK_SOURCE_DIR}/ViewProxy.cpp
+    ${METRICS_SDK_SOURCE_DIR}/PeriodicExportingMetricReaderProxy.cpp
     ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
 if(WITH_OTLP_HTTP)
-    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
-	${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp)
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES} 
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpMetricExporterProxy.cpp)
 endif()
 if(WITH_OTLP_GRPC)
-    set(OPENTELEMETRY_PROXY_SOURCES ${OPENTELEMETRY_PROXY_SOURCES} 
-        ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp)
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES}
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp)
 endif()
 
 libmexclass_client_add_proxy_library(
@@ -377,9 +389,17 @@ set(CONTEXT_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/context/+opentele
 set(BAGGAGE_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/+opentelemetry)
 set(COMMON_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/common/+opentelemetry)
 set(TRACE_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/+opentelemetry)
-set(DEFAULT_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m)
-set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m)
-set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m)
+set(METRICS_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/metrics/+opentelemetry)
+set(COMMON_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/common/+opentelemetry)
+set(DEFAULT_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultMetricExporter.m)
+set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpMetricExporter.m)
+set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m)
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
@@ -388,6 +408,8 @@ install(DIRECTORY ${CONTEXT_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${BAGGAGE_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${COMMON_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${TRACE_SDK_MATLAB_SOURCES} DESTINATION .)
+install(DIRECTORY ${METRICS_SDK_MATLAB_SOURCES} DESTINATION .)
+install(DIRECTORY ${COMMON_SDK_MATLAB_SOURCES} DESTINATION .)
 install(FILES ${DEFAULT_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 if(WITH_OTLP_HTTP)
     install(FILES ${OTLP_HTTP_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
