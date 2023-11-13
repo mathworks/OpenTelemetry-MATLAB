@@ -1,0 +1,33 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+         endpoint: 0.0.0.0:9922
+      http:
+         endpoint: 0.0.0.0:9921
+
+processors:
+
+exporters:
+  file:
+    path: ./myoutput.json
+
+service:
+
+  pipelines:
+
+    logs:
+      receivers: [otlp]
+      processors: 
+      exporters: [file]    
+
+    traces:
+      receivers: [otlp]
+      processors: 
+      exporters: [file]
+
+    metrics:
+      receivers: [otlp]
+      processors: 
+      exporters: [file]
+

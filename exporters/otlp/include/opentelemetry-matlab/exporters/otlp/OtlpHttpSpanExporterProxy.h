@@ -17,7 +17,12 @@ namespace libmexclass::opentelemetry::exporters {
 class OtlpHttpSpanExporterProxy: public libmexclass::opentelemetry::sdk::SpanExporterProxy {
   public:
     OtlpHttpSpanExporterProxy(otlp_exporter::OtlpHttpExporterOptions options) : CppOptions(options) {
-        REGISTER_METHOD(OtlpHttpSpanExporterProxy, getDefaultOptionValues);
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, setEndpoint);
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, setFormat);
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, setJsonBytesMapping);
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, setUseJsonName);
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, setTimeout);
+        REGISTER_METHOD(OtlpHttpSpanExporterProxy, setHttpHeaders);
     }
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
@@ -25,6 +30,18 @@ class OtlpHttpSpanExporterProxy: public libmexclass::opentelemetry::sdk::SpanExp
     std::unique_ptr<trace_sdk::SpanExporter> getInstance() override;
 
     void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
+
+    void setEndpoint(libmexclass::proxy::method::Context& context);
+
+    void setFormat(libmexclass::proxy::method::Context& context);
+
+    void setJsonBytesMapping(libmexclass::proxy::method::Context& context);
+
+    void setUseJsonName(libmexclass::proxy::method::Context& context);
+
+    void setTimeout(libmexclass::proxy::method::Context& context);
+
+    void setHttpHeaders(libmexclass::proxy::method::Context& context);
 
   private:
     otlp_exporter::OtlpHttpExporterOptions CppOptions;

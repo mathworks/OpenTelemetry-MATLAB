@@ -15,14 +15,17 @@ namespace trace_sdk = opentelemetry::sdk::trace;
 namespace libmexclass::opentelemetry::sdk {
 class BatchSpanProcessorProxy : public SpanProcessorProxy {
   public:
-    BatchSpanProcessorProxy(std::shared_ptr<SpanExporterProxy> exporter, double qsize, 
-		    double delay, double batchsize);
+    BatchSpanProcessorProxy(std::shared_ptr<SpanExporterProxy> exporter);
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     std::unique_ptr<trace_sdk::SpanProcessor> getInstance() override;
 
-    void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
+    void setMaximumQueueSize(libmexclass::proxy::method::Context& context);
+
+    void setScheduledDelay(libmexclass::proxy::method::Context& context);
+
+    void setMaximumExportBatchSize(libmexclass::proxy::method::Context& context);
 
   private:
     trace_sdk::BatchSpanProcessorOptions CppOptions;

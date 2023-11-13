@@ -187,8 +187,8 @@ if(WITH_OTLP_GRPC)
     endif()
 endif()
 
-set(TRACE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/include) 
-set(METRICS_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/metrics/include) 
+set(TRACE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/include)
+set(METRICS_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/metrics/include)
 set(CONTEXT_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/context/include) 
 set(BAGGAGE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/include) 
 set(COMMON_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/common/include) 
@@ -408,7 +408,6 @@ set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES
 set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m)
-
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
