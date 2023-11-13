@@ -10,6 +10,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
 
     properties (Access=public)
         MetricReader
+        View
         Resource
     end
 
@@ -98,6 +99,15 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
             obj.MetricReader = [obj.MetricReader, reader];
         end
 
+        function addView(obj, view)
+        arguments
+     	    obj
+            view (1,1) {mustBeA(view, "opentelemetry.sdk.metrics.View")}
+        end
+            obj.Proxy.addView(view.Proxy.ID);
+            obj.View = [obj.View, view];
+        end
+            
         function success = shutdown(obj)
             % SHUTDOWN  Shutdown 
             %    SUCCESS = SHUTDOWN(MP) shuts down all metric readers associated with meter provider MP
