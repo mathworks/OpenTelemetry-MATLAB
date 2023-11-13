@@ -18,10 +18,10 @@ namespace libmexclass::opentelemetry {
 class UpDownCounterProxy : public libmexclass::proxy::Proxy {
   public:
     UpDownCounterProxy(nostd::shared_ptr<metrics_api::UpDownCounter<double> > ct) : CppUpDownCounter(ct) {
-       REGISTER_METHOD(UpDownCounterProxy, add);
+       REGISTER_METHOD(UpDownCounterProxy, processValue);
     }
 
-    void add(libmexclass::proxy::method::Context& context);
+    void processValue(libmexclass::proxy::method::Context& context);
 
   private:
 

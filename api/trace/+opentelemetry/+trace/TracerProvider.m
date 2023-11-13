@@ -5,7 +5,7 @@ classdef TracerProvider < handle
     % Copyright 2023 The MathWorks, Inc.
 
     properties (Access={?opentelemetry.sdk.trace.TracerProvider, ...
-            ?opentelemetry.sdk.trace.Cleanup})
+            ?opentelemetry.sdk.common.Cleanup})
         Proxy   % Proxy object to interface C++ code
     end
 
@@ -61,7 +61,7 @@ classdef TracerProvider < handle
         end
     end
 
-    methods(Access=?opentelemetry.sdk.trace.Cleanup)
+    methods(Access=?opentelemetry.sdk.common.Cleanup)
         function postShutdown(obj)
             % POSTSHUTDOWN  Handle post-shutdown tasks
             obj.Proxy.postShutdown();

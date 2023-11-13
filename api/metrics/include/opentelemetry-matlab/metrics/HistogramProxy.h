@@ -21,10 +21,10 @@ namespace libmexclass::opentelemetry {
 class HistogramProxy : public libmexclass::proxy::Proxy {
   public:
     HistogramProxy(nostd::shared_ptr<metrics_api::Histogram<double> > hist) : CppHistogram(hist) {
-       REGISTER_METHOD(HistogramProxy, record);
+       REGISTER_METHOD(HistogramProxy, processValue);
     }
 
-    void record(libmexclass::proxy::method::Context& context);
+    void processValue(libmexclass::proxy::method::Context& context);
 
   private:
 

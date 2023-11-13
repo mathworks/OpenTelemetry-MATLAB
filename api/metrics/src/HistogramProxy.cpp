@@ -12,7 +12,7 @@
 namespace libmexclass::opentelemetry {
 
 
-void HistogramProxy::record(libmexclass::proxy::method::Context& context){
+void HistogramProxy::processValue(libmexclass::proxy::method::Context& context){
     // Get value
     matlab::data::Array value_mda = context.inputs[0];
     double value = static_cast<double>(value_mda[0]);

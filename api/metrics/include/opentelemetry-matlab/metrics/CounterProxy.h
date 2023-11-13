@@ -18,10 +18,10 @@ namespace libmexclass::opentelemetry {
 class CounterProxy : public libmexclass::proxy::Proxy {
   public:
     CounterProxy(nostd::shared_ptr<metrics_api::Counter<double> > ct) : CppCounter(ct) {
-       REGISTER_METHOD(CounterProxy, add);
+       REGISTER_METHOD(CounterProxy, processValue);
     }
 
-    void add(libmexclass::proxy::method::Context& context);
+    void processValue(libmexclass::proxy::method::Context& context);
 
   private:
 
