@@ -209,5 +209,84 @@ classdef ttrace_sdk < matlab.unittest.TestCase
                 verifyEqual(testCase, results.resourceSpans.resource.attributes(idx).value.doubleValue, customvalues(i));
             end
         end
+
+        function testShutdown(testCase)
+            % testShutdown: shutdown method should stop exporting
+            % of spans
+            commonSetup(testCase)
+
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+
+            % start and end a span 
+            spanname = "bar";
+            sp = startSpan(tr, spanname);
+            endSpan(sp);
+
+            % shutdown the tracer provider
+            verifyTrue(testCase, shutdown(tp));
+
+            % start and end another span
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+
+            % verify only the first span was generated
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+        end
+
+        function testCleanupSdk(testCase)
+            % testCleanupSdk: shutdown an SDK tracer provider through the Cleanup class
+            commonSetup(testCase)
+
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+
+            % start and end a span 
+            spanname = "bar";
+            sp = startSpan(tr, spanname);
+            endSpan(sp);
+
+            % shutdown the SDK tracer provider through the Cleanup class
+            verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(tp));
+
+            % start and end another span
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+
+            % verify only the first span was generated
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+        end
+
+        function testCleanupApi(testCase)
+            % testCleanupApi: shutdown an API tracer provider through the Cleanup class
+            commonSetup(testCase)
+  
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            setTracerProvider(tp);
+            clear("tp");
+            tp_api = opentelemetry.trace.Provider.getTracerProvider();
+            tr = getTracer(tp_api, "foo");
+
+            % start and end a span 
+            spanname = "bar";
+            sp = startSpan(tr, spanname);
+            endSpan(sp);
+
+            % shutdown the API tracer provider through the Cleanup class
+            verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(tp_api));
+
+            % start and end another span
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+
+            % verify only the first span was generated
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+        end
     end
 end
