@@ -29,8 +29,6 @@ class OtlpHttpSpanExporterProxy: public libmexclass::opentelemetry::sdk::SpanExp
 
     std::unique_ptr<trace_sdk::SpanExporter> getInstance() override;
 
-    void getDefaultOptionValues(libmexclass::proxy::method::Context& context);
-
     void setEndpoint(libmexclass::proxy::method::Context& context);
 
     void setFormat(libmexclass::proxy::method::Context& context);

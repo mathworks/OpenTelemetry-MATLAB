@@ -12,7 +12,10 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
         CertificateString (1,1) string = ""     % In-memory string representation of .pem file for SSL encryption
         Timeout (1,1) duration = seconds(10)    % Maximum time above which exports will abort
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)   % Additional HTTP headers
-        PreferredAggregationTemporality (1,1) string = "cumulative"   % Preferred Aggregation Temporality 
+    end
+
+    properties (Constant)
+        Validator = opentelemetry.exporters.otlp.OtlpGrpcValidator
     end
 
     methods
@@ -60,66 +63,39 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
         end
 
         function obj = set.Endpoint(obj, ep)
-            if ~(isStringScalar(ep) || (ischar(ep) && isrow(ep)))
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
-            end
-            ep = string(ep);
+            ep = obj.Validator.validateEndpoint(ep);
             obj.Proxy.setEndpoint(ep);
             obj.Endpoint = ep;
         end
 
         function obj = set.UseCredentials(obj, uc)
-            if ~((islogical(uc) || isnumeric(uc)) && isscalar(uc))
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:UseCredentialsNotScalarLogical", "UseCredentials  must be a scalar logical.")
-            end
-            uc = logical(uc);
+            uc = obj.Validator.validateUseCredentials(uc);
             obj.Proxy.setUseCredentials(uc);
             obj.UseCredentials = uc;
         end
 
         function obj = set.CertificatePath(obj, certpath)
-            if ~(isStringScalar(certpath) || (ischar(certpath) && isrow(certpath)))
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:CertificatePathNotScalarText", "CertificatePath must be a scalar string.");
-            end
-            certpath = string(certpath);
+            certpath = obj.Validator.validateCertificatePath(certpath);
             obj.Proxy.setCertificatePath(certpath);
             obj.CertificatePath = certpath;
         end
 
         function obj = set.CertificateString(obj, certstr)
-            if ~(isStringScalar(certstr) || (ischar(certstr) && isrow(certstr)))
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:CertificateStringNotScalarText", "CertificateString must be a scalar string.");
-            end
-            certstr = string(certstr);
+            certstr = obj.Validator.validateCertificateString(certstr);
             obj.Proxy.setCertificateString(certstr);
             obj.CertificateString = certstr;
         end
 
         function obj = set.Timeout(obj, timeout)
-            if ~(isduration(timeout) && isscalar(timeout))
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
-            end
+            obj.Validator.validateTimeout(timeout);
             obj.Proxy.setTimeout(milliseconds(timeout));
             obj.Timeout = timeout;
         end
 
         function obj = set.HttpHeaders(obj, httpheaders)
-            if ~isa(httpheaders, "dictionary")
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
-            end
-            headerkeys = keys(httpheaders);
-            headervalues = values(httpheaders);
-            if ~isstring(headervalues)
-                error("opentelemetry:exporters:otlp:OtlpGrpcMetricExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
-            end
+            [headerkeys, headervalues] = obj.Validator.validateHttpHeaders(httpheaders);
             obj.Proxy.setHttpHeaders(headerkeys, headervalues);
             obj.HttpHeaders = httpheaders;
-        end
-
-        function obj = set.PreferredAggregationTemporality(obj, temporality)
-            temporality = validatestring(temporality, ["cumulative", "delta"]);
-            obj.Proxy.setTemporality(temporality);
-            obj.PreferredAggregationTemporality = temporality;
         end
     end
 end

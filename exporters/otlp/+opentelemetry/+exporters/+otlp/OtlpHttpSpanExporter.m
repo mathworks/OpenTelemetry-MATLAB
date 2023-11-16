@@ -14,6 +14,10 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
+    properties (Constant)
+        Validator = opentelemetry.exporters.otlp.OtlpHttpValidator
+    end
+
     methods
         function obj = OtlpHttpSpanExporter(optionnames, optionvalues)
             % OtlpHttpSpanExporter exports spans in OpenTelemetry Protocol format via HTTP.
@@ -56,52 +60,37 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
         end
 
         function obj = set.Endpoint(obj, ep)
-            if ~(isStringScalar(ep) || (ischar(ep) && isrow(ep)))
-                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:EndpointNotScalarText", "Endpoint must be a scalar string.");
-            end
-            ep = string(ep);
+            ep = obj.Validator.validateEndpoint(ep);
             obj.Proxy.setEndpoint(ep);
             obj.Endpoint = ep;
         end
 
         function obj = set.Format(obj, newformat)
-            newformat = validatestring(newformat, ["JSON", "binary"]);
+            newformat = obj.Validator.validateFormat(newformat);
             obj.Proxy.setFormat(newformat);
             obj.Format = newformat;
         end
 
         function obj = set.JsonBytesMapping(obj, jbm)
-            jbm = validatestring(jbm, ["hex", "hexId", "base64"]);
+            jbm = obj.Validator.validateJsonBytesMapping(jbm);
             obj.Proxy.setJsonBytesMapping(jbm);
             obj.JsonBytesMapping = jbm;
         end
 
         function obj = set.UseJsonName(obj, ujn)
-            if ~((islogical(ujn) || isnumeric(ujn)) && isscalar(ujn))
-                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:UseJsonNameNotScalarLogical", "UseJsonName must be a scalar logical.")
-            end
-            ujn = logical(ujn);
+            ujn = obj.Validator.validateUseJsonName(ujn);
             obj.Proxy.setUseJsonName(ujn);
             obj.UseJsonName = ujn;
         end
 
         function obj = set.Timeout(obj, timeout)
-            if ~(isduration(timeout) && isscalar(timeout))
-                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:TimeoutNotScalarDuration", "Timeout must be a scalar duration.");
-            end
+            obj.Validator.validateTimeout(timeout);
             obj.Proxy.setTimeout(milliseconds(timeout));
             obj.Timeout = timeout;
         end
 
         function obj = set.HttpHeaders(obj, httpheaders)
-            if ~isa(httpheaders, "dictionary")
-                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNotDictionary", "HttpHeaders input must be a dictionary.");
-            end
-            headerkeys = keys(httpheaders);
-            headervalues = values(httpheaders);
-            if ~isstring(headervalues)
-                error("opentelemetry:exporters:otlp:OtlpHttpSpanExporter:HttpHeadersNonStringValues", "HttpHeaders dictionary values must be strings.")
-            end
+            [headerkeys, headervalues] = obj.Validator.validateHttpHeaders(httpheaders);
             obj.Proxy.setHttpHeaders(headerkeys, headervalues);
             obj.HttpHeaders = httpheaders;
         end
