@@ -3,6 +3,10 @@ classdef MetricExporter
 
 % Copyright 2023 The MathWorks, Inc.
 
+    properties
+	PreferredAggregationTemporality (1,1) string = "cumulative"   % Preferred Aggregation Temporality
+    end
+
     properties (Access={?opentelemetry.sdk.metrics.PeriodicExportingMetricReader, ...
             ?opentelemetry.exporters.otlp.OtlpHttpMetricExporter, ...
             ?opentelemetry.exporters.otlp.OtlpGrpcMetricExporter})
@@ -15,9 +19,14 @@ classdef MetricExporter
             obj.Proxy = libmexclass.proxy.Proxy("Name", proxyname, ...
                 "ConstructorArguments", varargin);
         end
+    end
 
-        function varargout = getDefaultOptionValues(obj)
-            [varargout{1:nargout}] = obj.Proxy.getDefaultOptionValues();
+    methods
+	    function obj = set.PreferredAggregationTemporality(obj, temporality)
+            temporality = validatestring(temporality, ["cumulative", "delta"]);
+            obj.Proxy.setTemporality(temporality);
+            obj.PreferredAggregationTemporality = temporality;
         end
+
     end
 end

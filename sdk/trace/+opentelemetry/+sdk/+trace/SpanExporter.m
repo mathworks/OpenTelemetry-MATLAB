@@ -15,9 +15,5 @@ classdef SpanExporter
             obj.Proxy = libmexclass.proxy.Proxy("Name", proxyname, ...
                 "ConstructorArguments", varargin);
         end
-
-        function varargout = getDefaultOptionValues(obj)
-            [varargout{1:nargout}] = obj.Proxy.getDefaultOptionValues();
-        end
     end
 end
