@@ -36,8 +36,10 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
     if(aggregation_type == metrics_sdk::AggregationType::kHistogram){
         matlab::data::TypedArray<double> histogramBinEdges_mda = constructor_arguments[10];
         std::vector<double> histogramBinEdges;
-        for (auto h : histogramBinEdges_mda) {
-            histogramBinEdges.push_back(h);
+        if(histogramBinEdges_mda.getNumberOfElements() > 0){
+            for (auto h : histogramBinEdges_mda) {
+                histogramBinEdges.push_back(h);
+            }
         }
         aggregation_config->boundaries_ = histogramBinEdges;
     }

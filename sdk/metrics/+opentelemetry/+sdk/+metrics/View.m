@@ -26,8 +26,8 @@ classdef View
                 aggregation, histogramBinEdges, varargin)
 
             instrumentTypeCategory = int32(find(instrumentType==["kCounter", "kHistogram", "kUpDownCounter", "kObservableCounter", "kObservableGauge", "kObservableUpDownCounter"])-1);
-                
-            aggregationCategory = int32(find(instrumentType==["kDrop", "kHistogram", "kLastValue", "kSum", "kDefault"])-1);
+
+            aggregationCategory = int32(find(aggregation==["kDrop", "kHistogram", "kLastValue", "kSum", "kDefault"])-1);
 
             obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.ViewProxy", ...
                 "ConstructorArguments", {name, description, unit, instrumentName, ...
