@@ -8,6 +8,9 @@
 #include "opentelemetry-matlab/metrics/CounterProxy.h"
 #include "opentelemetry-matlab/metrics/HistogramProxy.h"
 #include "opentelemetry-matlab/metrics/UpDownCounterProxy.h"
+#include "opentelemetry-matlab/metrics/ObservableCounterProxy.h"
+#include "opentelemetry-matlab/metrics/ObservableUpDownCounterProxy.h"
+#include "opentelemetry-matlab/metrics/ObservableGaugeProxy.h"
 #include "opentelemetry-matlab/metrics/SynchronousInstrumentProxyFactory.h"
 
 #include "opentelemetry/metrics/meter.h"
@@ -22,6 +25,9 @@ class MeterProxy : public libmexclass::proxy::Proxy {
         REGISTER_METHOD(MeterProxy, createCounter);
         REGISTER_METHOD(MeterProxy, createUpDownCounter);
         REGISTER_METHOD(MeterProxy, createHistogram);
+        REGISTER_METHOD(MeterProxy, createObservableCounter);
+        REGISTER_METHOD(MeterProxy, createObservableUpDownCounter);
+        REGISTER_METHOD(MeterProxy, createObservableGauge);
     }
 
     void createCounter(libmexclass::proxy::method::Context& context);
@@ -30,6 +36,11 @@ class MeterProxy : public libmexclass::proxy::Proxy {
 
     void createHistogram(libmexclass::proxy::method::Context& context);
 
+    void createObservableCounter(libmexclass::proxy::method::Context& context);
+
+    void createObservableUpDownCounter(libmexclass::proxy::method::Context& context);
+
+    void createObservableGauge(libmexclass::proxy::method::Context& context);
   private:
 
     void createSynchronous(libmexclass::proxy::method::Context& context, SynchronousInstrumentType type);

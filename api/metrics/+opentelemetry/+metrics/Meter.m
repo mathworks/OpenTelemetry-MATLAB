@@ -29,7 +29,7 @@ classdef Meter < handle
 
     methods
     
-        function counter = createCounter(obj, ctname, ctdescription, ctunit)
+        function counter = createCounter(obj, name, description, unit)
             % CREATECOUNTER Create a counter
             %    C = CREATECOUNTER(M, NAME) creates a counter with the specified
             %    name. A counter's value can only increase but not
@@ -41,22 +41,20 @@ classdef Meter < handle
             %    See also CREATEUPDOWNCOUNTER, CREATEHISTOGRAM
             arguments
                 obj
-                ctname
-                ctdescription = ""
-                ctunit = ""
+                name
+                description = ""
+                unit = ""
             end
-            import opentelemetry.common.mustBeScalarString
-            ctname = mustBeScalarString(ctname);
-            ctdescription = mustBeScalarString(ctdescription);
-            ctunit = mustBeScalarString(ctunit);
-            id = obj.Proxy.createCounter(ctname, ctdescription, ctunit);
+            [name, description, unit] = processSynchronousInputs(name, ...
+                description, unit);
+            id = obj.Proxy.createCounter(name, description, unit);
             CounterProxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.CounterProxy", "ID", id);
-            counter = opentelemetry.metrics.Counter(CounterProxy, ctname, ctdescription, ctunit);
+            counter = opentelemetry.metrics.Counter(CounterProxy, name, description, unit);
         end
 
 
-        function updowncounter = createUpDownCounter(obj, ctname, ctdescription, ctunit)
+        function updowncounter = createUpDownCounter(obj, name, description, unit)
             % CREATEUPDOWNCOUNTER Create an UpDownCounter
             %    C = CREATEUPDOWNCOUNTER(M, NAME) creates an UpDownCounter 
             %    with the specified name. An UpDownCounter's value can
@@ -68,23 +66,21 @@ classdef Meter < handle
             %    See also CREATECOUNTER, CREATEHISTOGRAM
             arguments
                 obj
-                ctname
-                ctdescription = ""
-                ctunit = ""
+                name
+                description = ""
+                unit = ""
             end
 
-            import opentelemetry.common.mustBeScalarString
-            ctname = mustBeScalarString(ctname);
-            ctdescription = mustBeScalarString(ctdescription);
-            ctunit = mustBeScalarString(ctunit);
-            id = obj.Proxy.createUpDownCounter(ctname, ctdescription, ctunit);
+            [name, description, unit] = processSynchronousInputs(name, ...
+                description, unit);
+            id = obj.Proxy.createUpDownCounter(name, description, unit);
             UpDownCounterProxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.UpDownCounterProxy", "ID", id);
-            updowncounter = opentelemetry.metrics.UpDownCounter(UpDownCounterProxy, ctname, ctdescription, ctunit);
+            updowncounter = opentelemetry.metrics.UpDownCounter(UpDownCounterProxy, name, description, unit);
         end
 
 
-        function histogram = createHistogram(obj, hiname, hidescription, hiunit)
+        function histogram = createHistogram(obj, name, description, unit)
             % CREATEHISTOGRAM Create a histogram
             %    H = CREATEHISTOGRAM(M, NAME) creates a histogram with the specified
             %    name. A histogram aggregates values into bins. Bins can be
@@ -97,21 +93,92 @@ classdef Meter < handle
             %    OPENTELEMETRY.SDK.METRICS.VIEW
             arguments
                 obj
-                hiname
-                hidescription = ""
-                hiunit = ""
+                name
+                description = ""
+                unit = ""
             end
 
-            import opentelemetry.common.mustBeScalarString
-            hiname = mustBeScalarString(hiname);
-            hidescription = mustBeScalarString(hidescription);
-            hiunit = mustBeScalarString(hiunit);
-            id = obj.Proxy.createHistogram(hiname, hidescription, hiunit);
+            [name, description, unit] = processSynchronousInputs(name, ...
+                description, unit);
+            id = obj.Proxy.createHistogram(name, description, unit);
             HistogramProxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.HistogramProxy", "ID", id);
-            histogram = opentelemetry.metrics.Histogram(HistogramProxy, hiname, hidescription, hiunit);
+            histogram = opentelemetry.metrics.Histogram(HistogramProxy, name, description, unit);
         end
 
+    	function obscounter = createObservableCounter(obj, callback, name, description, unit)
+            arguments
+                obj
+                callback
+                name
+                description = ""
+                unit = ""
+            end
+
+            [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+                callback, name, description, unit);
+            id = obj.Proxy.createObservableCounter(name, description, unit, callbackstr);
+            ObservableCounterproxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.ObservableCounterProxy", "ID", id);
+            obscounter = opentelemetry.metrics.ObservableCounter(ObservableCounterproxy, name, description, unit, callback);
+        end
+
+        function obsudcounter = createObservableUpDownCounter(obj, callback, name, description, unit)
+            arguments
+                obj
+                callback
+                name
+                description = ""
+                unit = ""
+            end
+
+            [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+                callback, name, description, unit);
+            id = obj.Proxy.createObservableUpDownCounter(name, description, unit, callbackstr);
+            ObservableUpDownCounterproxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.ObservableUpDownCounterProxy", "ID", id);
+            obsudcounter = opentelemetry.metrics.ObservableUpDownCounter(...
+                ObservableUpDownCounterproxy, name, description, unit, callback);
+        end
+
+        function obsgauge = createObservableGauge(obj, callback, name, description, unit)
+            arguments
+                obj
+                callback
+                name
+                description = ""
+                unit = ""
+            end
+
+            [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+                callback, name, description, unit);
+            id = obj.Proxy.createObservableGauge(name, description, unit, callbackstr);
+            ObservableGaugeproxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.ObservableGaugeProxy", "ID", id);
+            obsgauge = opentelemetry.metrics.ObservableGauge(...
+                ObservableGaugeproxy, name, description, unit, callback);
+        end
+    end    
+end
+
+function [name, description, unit] = processSynchronousInputs(name, ...
+    description, unit)
+import opentelemetry.common.mustBeScalarString
+name = mustBeScalarString(name);
+description = mustBeScalarString(description);
+unit = mustBeScalarString(unit);
+end
+
+function [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+    callback, name, description, unit)
+[name, description, unit] = processSynchronousInputs(name, description, unit);
+if isa(callback, "function_handle")
+    callbackstr = string(func2str(callback));
+    if ~startsWith(callbackstr, '@')   % do not allow anonymous functions for now
+        return
     end
-        
+end
+% if we get here, callback is invalid
+callback = [];
+callbackstr = "";
 end
