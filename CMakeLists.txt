@@ -221,6 +221,7 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${METRICS_API_SOURCE_DIR}/CounterProxy.cpp
     ${METRICS_API_SOURCE_DIR}/UpDownCounterProxy.cpp
     ${METRICS_API_SOURCE_DIR}/HistogramProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/SynchronousInstrumentProxyFactory.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapPropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/CompositePropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapCarrierProxy.cpp

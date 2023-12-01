@@ -8,6 +8,7 @@
 #include "opentelemetry-matlab/metrics/CounterProxy.h"
 #include "opentelemetry-matlab/metrics/HistogramProxy.h"
 #include "opentelemetry-matlab/metrics/UpDownCounterProxy.h"
+#include "opentelemetry-matlab/metrics/SynchronousInstrumentProxyFactory.h"
 
 #include "opentelemetry/metrics/meter.h"
 
@@ -30,6 +31,8 @@ class MeterProxy : public libmexclass::proxy::Proxy {
     void createHistogram(libmexclass::proxy::method::Context& context);
 
   private:
+
+    void createSynchronous(libmexclass::proxy::method::Context& context, SynchronousInstrumentType type);
 
     nostd::shared_ptr<metrics_api::Meter> CppMeter;
 };
