@@ -12,6 +12,7 @@
 #include "opentelemetry-matlab/metrics/ObservableUpDownCounterProxy.h"
 #include "opentelemetry-matlab/metrics/ObservableGaugeProxy.h"
 #include "opentelemetry-matlab/metrics/SynchronousInstrumentProxyFactory.h"
+#include "opentelemetry-matlab/metrics/AsynchronousInstrumentProxyFactory.h"
 
 #include "opentelemetry/metrics/meter.h"
 
@@ -41,7 +42,9 @@ class MeterProxy : public libmexclass::proxy::Proxy {
     void createObservableUpDownCounter(libmexclass::proxy::method::Context& context);
 
     void createObservableGauge(libmexclass::proxy::method::Context& context);
+
   private:
+    void createAsynchronous(libmexclass::proxy::method::Context& context, AsynchronousInstrumentType type);
 
     void createSynchronous(libmexclass::proxy::method::Context& context, SynchronousInstrumentType type);
 

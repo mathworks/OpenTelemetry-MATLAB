@@ -225,6 +225,7 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${METRICS_API_SOURCE_DIR}/SynchronousInstrumentProxyFactory.cpp
     ${METRICS_API_SOURCE_DIR}/MeasurementFetcher.cpp
     ${METRICS_API_SOURCE_DIR}/AsynchronousInstrumentProxy.cpp
+    ${METRICS_API_SOURCE_DIR}/AsynchronousInstrumentProxyFactory.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapPropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/CompositePropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapCarrierProxy.cpp

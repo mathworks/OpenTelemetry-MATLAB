@@ -46,7 +46,7 @@ void MeterProxy::createHistogram(libmexclass::proxy::method::Context& context) {
    createSynchronous(context, SynchronousInstrumentType::Histogram);
 }
 
-void MeterProxy::createObservableCounter(libmexclass::proxy::method::Context& context) {
+void MeterProxy::createAsynchronous(libmexclass::proxy::method::Context& context, AsynchronousInstrumentType type) {
     // Always assumes 4 inputs
    matlab::data::StringArray name_mda = context.inputs[0];
    std::string name = static_cast<std::string>(name_mda[0]);
@@ -57,20 +57,14 @@ void MeterProxy::createObservableCounter(libmexclass::proxy::method::Context& co
    matlab::data::StringArray callback_mda = context.inputs[3];
    std::string callback = static_cast<std::string>(callback_mda[0]); 
 	
-   nostd::shared_ptr<metrics_api::ObservableInstrument > ct = CppMeter->CreateDoubleObservableCounter(name, description, unit);
-
-   // instantiate a ObservableCounterProxy instance
-   ObservableCounterProxy* newproxy = new ObservableCounterProxy(ct);
-   auto proxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
-    
+   // initialize MATLAB mex engine the first time an asynchronous instrument is created 
    if (MeasurementFetcher::mlptr == nullptr) {
       MeasurementFetcher::mlptr = static_cast<std::shared_ptr<matlab::engine::MATLABEngine> >(context.matlab); 
    }
-   
-   if (!callback.empty()) {
-      newproxy->addCallback_helper(callback);
-   }
 
+   AsynchronousInstrumentProxyFactory proxyfactory(CppMeter);
+   auto proxy = proxyfactory.create(type, callback, name, description, unit);
+   
    // obtain a proxy ID
    libmexclass::proxy::ID proxyid = libmexclass::proxy::ProxyManager::manageProxy(proxy);
 
@@ -78,73 +72,17 @@ void MeterProxy::createObservableCounter(libmexclass::proxy::method::Context& co
    matlab::data::ArrayFactory factory;
    auto proxyid_mda = factory.createScalar<libmexclass::proxy::ID>(proxyid);
    context.outputs[0] = proxyid_mda;
+}
+
+void MeterProxy::createObservableCounter(libmexclass::proxy::method::Context& context) {
+   createAsynchronous(context, AsynchronousInstrumentType::ObservableCounter);
 }
 
 void MeterProxy::createObservableUpDownCounter(libmexclass::proxy::method::Context& context) {
-    // Always assumes 4 inputs
-   matlab::data::StringArray name_mda = context.inputs[0];
-   std::string name = static_cast<std::string>(name_mda[0]);
-   matlab::data::StringArray description_mda = context.inputs[1];
-   std::string description= static_cast<std::string>(description_mda[0]);
-   matlab::data::StringArray unit_mda = context.inputs[2];
-   std::string unit = static_cast<std::string>(unit_mda[0]); 
-   matlab::data::StringArray callback_mda = context.inputs[3];
-   std::string callback = static_cast<std::string>(callback_mda[0]); 
-	
-   nostd::shared_ptr<metrics_api::ObservableInstrument > ct = CppMeter->CreateDoubleObservableUpDownCounter(name, description, unit);
-
-   // instantiate a ObservableUpDownCounterProxy instance
-   ObservableUpDownCounterProxy* newproxy = new ObservableUpDownCounterProxy(ct);
-   auto proxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
-    
-   if (MeasurementFetcher::mlptr == nullptr) {
-      MeasurementFetcher::mlptr = static_cast<std::shared_ptr<matlab::engine::MATLABEngine> >(context.matlab); 
-   }
-   
-   if (!callback.empty()) {
-      newproxy->addCallback_helper(callback);
-   }
-
-   // obtain a proxy ID
-   libmexclass::proxy::ID proxyid = libmexclass::proxy::ProxyManager::manageProxy(proxy);
-
-   // return the ID
-   matlab::data::ArrayFactory factory;
-   auto proxyid_mda = factory.createScalar<libmexclass::proxy::ID>(proxyid);
-   context.outputs[0] = proxyid_mda;
+   createAsynchronous(context, AsynchronousInstrumentType::ObservableUpDownCounter);
 }
 
 void MeterProxy::createObservableGauge(libmexclass::proxy::method::Context& context) {
-    // Always assumes 4 inputs
-   matlab::data::StringArray name_mda = context.inputs[0];
-   std::string name = static_cast<std::string>(name_mda[0]);
-   matlab::data::StringArray description_mda = context.inputs[1];
-   std::string description= static_cast<std::string>(description_mda[0]);
-   matlab::data::StringArray unit_mda = context.inputs[2];
-   std::string unit = static_cast<std::string>(unit_mda[0]); 
-   matlab::data::StringArray callback_mda = context.inputs[3];
-   std::string callback = static_cast<std::string>(callback_mda[0]); 
-	
-   nostd::shared_ptr<metrics_api::ObservableInstrument > gauge = CppMeter->CreateDoubleObservableGauge(name, description, unit);
-
-   // instantiate an ObservableGaugeProxy instance
-   ObservableGaugeProxy* newproxy = new ObservableGaugeProxy(gauge);
-   auto proxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
-    
-   if (MeasurementFetcher::mlptr == nullptr) {
-      MeasurementFetcher::mlptr = static_cast<std::shared_ptr<matlab::engine::MATLABEngine> >(context.matlab); 
-   }
-
-   if (!callback.empty()) {
-      newproxy->addCallback_helper(callback);
-   }
-
-   // obtain a proxy ID
-   libmexclass::proxy::ID proxyid = libmexclass::proxy::ProxyManager::manageProxy(proxy);
-
-   // return the ID
-   matlab::data::ArrayFactory factory;
-   auto proxyid_mda = factory.createScalar<libmexclass::proxy::ID>(proxyid);
-   context.outputs[0] = proxyid_mda;
+   createAsynchronous(context, AsynchronousInstrumentType::ObservableGauge);
 }
 } // namespace libmexclass::opentelemetry
