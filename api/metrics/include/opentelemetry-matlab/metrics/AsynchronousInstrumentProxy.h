@@ -18,12 +18,16 @@ class AsynchronousInstrumentProxy : public libmexclass::proxy::Proxy {
   public:
     void addCallback(libmexclass::proxy::method::Context& context);
 
-    void removeCallback(libmexclass::proxy::method::Context& context);
+    // This method should ideally be an overloaded version of addCallback. However, addCallback is a registered 
+    // method and REGISTER_METHOD macro doesn't like overloaded methods. Rename to avoid overloading.
+    void addCallback_helper(const std::string& callback);
 
-    std::list<std::string> CallbackFunctions;
+    void removeCallback(libmexclass::proxy::method::Context& context);
 
   private:
     nostd::shared_ptr<metrics_api::ObservableInstrument> CppInstrument;
+
+    std::list<std::string> CallbackFunctions;
 
 }; 
 } // namespace libmexclass::opentelemetry

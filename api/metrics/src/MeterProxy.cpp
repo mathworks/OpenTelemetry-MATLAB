@@ -68,8 +68,7 @@ void MeterProxy::createObservableCounter(libmexclass::proxy::method::Context& co
    }
    
    if (!callback.empty()) {
-      newproxy->CallbackFunctions.push_back(callback);
-      ct->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(newproxy->CallbackFunctions.back())));
+      newproxy->addCallback_helper(callback);
    }
 
    // obtain a proxy ID
@@ -103,8 +102,7 @@ void MeterProxy::createObservableUpDownCounter(libmexclass::proxy::method::Conte
    }
    
    if (!callback.empty()) {
-      newproxy->CallbackFunctions.push_back(callback);
-      ct->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(newproxy->CallbackFunctions.back())));
+      newproxy->addCallback_helper(callback);
    }
 
    // obtain a proxy ID
@@ -138,8 +136,7 @@ void MeterProxy::createObservableGauge(libmexclass::proxy::method::Context& cont
    }
 
    if (!callback.empty()) {
-      newproxy->CallbackFunctions.push_back(callback);
-      gauge->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(newproxy->CallbackFunctions.back())));
+      newproxy->addCallback_helper(callback);
    }
 
    // obtain a proxy ID
