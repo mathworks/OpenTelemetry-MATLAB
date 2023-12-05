@@ -44,6 +44,8 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v1
+              with: 
+                release: R2023a
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
