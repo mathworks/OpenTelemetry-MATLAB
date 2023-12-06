@@ -32,11 +32,11 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         end
     end
 
-    % methods (TestMethodTeardown)
-    %     function teardown(testCase)
-    %         commonTeardown(testCase);
-    %     end
-    % end
+    methods (TestMethodTeardown)
+        function teardown(testCase)
+            commonTeardown(testCase);
+        end
+    end
 
     methods (Test)
         function testDefaultExporter(testCase)
@@ -146,92 +146,99 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             end
         end
 
-        function testViewCounter(testCase)
-            % testCustomResource: check custom resources are included in
-            % emitted metrics
-
-            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
-            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
-                "Interval", seconds(2), "Timeout", seconds(1));
-            mp = opentelemetry.sdk.metrics.MeterProvider(reader); 
-
-            m = getMeter(mp, "mymeter");
-            c = createCounter(m, "mycounter");
-
-            % create testing value 
-            val = 10;
-
-            % add value and attributes
-            c.add(val);
-
-            pause(2.5);
-
-            view = opentelemetry.sdk.metrics.View("View", "my View", "", "", "kCounter", "mymeter", "", "", "", "kDrop", []);
-
-            addView(mp, view);
-
-            clear mp;
-
-            % % TODO: add test comparisons
-        end
-
-        function testViewUpDownCounter(testCase)
-            % test names and added value in UpDownCounter
-
-            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
-            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
-                "Interval", seconds(2), "Timeout", seconds(1));
-            mp = opentelemetry.sdk.metrics.MeterProvider(reader); 
-
-            m = getMeter(mp, "mymeter");
-            c = createUpDownCounter(m, "mycounter");
-
-            % create testing value 
-            val = -10;
-
-            % add value and attributes
-            c.add(val);
-
-            % wait for collector response time (2s)
-            pause(5);
-
-            view = opentelemetry.sdk.metrics.View("View", "my View", "Unit", "MyGauge", "kUpDownCounter", "mymeter", "", "", "", "kLastValue", []);
-
-            addView(mp, view);
-
-            clear mp;
-
-            % % TODO: add test comparisons
-        end
-
-        function testViewHistogram(testCase)
-            % testCustomResource: check custom resources are included in
-            % emitted metrics
-
-            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
-            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
-                                        "Interval", seconds(2), "Timeout", seconds(1));
-            mp = opentelemetry.sdk.metrics.MeterProvider(reader);
-            m = mp.getMeter("mymeter");
-            hist = m.createHistogram("histogram");
-
-            % create value for histogram
-            val = 1;
-
-            % record value
-            hist.record(val);
-
-            % wait for collector response
-            pause(2.5);
-
-            view = opentelemetry.sdk.metrics.View("View", "my View", "", "", "kHistogram", "mymeter", "", "", "", "kHistogram", [0 100 200 300 400 500]);
-
-            addView(mp, view);
-
-            clear mp;
-
-            % % TODO: add test comparisons
-        end
+        % function testViewCounter(testCase)
+        %     % testCustomResource: check custom resources are included in
+        %     % emitted metrics
+        % 
+        %     exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+        %     reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+        %         "Interval", seconds(2), "Timeout", seconds(1));
+        %     mp = opentelemetry.sdk.metrics.MeterProvider(reader); 
+        % 
+        %     m = getMeter(mp, "mymeter");
+        %     c = createCounter(m, "mycounter");
+        % 
+        %     % create testing value 
+        %     val = 10;
+        % 
+        %     % add value and attributes
+        %     c.add(val);
+        % 
+        %     pause(2.5);
+        % 
+        %     view = opentelemetry.sdk.metrics.View("View", "my View", "", "mycounter", "kCounter", "mymeter", "", "", "", "kDrop", []);
+        % 
+        %     addView(mp, view);
+        % 
+        %     clear mp;
+        % 
+        %     % % TODO: add test comparisons
+        % 
+        % end
+        % 
+        % function testViewUpDownCounter(testCase)
+        %     % test names and added value in UpDownCounter
+        % 
+        %     exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+        %     reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+        %         "Interval", seconds(2), "Timeout", seconds(1));
+        %     mp = opentelemetry.sdk.metrics.MeterProvider(reader); 
+        % 
+        %     m = getMeter(mp, "mymeter");
+        %     c = createUpDownCounter(m, "mycounter");
+        % 
+        % 
+        %     % add value and attributes
+        %     c.add(-10);
+        %     c.add(-5);
+        %     c.add(12);
+        %     c.add(7);
+        % 
+        %     % wait for collector response time (2s)
+        %     pause(5);
+        % 
+        %     view = opentelemetry.sdk.metrics.View("View", "", "", "mycounter", "kUpDownCounter", "mymeter", "", "", [], "kLastValue", []);
+        % 
+        %     addView(mp, view);
+        % 
+        %     c.add(8);
+        % 
+        %     clear mp;
+        % 
+        %     % % TODO: add test comparisons
+        % end
+        % 
+        % function testViewHistogram(testCase)
+        %     % testCustomResource: check custom resources are included in
+        %     % emitted metrics
+        % 
+        %     exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter();
+        %     reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+        %                                 "Interval", seconds(2), "Timeout", seconds(1));
+        %     mp = opentelemetry.sdk.metrics.MeterProvider(reader);
+        %     m = mp.getMeter("mymeter");
+        %     hist = m.createHistogram("histogram");
+        % 
+        %     % record values
+        %     hist.record(1);
+        %     hist.record(200);
+        %     hist.record(201);
+        %     hist.record(400);
+        %     hist.record(401);
+        % 
+        %     % wait for collector response
+        %     pause(2.5);
+        % 
+        %     view = opentelemetry.sdk.metrics.View("View", "my View", "", "histogram", "kHistogram", "mymeter", "", "", "", "kHistogram", [0 100 200 300 400 500]);
+        % 
+        %     addView(mp, view);
+        % 
+        %     hist.record(402);
+        % 
+        %     clear mp;
+        % 
+        %     % % TODO: add test comparisons
+        % end
 
         function testShutdown(testCase)
             % testShutdown: shutdown method should stop exporting

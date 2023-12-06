@@ -21,28 +21,47 @@ classdef View
     end
 
     methods
-        function obj = View(name, description, unit, instrumentName, instrumentType, ...
-                meterName, meterVersion, meterSchemaURL, attributeKeys, ...
-                aggregation, histogramBinEdges, varargin)
+        function obj = View(options)
+            arguments
+                options.name=""
+                options.description=""
+                options.unit=""
+                options.instrumentName=""
+                options.instrumentType=""
+                options.meterName=""
+                options.meterVersion=""
+                options.meterSchemaURL=""
+                options.attributeKeys=[]
+                options.aggregation=""
+                options.histogramBinEdges=[]
+            end
 
-            instrumentTypeCategory = int32(find(instrumentType==["kCounter", "kHistogram", "kUpDownCounter", "kObservableCounter", "kObservableGauge", "kObservableUpDownCounter"])-1);
+            options.attributeKeys = ["" options.attributeKeys];
+            instrumentTypeCategory = int32(find(options.instrumentType==["kCounter", "kHistogram", "kUpDownCounter", "kObservableCounter", "kObservableGauge", "kObservableUpDownCounter"])-1);
 
-            aggregationCategory = int32(find(aggregation==["kDrop", "kHistogram", "kLastValue", "kSum", "kDefault"])-1);
+            aggregationCategory = int32(find(options.aggregation==["kDrop", "kHistogram", "kLastValue", "kSum", "kDefault"])-1);
 
+            if(numel(instrumentTypeCategory)==0)
+                instrumentTypeCategory = -1;
+            end
+            if(numel(aggregationCategory)==0)
+                aggregationCategory = -1;
+            end
             obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.ViewProxy", ...
-                "ConstructorArguments", {name, description, unit, instrumentName, ...
-                instrumentTypeCategory, meterName, meterVersion, meterSchemaURL, ...
-                attributeKeys, aggregationCategory, histogramBinEdges, varargin});
-            obj.Description = description;
-            obj.Unit = unit;
-            obj.InstrumentName = instrumentName;
-            obj.InstrumentType = instrumentType;
-            obj.MeterName = meterName;
-            obj.MeterVersion = meterVersion;
-            obj.MeterSchemaURL = meterSchemaURL;
-            obj.AttributeKeys = attributeKeys;
-            obj.Aggregation = aggregation;
-            obj.HistogramBinEdges = histogramBinEdges;
+                "ConstructorArguments", {options.name, options.description, options.unit, options.instrumentName, ...
+                instrumentTypeCategory, options.meterName, options.meterVersion, options.meterSchemaURL, ...
+                options.attributeKeys, aggregationCategory, options.histogramBinEdges});
+            obj.Name = options.name;
+            obj.Description = options.description;
+            obj.Unit = options.unit;
+            obj.InstrumentName = options.instrumentName;
+            obj.InstrumentType = options.instrumentType;
+            obj.MeterName = options.meterName;
+            obj.MeterVersion = options.meterVersion;
+            obj.MeterSchemaURL = options.meterSchemaURL;
+            obj.AttributeKeys = options.attributeKeys;
+            obj.Aggregation = options.aggregation;
+            obj.HistogramBinEdges = options.histogramBinEdges;
         end
     end
 end
