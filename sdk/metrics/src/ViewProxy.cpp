@@ -51,11 +51,11 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
 
     std::unique_ptr<metrics_sdk::AttributesProcessor> attributes_processor;
     matlab::data::TypedArray<matlab::data::MATLABString> attributes_mda = constructor_arguments[8];
-    if(attributes_mda.getNumberOfElements()==1){
+    if(attributes_mda.getNumberOfElements()==1 && attributes_mda[0]==""){
         attributes_processor = std::unique_ptr<metrics_sdk::AttributesProcessor>(new metrics_sdk::DefaultAttributesProcessor());
     }else{
         std::unordered_map<std::string, bool> allowed_attribute_keys;
-        for (int a=1; a<attributes_mda.getNumberOfElements(); a++) {
+        for (int a=0; a<attributes_mda.getNumberOfElements(); a++) {
             allowed_attribute_keys[attributes_mda[a]] = true;
         }
         attributes_processor = std::unique_ptr<metrics_sdk::AttributesProcessor>(new metrics_sdk::FilteringAttributesProcessor(allowed_attribute_keys));
@@ -64,6 +64,7 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
     auto view = metrics_sdk::ViewFactory::Create(name, description, 
         unit, aggregation_type, aggregation_config, std::move(attributes_processor));
 
+    
     // Create Instrument Selector
     matlab::data::TypedArray<int> instrument_type_mda = constructor_arguments[4];
     metrics_sdk::InstrumentType instrument_type;
@@ -75,40 +76,28 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
 
     matlab::data::StringArray instrument_name_mda = constructor_arguments[3];
     auto instrument_name_view = static_cast<std::string>(instrument_name_mda[0]);
-    // auto instrument_name_view = nostd::string_view(instrument_name);
 
-    auto unit_view = static_cast<std::string>(unit);
-    // auto unit_view = nostd::string_view(static_cast<std::string>(unit));
+    auto unit_str = static_cast<std::string>(unit);
 
     auto instrumentSelector = metrics_sdk::InstrumentSelectorFactory::Create(instrument_type, 
-            instrument_name_view, unit_view);
+            instrument_name_view, unit_str);
+
 
     // Create Meter Selector
     matlab::data::StringArray meter_name_mda = constructor_arguments[5];
     auto meter_name_view = static_cast<std::string>(meter_name_mda[0]);
-    // auto meter_name_view = nostd::string_view(meter_name);
 
     matlab::data::StringArray meter_version_mda = constructor_arguments[6];
     auto meter_version_view = static_cast<std::string>(meter_version_mda[0]);
-    // auto meter_version_view = nostd::string_view(meter_version);
 
     matlab::data::StringArray meter_schema_mda = constructor_arguments[7];
     auto meter_schema_view = static_cast<std::string>(meter_schema_mda[0]);
-    // auto meter_schema_view = nostd::string_view(meter_schema);
 
     auto meterSelector = metrics_sdk::MeterSelectorFactory::Create(meter_name_view, 
             meter_version_view, meter_schema_view);
 
-    // std::unique_ptr<metrics_sdk::InstrumentSelector> instrumentSelector{
-    //     new metrics_sdk::InstrumentSelector(instrument_type, 
-    //         instrument_name_view, unit_view)};
-    // std::unique_ptr<metrics_sdk::MeterSelector> meterSelector{
-    //     new metrics_sdk::MeterSelector(meter_name_view, 
-    //         meter_version_view, meter_schema_view)};
-    // std::unique_ptr<metrics_sdk::View> view{
-    //     new metrics_sdk::View{name, description, 
-    //     unit, aggregation_type, aggregation_config, std::move(attributes_processor)}};
-
+    
+    // Call View Proxy Constructor
     return std::make_shared<ViewProxy>(std::move(view), std::move(instrumentSelector), std::move(meterSelector));
 }
 

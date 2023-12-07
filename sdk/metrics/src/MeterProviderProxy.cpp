@@ -8,7 +8,6 @@
 #include "libmexclass/proxy/ProxyManager.h"
 
 #include <chrono>
-#include <string.h>
 
 namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
@@ -64,47 +63,6 @@ void MeterProviderProxy::addMetricReader(libmexclass::proxy::method::Context& co
 void MeterProviderProxy::addView(libmexclass::proxy::method::Context& context) {
     matlab::data::TypedArray<uint64_t> viewid_mda = context.inputs[0];
     libmexclass::proxy::ID viewid = viewid_mda[0];
-    
-    // auto i = std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getInstrumentSelector(context);
-    // if((int)(i->GetInstrumentType())!=0){
-    //     exit(0);
-    // }
-    // auto instrument_name = "mycounter";
-    // auto instrument_name_view = nostd::string_view(instrument_name);
-    // if(!i->GetNameFilter()->Match(instrument_name_view)){
-    //     exit(0);
-    // }
-    // auto instrument_unit = "unit";
-    // auto instrument_unit_view = nostd::string_view(instrument_unit);
-    // if(!i->GetUnitFilter()->Match(instrument_unit_view)){
-    //     exit(0);
-    // }
-    // auto m = std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getMeterSelector(context);
-    // auto meter_name = "mymeter";
-    // auto meter_name_view = nostd::string_view(meter_name);
-    // if(!m->GetNameFilter()->Match(meter_name_view)){
-    //     exit(0);
-    // }
-    // auto meter_version = "1.2.0";
-    // auto meter_version_view = nostd::string_view(meter_version);
-    // if(!m->GetVersionFilter()->Match(meter_version_view)){
-    //     exit(0);
-    // }
-    // auto meter_schema = "";
-    // auto meter_schema_view = nostd::string_view(meter_schema);
-    // if(!m->GetSchemaFilter()->Match(meter_schema_view)){
-    //     exit(0);
-    // }
-    // auto v = std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getView(context);
-    // if(v->GetName().compare("View")!=0){
-    //     exit(0);
-    // }
-    // if(v->GetDescription().compare("description")!=0){
-    //     exit(0);
-    // }
-    // if((int)(v->GetAggregationType())!=0){
-    //     exit(0);
-    // }
 
     static_cast<metrics_sdk::MeterProvider&>(*CppMeterProvider).AddView(
 		    std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getInstrumentSelector(context),
