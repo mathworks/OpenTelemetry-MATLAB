@@ -215,7 +215,8 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             dp = results.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
 
             % verify histogram sum
-            verifyEqual(testCase, dp.sum, 1204);
+            expected_sum = 1204;
+            verifyEqual(testCase, dp.sum, expected_sum);
 
             % verify histogram bounds
             verifyEqual(testCase, dp.explicitBounds, bin_edges);

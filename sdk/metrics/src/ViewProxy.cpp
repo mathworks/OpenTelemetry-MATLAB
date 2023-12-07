@@ -75,26 +75,26 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
     }
 
     matlab::data::StringArray instrument_name_mda = constructor_arguments[3];
-    auto instrument_name_view = static_cast<std::string>(instrument_name_mda[0]);
+    auto instrument_name = static_cast<std::string>(instrument_name_mda[0]);
 
     auto unit_str = static_cast<std::string>(unit);
 
     auto instrumentSelector = metrics_sdk::InstrumentSelectorFactory::Create(instrument_type, 
-            instrument_name_view, unit_str);
+            instrument_name, unit_str);
 
 
     // Create Meter Selector
     matlab::data::StringArray meter_name_mda = constructor_arguments[5];
-    auto meter_name_view = static_cast<std::string>(meter_name_mda[0]);
+    auto meter_name = static_cast<std::string>(meter_name_mda[0]);
 
     matlab::data::StringArray meter_version_mda = constructor_arguments[6];
-    auto meter_version_view = static_cast<std::string>(meter_version_mda[0]);
+    auto meter_version = static_cast<std::string>(meter_version_mda[0]);
 
     matlab::data::StringArray meter_schema_mda = constructor_arguments[7];
-    auto meter_schema_view = static_cast<std::string>(meter_schema_mda[0]);
+    auto meter_schema = static_cast<std::string>(meter_schema_mda[0]);
 
-    auto meterSelector = metrics_sdk::MeterSelectorFactory::Create(meter_name_view, 
-            meter_version_view, meter_schema_view);
+    auto meterSelector = metrics_sdk::MeterSelectorFactory::Create(meter_name, 
+            meter_version, meter_schema);
 
     
     // Call View Proxy Constructor

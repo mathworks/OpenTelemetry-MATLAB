@@ -1,6 +1,5 @@
 // Copyright 2023 The MathWorks, Inc.
 
-#include "opentelemetry/sdk/metrics/instruments.h"
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
