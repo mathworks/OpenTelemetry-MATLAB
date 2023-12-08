@@ -29,22 +29,15 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
     matlab::data::StringArray unit_mda = constructor_arguments[2];
     auto unit = unit_mda[0];
 
-    matlab::data::TypedArray<int> aggregation_type_mda = constructor_arguments[9];
-    metrics_sdk::AggregationType aggregation_type;
-    if(static_cast<int>(aggregation_type_mda[0]) == -1){
-        aggregation_type =  metrics_sdk::AggregationType::kDefault;
-    }else{
-        aggregation_type =  static_cast<metrics_sdk::AggregationType>(static_cast<int>(aggregation_type_mda[0]));
-    }
+    matlab::data::TypedArray<double> aggregation_type_mda = constructor_arguments[9];
+    metrics_sdk::AggregationType aggregation_type = static_cast<metrics_sdk::AggregationType>(static_cast<int>(aggregation_type_mda[0]));
 
     std::shared_ptr<metrics_sdk::HistogramAggregationConfig> aggregation_config = std::shared_ptr<metrics_sdk::HistogramAggregationConfig>(new metrics_sdk::HistogramAggregationConfig());
     if(aggregation_type == metrics_sdk::AggregationType::kHistogram){
         matlab::data::TypedArray<double> histogramBinEdges_mda = constructor_arguments[10];
         std::vector<double> histogramBinEdges;
-        if(histogramBinEdges_mda.getNumberOfElements() > 0){
-            for (auto h : histogramBinEdges_mda) {
-                histogramBinEdges.push_back(h);
-            }
+        for (auto h : histogramBinEdges_mda) {
+            histogramBinEdges.push_back(h);
         }
         aggregation_config->boundaries_ = histogramBinEdges;
     }
@@ -55,7 +48,7 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
         attributes_processor = std::unique_ptr<metrics_sdk::AttributesProcessor>(new metrics_sdk::DefaultAttributesProcessor());
     }else{
         std::unordered_map<std::string, bool> allowed_attribute_keys;
-        for (int a=0; a<attributes_mda.getNumberOfElements(); a++) {
+        for (size_t a=0; a<attributes_mda.getNumberOfElements(); a++) {
             allowed_attribute_keys[attributes_mda[a]] = true;
         }
         attributes_processor = std::unique_ptr<metrics_sdk::AttributesProcessor>(new metrics_sdk::FilteringAttributesProcessor(allowed_attribute_keys));
@@ -66,13 +59,8 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
 
     
     // Create Instrument Selector
-    matlab::data::TypedArray<int> instrument_type_mda = constructor_arguments[4];
-    metrics_sdk::InstrumentType instrument_type;
-    if(static_cast<int>(instrument_type_mda[0]) == -1){
-        instrument_type =  metrics_sdk::InstrumentType::kCounter;
-    }else{
-        instrument_type =  static_cast<metrics_sdk::InstrumentType>(static_cast<int>(instrument_type_mda[0]));
-    }
+    matlab::data::TypedArray<double> instrument_type_mda = constructor_arguments[4];
+    metrics_sdk::InstrumentType instrument_type =  static_cast<metrics_sdk::InstrumentType>(static_cast<int>(instrument_type_mda[0]));
 
     matlab::data::StringArray instrument_name_mda = constructor_arguments[3];
     auto instrument_name = static_cast<std::string>(instrument_name_mda[0]);

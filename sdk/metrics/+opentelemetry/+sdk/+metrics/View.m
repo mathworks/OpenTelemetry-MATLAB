@@ -23,46 +23,43 @@ classdef View
     methods
         function obj = View(options)
             arguments
-                options.name=""
-                options.description=""
-                options.unit=""
-                options.instrumentName=""
-                options.instrumentType=""
-                options.meterName=""
-                options.meterVersion=""
-                options.meterSchemaURL=""
-                options.attributeKeys=""
-                options.aggregation=""
-                options.histogramBinEdges=[]
+                options.Name=""
+                options.Description=""
+                options.Unit=""
+                options.InstrumentName=""
+                options.InstrumentType=""
+                options.MeterName=""
+                options.MeterVersion=""
+                options.MeterSchemaURL=""
+                options.AttributeKeys=""
+                options.Aggregation=""
+                options.HistogramBinEdges=[]
             end
             
-            instrumentTypeCategory = int32(find(options.instrumentType==["kCounter", "kHistogram", "kUpDownCounter", "kObservableCounter", "kObservableGauge", "kObservableUpDownCounter"])-1);
+            instrument_types = ["Counter", "Histogram", "UpDownCounter", "ObservableCounter", "ObservableGauge", "ObservableUpDownCounter"];
+            instrument_type = validatestring(options.InstrumentType, instrument_types);
+            instrumentTypeCategory = find(instrument_type==instrument_types)-1;
 
-            aggregationCategory = int32(find(options.aggregation==["kDrop", "kHistogram", "kLastValue", "kSum", "kDefault"])-1);
-
-            if(numel(instrumentTypeCategory)==0)
-                instrumentTypeCategory = int32(-1);
-            end
-            if(numel(aggregationCategory)==0)
-                aggregationCategory = int32(-1);
-            end
+            aggregation_types = ["Drop", "Histogram", "LastValue", "Sum", "Default"];
+            aggregation_type = validatestring(options.Aggregation, aggregation_types);
+            aggregationCategory = find(aggregation_type==aggregation_types)-1;
             
             obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.ViewProxy", ...
-                "ConstructorArguments", {options.name, options.description, options.unit, options.instrumentName, ...
-                instrumentTypeCategory, options.meterName, options.meterVersion, options.meterSchemaURL, ...
-                options.attributeKeys, aggregationCategory, options.histogramBinEdges});
+                "ConstructorArguments", {options.Name, options.Description, options.Unit, options.InstrumentName, ...
+                instrumentTypeCategory, options.MeterName, options.MeterVersion, options.MeterSchemaURL, ...
+                options.AttributeKeys, aggregationCategory, options.HistogramBinEdges});
 
-            obj.Name = options.name;
-            obj.Description = options.description;
-            obj.Unit = options.unit;
-            obj.InstrumentName = options.instrumentName;
-            obj.InstrumentType = options.instrumentType;
-            obj.MeterName = options.meterName;
-            obj.MeterVersion = options.meterVersion;
-            obj.MeterSchemaURL = options.meterSchemaURL;
-            obj.AttributeKeys = options.attributeKeys;
-            obj.Aggregation = options.aggregation;
-            obj.HistogramBinEdges = options.histogramBinEdges;
+            obj.Name = options.Name;
+            obj.Description = options.Description;
+            obj.Unit = options.Unit;
+            obj.InstrumentName = options.InstrumentName;
+            obj.InstrumentType = options.InstrumentType;
+            obj.MeterName = options.MeterName;
+            obj.MeterVersion = options.MeterVersion;
+            obj.MeterSchemaURL = options.MeterSchemaURL;
+            obj.AttributeKeys = options.AttributeKeys;
+            obj.Aggregation = options.Aggregation;
+            obj.HistogramBinEdges = options.HistogramBinEdges;
         end
     end
 end

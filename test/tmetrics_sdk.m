@@ -151,7 +151,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             
             view_name = "counter_view";
             view_description = "view_description";
-            view = opentelemetry.sdk.metrics.View(name="counter_view", description="view_description", instrumentName="mycounter", instrumentType="kCounter", meterName="mymeter", meterVersion="1.2.0", meterSchemaURL="", aggregation="kSum");
+            view = opentelemetry.sdk.metrics.View(Name="counter_view", Description="view_description", InstrumentName="mycounter", InstrumentType="Counter", MeterName="mymeter", MeterVersion="1.2.0", MeterSchemaURL="", Aggregation="Sum");
             
             addView(mp, view);
             
@@ -186,7 +186,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             view_name = "histogram_view";
             view_description = "view_description";
             bin_edges = [0; 100; 200; 300; 400; 500];
-            view = opentelemetry.sdk.metrics.View(name="histogram_view", description="view_description", instrumentName="myhistogram", instrumentType="kHistogram", meterName="mymeter", aggregation="kHistogram", histogramBinEdges=bin_edges);
+            view = opentelemetry.sdk.metrics.View(Name="histogram_view", Description="view_description", InstrumentName="myhistogram", InstrumentType="Histogram", MeterName="mymeter", Aggregation="Histogram", HistogramBinEdges=bin_edges);
             
             addView(mp, view);
             
