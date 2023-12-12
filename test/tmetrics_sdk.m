@@ -151,7 +151,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             
             view_name = "counter_view";
             view_description = "view_description";
-            view = opentelemetry.sdk.metrics.View(Name="counter_view", Description="view_description", InstrumentName="mycounter", InstrumentType="Counter", MeterName="mymeter", MeterVersion="1.2.0", MeterSchemaURL="", Aggregation="Sum");
+            view = opentelemetry.sdk.metrics.View(Name="counter_view", Description="view_description", InstrumentName="mycounter", InstrumentType="Counter", MeterName="mymeter", MeterVersion="1.2.0", MeterSchema="", Aggregation="Sum");
             
             addView(mp, view);
             

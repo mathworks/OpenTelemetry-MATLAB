@@ -32,8 +32,6 @@ public:
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
-    // void processView(libmexclass::proxy::method::Context& context);
-
     std::unique_ptr<metrics_sdk::View> getView(libmexclass::proxy::method::Context& context);
 
     std::unique_ptr<metrics_sdk::InstrumentSelector> getInstrumentSelector(libmexclass::proxy::method::Context& context);

@@ -4,13 +4,9 @@
 
 #include "libmexclass/proxy/ProxyManager.h"
 
-#include <chrono>
-
 namespace libmexclass::opentelemetry::sdk {
-ViewProxy::ViewProxy(std::unique_ptr<metrics_sdk::View> view, std::unique_ptr<metrics_sdk::InstrumentSelector> instrumentSelector, std::unique_ptr<metrics_sdk::MeterSelector> meterSelector){
-    View = std::move(view);
-    InstrumentSelector = std::move(instrumentSelector);
-    MeterSelector = std::move(meterSelector);
+ViewProxy::ViewProxy(std::unique_ptr<metrics_sdk::View> view, std::unique_ptr<metrics_sdk::InstrumentSelector> instrumentSelector, std::unique_ptr<metrics_sdk::MeterSelector> meterSelector) 
+       : View(std::move(view)), InstrumentSelector(std::move(instrumentSelector)), MeterSelector(std::move(meterSelector)) {
     REGISTER_METHOD(ViewProxy, getView);
     REGISTER_METHOD(ViewProxy, getInstrumentSelector);
     REGISTER_METHOD(ViewProxy, getMeterSelector);
@@ -26,11 +22,24 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
     matlab::data::StringArray description_mda = constructor_arguments[1];
     auto description = description_mda[0];
 
-    matlab::data::StringArray unit_mda = constructor_arguments[2];
+    matlab::data::StringArray unit_mda = constructor_arguments[4];
     auto unit = unit_mda[0];
 
-    matlab::data::TypedArray<double> aggregation_type_mda = constructor_arguments[9];
-    metrics_sdk::AggregationType aggregation_type = static_cast<metrics_sdk::AggregationType>(static_cast<int>(aggregation_type_mda[0]));
+    matlab::data::StringArray aggregation_type_mda = constructor_arguments[9];
+    std::string aggregation_type_str = static_cast<std::string>(aggregation_type_mda[0]);
+    metrics_sdk::AggregationType aggregation_type;
+    if (aggregation_type_str.compare("Sum") == 0) {
+        aggregation_type = metrics_sdk::AggregationType::kSum;
+    } else if (aggregation_type_str.compare("Drop") == 0) {
+        aggregation_type = metrics_sdk::AggregationType::kDrop;
+    } else if (aggregation_type_str.compare("LastValue") == 0) {
+        aggregation_type = metrics_sdk::AggregationType::kLastValue;
+    } else if (aggregation_type_str.compare("Histogram") == 0) {
+        aggregation_type = metrics_sdk::AggregationType::kHistogram;
+    } else {
+        assert(aggregation_type_str.compare("Default") == 0);
+        aggregation_type = metrics_sdk::AggregationType::kDefault;
+    }
 
     std::shared_ptr<metrics_sdk::HistogramAggregationConfig> aggregation_config = std::shared_ptr<metrics_sdk::HistogramAggregationConfig>(new metrics_sdk::HistogramAggregationConfig());
     if(aggregation_type == metrics_sdk::AggregationType::kHistogram){
@@ -59,10 +68,19 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
 
     
     // Create Instrument Selector
-    matlab::data::TypedArray<double> instrument_type_mda = constructor_arguments[4];
-    metrics_sdk::InstrumentType instrument_type =  static_cast<metrics_sdk::InstrumentType>(static_cast<int>(instrument_type_mda[0]));
+    matlab::data::StringArray instrument_type_mda = constructor_arguments[3];
+    std::string instrument_type_str = static_cast<std::string>(instrument_type_mda[0]);
+    metrics_sdk::InstrumentType instrument_type;
+    if (instrument_type_str.compare("Counter") == 0) {
+        instrument_type = metrics_sdk::InstrumentType::kCounter;
+    } else if (instrument_type_str.compare("UpDownCounter") == 0) {
+	instrument_type = metrics_sdk::InstrumentType::kUpDownCounter;
+    } else {
+	assert(instrument_type_str.compare("Histogram") == 0);
+	instrument_type = metrics_sdk::InstrumentType::kHistogram;
+    }
 
-    matlab::data::StringArray instrument_name_mda = constructor_arguments[3];
+    matlab::data::StringArray instrument_name_mda = constructor_arguments[2];
     auto instrument_name = static_cast<std::string>(instrument_name_mda[0]);
 
     auto unit_str = static_cast<std::string>(unit);

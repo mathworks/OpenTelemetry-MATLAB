@@ -30,6 +30,15 @@ classdef Meter < handle
     methods
     
         function counter = createCounter(obj, ctname, ctdescription, ctunit)
+            % CREATECOUNTER Create a counter
+            %    C = CREATECOUNTER(M, NAME) creates a counter with the specified
+            %    name. A counter's value can only increase but not
+            %    decrease.
+            %
+            %    C = CREATECOUNTER(M, NAME, DESCRIPTION, UNIT) also 
+            %    specifies a description and a unit.
+            %     
+            %    See also CREATEUPDOWNCOUNTER, CREATEHISTOGRAM
             arguments
                 obj
                 ctname
@@ -38,8 +47,6 @@ classdef Meter < handle
             end
             import opentelemetry.common.mustBeScalarString
             ctname = mustBeScalarString(ctname);
-            % cpp-opentelemetry end does not allow string input with spaces,
-            % replace any spaces with underscores as a temporary fix
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createCounter(ctname, ctdescription, ctunit);
@@ -50,6 +57,15 @@ classdef Meter < handle
 
 
         function updowncounter = createUpDownCounter(obj, ctname, ctdescription, ctunit)
+            % CREATEUPDOWNCOUNTER Create an UpDownCounter
+            %    C = CREATEUPDOWNCOUNTER(M, NAME) creates an UpDownCounter 
+            %    with the specified name. An UpDownCounter's value can
+            %    increase or decrease.
+            %
+            %    C = CREATEUPDOWNCOUNTER(M, NAME, DESCRIPTION, UNIT) also 
+            %    specifies a description and a unit.
+            %     
+            %    See also CREATECOUNTER, CREATEHISTOGRAM
             arguments
                 obj
                 ctname
@@ -59,8 +75,6 @@ classdef Meter < handle
 
             import opentelemetry.common.mustBeScalarString
             ctname = mustBeScalarString(ctname);
-            % cpp-opentelemetry end does not allow string input with spaces,
-            % replace any spaces with underscores as a temporary fix
             ctdescription = mustBeScalarString(ctdescription);
             ctunit = mustBeScalarString(ctunit);
             id = obj.Proxy.createUpDownCounter(ctname, ctdescription, ctunit);
@@ -71,6 +85,16 @@ classdef Meter < handle
 
 
         function histogram = createHistogram(obj, hiname, hidescription, hiunit)
+            % CREATEHISTOGRAM Create a histogram
+            %    H = CREATEHISTOGRAM(M, NAME) creates a histogram with the specified
+            %    name. A histogram aggregates values into bins. Bins can be
+            %    customized using a View object.
+            %
+            %    H = CREATEHISTOGRAM(M, NAME, DESCRIPTION, UNIT) also 
+            %    specifies a description and a unit.
+            %     
+            %    See also CREATECOUNTER, CREATEUPDOWNCOUNTER,
+            %    OPENTELEMETRY.SDK.METRICS.VIEW
             arguments
                 obj
                 hiname
@@ -80,8 +104,6 @@ classdef Meter < handle
 
             import opentelemetry.common.mustBeScalarString
             hiname = mustBeScalarString(hiname);
-            % cpp-opentelemetry end does not allow string input with spaces,
-            % replace any spaces with underscores as a temporary fix
             hidescription = mustBeScalarString(hidescription);
             hiunit = mustBeScalarString(hiunit);
             id = obj.Proxy.createHistogram(hiname, hidescription, hiunit);

@@ -1,5 +1,6 @@
 classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
-% Base class of metric reader
+% Periodic exporting metric reader passes collected metrics to an exporter
+% periodically at a fixed time interval.
 
 % Copyright 2023 The MathWorks, Inc.
 
@@ -12,13 +13,35 @@ classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
     end
 
     properties
-        Interval (1,1) duration = minutes(1)  
-        Timeout (1,1) duration = seconds(30)
+        Interval (1,1) duration = minutes(1)  % Time interval between exports
+        Timeout (1,1) duration = seconds(30)  % Maximum time before export is timed out and gets aborted
     end
 
-    methods %(Access=?opentelemetry.sdk.metrics.MeterProvider)
+    methods
         function obj = PeriodicExportingMetricReader(metricexporter, optionnames, optionvalues)
-           
+            % Periodic exporting metric reader passes collected metrics to
+            % an exporter periodically at a fixed time interval.
+            %    R = OPENTELEMETRY.SDK.METRICS.PERIODICEXPORTINGMETRICREADER
+            %    creates a periodic exporting metric reader that exports 
+            %    every minute using an OTLP HTTP exporter, which exports in 
+            %    OpenTelemetry Protocol (OTLP) format through HTTP.
+            %
+            %    R = OPENTELEMETRY.SDK.METRICS.PERIODICEXPORTINGMETRICREADER(EXP)
+            %    specifies the metric exporter. Supported metric exporters
+            %    are OTLP HTTP exporter and OTLP gRPC exporter.
+            %
+            %    R = OPENTELEMETRY.SDK.METRICS.PERIODICEXPORTINGMETRICREADER(
+            %    EXP, PARAM1, VALUE1, PARAM2, VALUE2, ...) specifies
+            %    optional parameter name/value pairs. Parameters are:
+            %       "Interval" - Time interval between exports specified as
+            %                    a duration. Default is 1 minute.
+            %       "Timeout"  - Maximum time before export is timed out
+            %                    and gets aborted, specified as a duration.  
+            %                    Default is 30 seconds.
+            %
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMETRICEXPORTER,
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMETRICEXPORTER, 
+            %    OPENTELEMETRY.SDK.METRICS.METERPROVIDER
             arguments
       	       metricexporter {mustBeA(metricexporter, "opentelemetry.sdk.metrics.MetricExporter")} = ...
                    opentelemetry.exporters.otlp.defaultMetricExporter()

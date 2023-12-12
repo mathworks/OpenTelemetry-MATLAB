@@ -13,6 +13,16 @@ classdef Histogram < opentelemetry.metrics.SynchronousInstrument
        
     methods
         function record(obj, value, varargin)
+            % RECORD Aggregate a value into a histogram bin
+            %    RECORD(H, VALUE) determine which bin VALUE falls into and
+            %    increment that bin by 1.
+            %
+            %    RECORD(H, VALUE, ATTRIBUTES) also specifies attributes as a
+            %    dictionary
+            %
+            %    RECORD(H, VALUE, ATTRNAME1, ATTRVALUE1, ATTRNAME2,
+            %    ATTRVALUE2, ...) specifies attributes as trailing
+            %    name-value pairs.
             obj.processValue(value, varargin{:});
         end
     end
