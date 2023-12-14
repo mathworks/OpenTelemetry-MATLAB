@@ -147,15 +147,16 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         end
 
         function testViewBasic(testCase)
-            mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader); 
-            
+            % testViewBasic: check view object changes the name and 
+            % description of output metrics
             view_name = "counter_view";
             view_description = "view_description";
-            view = opentelemetry.sdk.metrics.View(Name="counter_view", Description="view_description", InstrumentName="mycounter", InstrumentType="Counter", MeterName="mymeter", MeterVersion="1.2.0", MeterSchema="", Aggregation="Sum");
-            
-            addView(mp, view);
-            
-            m = getMeter(mp, "mymeter", "1.2.0", "");
+            view = opentelemetry.sdk.metrics.View(Name=view_name, ....
+                Description=view_description, InstrumentType="Counter");
+            mp = opentelemetry.sdk.metrics.MeterProvider(...
+                testCase.ShortIntervalReader, View=view); 
+
+            m = getMeter(mp, "mymeter", "1.0.0", "http://schema.org");
             c = createCounter(m, "mycounter");
             
             % add value and attributes
@@ -181,17 +182,23 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         
 
         function testViewHistogram(testCase)
+            % testViewHistogram: Change histogram bins
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader); 
             
             view_name = "histogram_view";
             view_description = "view_description";
+            meter_name = "mymeter";
+            histogram_name = "myhistogram";
             bin_edges = [0; 100; 200; 300; 400; 500];
-            view = opentelemetry.sdk.metrics.View(Name="histogram_view", Description="view_description", InstrumentName="myhistogram", InstrumentType="Histogram", MeterName="mymeter", Aggregation="Histogram", HistogramBinEdges=bin_edges);
+            view = opentelemetry.sdk.metrics.View(Name=view_name, ...
+                Description=view_description, InstrumentName=histogram_name, ...
+                InstrumentType="Histogram", MeterName=meter_name, ...
+                HistogramBinEdges=bin_edges);
             
             addView(mp, view);
             
-            m = mp.getMeter("mymeter");
-            hist = m.createHistogram("myhistogram");
+            m = mp.getMeter(meter_name);
+            hist = m.createHistogram(histogram_name);
             
             % record values
             hist.record(0);
@@ -224,6 +231,66 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % verify histogram buckets
             expected_buckets = {'1'; '0'; '1'; '1'; '0'; '2'; '0'};
             verifyEqual(testCase, dp.bucketCounts, expected_buckets);
+        end
+
+        function testMultipleViews(testCase)
+            % testMultipleView: Applying multiple views to a meter provider
+
+            % match instrument name
+            instmatch_name = "match_instrument_name";
+            instmatch = opentelemetry.sdk.metrics.View(Name=instmatch_name, ....
+                InstrumentType="Counter", Instrumentname="foo(.*)");
+
+            % match meter name
+            metermatch_name = "match_meter_name";
+            metermatch = opentelemetry.sdk.metrics.View(Name=metermatch_name, ....
+                InstrumentType="Counter", MeterName = "abc");
+            mp = opentelemetry.sdk.metrics.MeterProvider(...
+                testCase.ShortIntervalReader, View=instmatch); 
+            addView(mp, metermatch);
+
+            mxyz = getMeter(mp, "xyz");
+            foo_name = "foo1";
+            bar_name = "bar1";
+            cfoo = createCounter(mxyz, foo_name);
+            cbar = createCounter(mxyz, bar_name);
+            mabc = getMeter(mp, "abc");
+            quux_name = "quux1";
+            cquux = createCounter(mabc, quux_name);
+            
+            valfoo = 10;
+            valbar = 25;
+            valquux = 40;
+            cfoo.add(valfoo);
+            cbar.add(valbar);
+            cquux.add(valquux);
+            
+            pause(2.5);
+            
+            clear mxyz mabc;
+            results = readJsonResults(testCase);
+            results = vertcat(results{end}.resourceMetrics.scopeMetrics.metrics);
+
+            % verify view name only applied to matched metric
+            metricnames = {results.name};
+            baridx = find(strcmp(metricnames, bar_name));
+            fooidx = find(strcmp(metricnames, foo_name));
+            quuxidx = find(strcmp(metricnames, quux_name));
+            instmatchidx = find(strcmp(metricnames, instmatch_name));
+            metermatchidx = find(strcmp(metricnames, metermatch_name));
+            verifyNotEmpty(testCase, baridx);
+            verifyEmpty(testCase, fooidx);
+            verifyEmpty(testCase, quuxidx);
+            verifyNotEmpty(testCase, instmatchidx);
+            verifyNotEmpty(testCase, metermatchidx);
+
+            % verify count value
+            barcount = results(baridx).sum.dataPoints;
+            verifyEqual(testCase, barcount.asDouble, valbar);
+            instmatchcount = results(instmatchidx).sum.dataPoints;
+            verifyEqual(testCase, instmatchcount.asDouble, valfoo);
+            metermatchcount = results(metermatchidx).sum.dataPoints;
+            verifyEqual(testCase, metermatchcount.asDouble, valquux);
         end
 
         function testShutdown(testCase)

@@ -85,28 +85,38 @@ classdef View
             arguments
                 options.Name {mustBeTextScalar} = ""
                 options.Description {mustBeTextScalar} = ""
-                options.InstrumentName {mustBeTextScalar} = ""
-                options.InstrumentType {mustBeTextScalar} = ""
+                options.InstrumentName {mustBeTextScalar} = "*"
+                options.InstrumentType {mustBeTextScalar} = "counter"
                 options.InstrumentUnit {mustBeTextScalar} = ""
                 options.MeterName {mustBeTextScalar} = ""
                 options.MeterVersion {mustBeTextScalar} = ""
                 options.MeterSchema {mustBeTextScalar} = ""
-                options.AllowedAttributes {mustBeText, mustBeVector} = ""
-                options.Aggregation {mustBeTextScalar} = ""
+                %options.AllowedAttributes {mustBeText, mustBeVector}   % no default here
+                %options.Aggregation {mustBeTextScalar} = "default"
                 options.HistogramBinEdges {mustBeNumeric, mustBeVector} = zeros(1,0)
             end
             
-            instrument_types = ["Counter", "Histogram", "UpDownCounter"];
+            % Aggregation and AllowedAttributes are not yet supported
+            options.Aggregation = "default";
+
+            instrument_types = ["counter", "histogram", "updowncounter"];
             instrument_type = validatestring(options.InstrumentType, instrument_types);
 
-            aggregation_types = ["Drop", "Histogram", "LastValue", "Sum", "Default"];
+            aggregation_types = ["drop", "histogram", "lastvalue", "sum", "default"];
             aggregation_type = validatestring(options.Aggregation, aggregation_types);
             
+            % check whether AllowedAttributes is defined
+            filter_attributes = isfield(options, "AllowedAttributes");
+            if ~filter_attributes
+                % put some defaults here, which will be ignored since filter_attributes is false
+                options.AllowedAttributes = strings(1,0);  
+            end
+
             obj.Proxy = libmexclass.proxy.Proxy("Name", "libmexclass.opentelemetry.sdk.ViewProxy", ...
                 "ConstructorArguments", {options.Name, options.Description, options.InstrumentName, ...
                 instrument_type, options.InstrumentUnit, options.MeterName, ...
-                options.MeterVersion, options.MeterSchema, options.AllowedAttributes, ...
-                aggregation_type, options.HistogramBinEdges});
+                options.MeterVersion, options.MeterSchema, filter_attributes,...
+                options.AllowedAttributes, aggregation_type, options.HistogramBinEdges});
 
             obj.Name = string(options.Name);
             obj.Description = string(options.Description);            

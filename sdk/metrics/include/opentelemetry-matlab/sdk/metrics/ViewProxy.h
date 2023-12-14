@@ -28,21 +28,40 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry::sdk {
 class ViewProxy : public libmexclass::proxy::Proxy {
 public:
-    ViewProxy(std::unique_ptr<metrics_sdk::View> view, std::unique_ptr<metrics_sdk::InstrumentSelector> instrumentSelector, std::unique_ptr<metrics_sdk::MeterSelector> meterSelector);
+    ViewProxy(std::string name, std::string description, std::string instrumentName, 
+		metrics_sdk::InstrumentType instrumentType, std::string instrumentUnit, std::string meterName, 
+		std::string meterVersion, std::string meterSchema, std::unordered_map<std::string, bool> allowedAttributes,
+		bool filterAttributes, metrics_sdk::AggregationType aggregationType, std::vector<double> histogramBinEdges) 
+       : Name(std::move(name)), Description(std::move(description)), InstrumentName(std::move(instrumentName)), InstrumentType(instrumentType), 
+	InstrumentUnit(std::move(instrumentUnit)), MeterName(std::move(meterName)), MeterVersion(std::move(meterVersion)), MeterSchema(std::move(meterSchema)), 
+	AllowedAttributes(std::move(allowedAttributes)), FilterAttributes(filterAttributes), Aggregation(aggregationType), HistogramBinEdges(std::move(histogramBinEdges)) {}
 
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
-    std::unique_ptr<metrics_sdk::View> getView(libmexclass::proxy::method::Context& context);
+    std::unique_ptr<metrics_sdk::View> getView();
 
-    std::unique_ptr<metrics_sdk::InstrumentSelector> getInstrumentSelector(libmexclass::proxy::method::Context& context);
+    std::unique_ptr<metrics_sdk::InstrumentSelector> getInstrumentSelector();
 
-    std::unique_ptr<metrics_sdk::MeterSelector> getMeterSelector(libmexclass::proxy::method::Context& context);
+    std::unique_ptr<metrics_sdk::MeterSelector> getMeterSelector();
 
 private:
     std::unique_ptr<metrics_sdk::View> View;
 
     std::unique_ptr<metrics_sdk::InstrumentSelector> InstrumentSelector;
     
-    std::unique_ptr<metrics_sdk::MeterSelector> MeterSelector;
+    std::string InstrumentName;
+    metrics_sdk::InstrumentType InstrumentType;
+    std::string InstrumentUnit;
+
+    std::string MeterName;
+    std::string MeterVersion;
+    std::string MeterSchema;
+
+    std::string Name;
+    std::string Description;
+    metrics_sdk::AggregationType Aggregation;
+    std::vector<double> HistogramBinEdges;
+    std::unordered_map<std::string, bool> AllowedAttributes;
+    bool FilterAttributes;
 };
 }

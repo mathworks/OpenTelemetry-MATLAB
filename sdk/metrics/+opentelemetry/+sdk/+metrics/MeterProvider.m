@@ -59,10 +59,12 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                     "ConstructorArguments", {mpproxy.ID});
                 % leave other properties unassigned, they won't be used
             else
-                validnames = "Resource";
+                validnames = ["Resource", "View"];
                 resourcekeys = string.empty();
                 resourcevalues = {};
                 resource = dictionary(resourcekeys, resourcevalues);
+                suppliedview = false;
+                viewid = 0;
                 for i = 1:length(optionnames)
                     namei = validatestring(optionnames{i}, validnames);
                     valuei = optionvalues{i};
@@ -79,14 +81,26 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                         if all(cellfun(@iscell, resourcevalues))
                             resourcevalues = [resourcevalues{:}];
                         end
+                    elseif strcmp(namei, "View")
+                        suppliedview = true;
+                        view = valuei;
+                        if ~isa(view, "opentelemetry.sdk.metrics.View")
+                            error("opentelemetry:sdk:metrics:MeterProvider:InvalidViewType", ...
+                                "View input must be a opentelemetry.sdk.metrics.View object.");
+                        end
+                        viewid = view.Proxy.ID;
                     end
                 end
     
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                    "ConstructorArguments", {reader.Proxy.ID, resourcekeys, resourcevalues});
+                    "ConstructorArguments", {reader.Proxy.ID, resourcekeys, ...
+                    resourcevalues, suppliedview, viewid});
                 obj.MetricReader = reader;
                 obj.Resource = resource;
+                if suppliedview
+                    obj.View = view;
+                end
             end
         end
 
