@@ -4,7 +4,8 @@
 MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), based on the [OpenTelemetry Specification](https://opentelemetry.io/docs/reference/specification/). OpenTelemetry is an observability framework for creating and managing telemetry data, such as traces, metrics, and logs. This data can then be sent to an observability back-end for monitoring, alerts, and analysis. 
 
 ### Status
-- Currently only tracing is supported. Metrics and logs will be in the future.
+- Currently only tracing and metrics (synchronous instruments) are supported. Asynchronous metrics instruments and logs will be in the future.
+- View class in metrics is only partially supported. The properties **Aggregation** and **AllowedAttributes** are not yet supported. 
 - This package is supported and has been tested on Windows&reg;, Linux&reg;, and macOS.
 
 ### MathWorks Products (https://www.mathworks.com)
@@ -43,6 +44,7 @@ otelcol --config <otelcol-config-yaml>
 >> addpath <OpenTelemetry MATLAB installdir>
 ```
 ## Examples
+### Tracing
 1. Create a default tracer provider and save it.
 ```
 >> p = opentelemetry.sdk.trace.TracerProvider();
@@ -58,6 +60,22 @@ otelcol --config <otelcol-config-yaml>
 >> sp.endSpan();
 ```
 4. If your collector is configured to display the data, you should see your span displayed. 
+### Metrics
+1. Create a default meter provider and save it.
+```
+>> p = opentelemetry.sdk.metrics.MeterProvider();
+>> setMeterProvider(p);
+```
+2. Create a counter
+```
+>> m = opentelemetry.metrics.getMeter("First Meter");
+>> c = m.createCounter("FirstCounter");
+```
+3. Increment the counter
+```
+>> c.add(10);
+```
+4. If your collector is configured to display the data, you should see your counter displayed after 1 minute.
 
 For more examples, see the "examples" folder.
 

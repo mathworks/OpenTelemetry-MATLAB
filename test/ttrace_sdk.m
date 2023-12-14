@@ -22,75 +22,21 @@ classdef ttrace_sdk < matlab.unittest.TestCase
         end
     end
 
+    methods (TestMethodSetup)
+        function setup(testCase)
+            commonSetup(testCase);
+        end
+    end
+
     methods (TestMethodTeardown)
         function teardown(testCase)
             commonTeardown(testCase);
         end
     end
 
-    methods (Test)
-        function testNondefaultEndpoint(testCase)
-            % testNondefaultEndpoint: using an alternative endpoint
-
-            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpHttpSpanExporter", "class")), ...
-                "Otlp HTTP exporter must be installed.");
-
-            commonSetup(testCase, "nondefault_endpoint.yml")
-
-            tracername = "foo";
-            spanname = "bar";
-
-            exp = opentelemetry.exporters.otlp.OtlpHttpSpanExporter(...
-                "Endpoint", "http://localhost:9921/v1/traces");
-            processor = opentelemetry.sdk.trace.SimpleSpanProcessor(exp);
-            tp = opentelemetry.sdk.trace.TracerProvider(processor);
-            tr = getTracer(tp, tracername);
-            sp = startSpan(tr, spanname);
-            pause(1);
-            endSpan(sp);
-
-            % perform test comparisons
-            results = readJsonResults(testCase);
-            results = results{1};
-
-            % check span and tracer names
-            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
-            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
-        end
-
-        function testNondefaultGrpcEndpoint(testCase)
-            % testNondefaultEndpoint: using an alternative endpoint
-
-            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpGrpcSpanExporter", "class")), ...
-                "Otlp gRPC exporter must be installed.");
-
-            commonSetup(testCase, "nondefault_endpoint.yml")
-
-            tracername = "foo";
-            spanname = "bar";
-
-            exp = opentelemetry.exporters.otlp.OtlpGrpcSpanExporter(...
-                "Endpoint", "http://localhost:9922");
-            processor = opentelemetry.sdk.trace.SimpleSpanProcessor(exp);
-            tp = opentelemetry.sdk.trace.TracerProvider(processor);
-            tr = getTracer(tp, tracername);
-            sp = startSpan(tr, spanname);
-            pause(1);
-            endSpan(sp);
-
-            % perform test comparisons
-            results = readJsonResults(testCase);
-            results = results{1};
-
-            % check span and tracer names
-            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
-            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
-        end
-
+    methods (Test)        
         function testAlwaysOffSampler(testCase)
             % testAlwaysOffSampler: should not produce any spans
-            commonSetup(testCase)
-
             tp = opentelemetry.sdk.trace.TracerProvider( ...
                 opentelemetry.sdk.trace.SimpleSpanProcessor, ...
                 "Sampler", opentelemetry.sdk.trace.AlwaysOffSampler);
@@ -106,8 +52,6 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
         function testAlwaysOnSampler(testCase)
             % testAlwaysOnSampler: should produce all spans
-            commonSetup(testCase)
-
             tracername = "foo";
             spanname = "bar";
 
@@ -130,8 +74,6 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
         function testTraceIdRatioBasedSampler(testCase)
             % testTraceIdRatioBasedSampler: filter spans based on a ratio
-            commonSetup(testCase)
-
             s = opentelemetry.sdk.trace.TraceIdRatioBasedSampler(0); % equivalent to always off
 
             tracername = "mytracer";
@@ -187,8 +129,6 @@ classdef ttrace_sdk < matlab.unittest.TestCase
         function testCustomResource(testCase)
             % testCustomResource: check custom resources are included in
             % emitted spans
-            commonSetup(testCase)
-
             customkeys = ["foo" "bar"];
             customvalues = [1 5];
             tp = opentelemetry.sdk.trace.TracerProvider(opentelemetry.sdk.trace.SimpleSpanProcessor, ...
@@ -208,6 +148,79 @@ classdef ttrace_sdk < matlab.unittest.TestCase
                 verifyNotEmpty(testCase, idx);
                 verifyEqual(testCase, results.resourceSpans.resource.attributes(idx).value.doubleValue, customvalues(i));
             end
+        end
+
+        function testShutdown(testCase)
+            % testShutdown: shutdown method should stop exporting
+            % of spans
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+
+            % start and end a span 
+            spanname = "bar";
+            sp = startSpan(tr, spanname);
+            endSpan(sp);
+
+            % shutdown the tracer provider
+            verifyTrue(testCase, shutdown(tp));
+
+            % start and end another span
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+
+            % verify only the first span was generated
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+        end
+
+        function testCleanupSdk(testCase)
+            % testCleanupSdk: shutdown an SDK tracer provider through the Cleanup class
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+
+            % start and end a span 
+            spanname = "bar";
+            sp = startSpan(tr, spanname);
+            endSpan(sp);
+
+            % shutdown the SDK tracer provider through the Cleanup class
+            verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(tp));
+
+            % start and end another span
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+
+            % verify only the first span was generated
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+        end
+
+        function testCleanupApi(testCase)
+            % testCleanupApi: shutdown an API tracer provider through the Cleanup class  
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            setTracerProvider(tp);
+            clear("tp");
+            tp_api = opentelemetry.trace.Provider.getTracerProvider();
+            tr = getTracer(tp_api, "foo");
+
+            % start and end a span 
+            spanname = "bar";
+            sp = startSpan(tr, spanname);
+            endSpan(sp);
+
+            % shutdown the API tracer provider through the Cleanup class
+            verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(tp_api));
+
+            % start and end another span
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+
+            % verify only the first span was generated
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
         end
     end
 end
