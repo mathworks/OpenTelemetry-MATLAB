@@ -24,7 +24,7 @@ classdef MetricExporter
     methods
 	    function obj = set.PreferredAggregationTemporality(obj, temporality)
             temporality = validatestring(temporality, ["cumulative", "delta"]);
-            obj.Proxy.setTemporality(temporality);
+            obj.Proxy.setTemporality(temporality); %#ok<MCSUP>
             obj.PreferredAggregationTemporality = temporality;
         end
 

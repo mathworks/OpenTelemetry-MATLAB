@@ -13,6 +13,16 @@ classdef UpDownCounter < opentelemetry.metrics.SynchronousInstrument
        
     methods
         function add(obj, value, varargin)
+            % ADD Add to UpDownCounter value
+            %    ADD(C, VALUE) adds scalar numeric value to the
+            %    UpDownCounter. VALUE can be positive or negative.
+            %
+            %    ADD(C, VALUE, ATTRIBUTES) also specifies attributes as a
+            %    dictionary
+            %
+            %    ADD(C, VALUE, ATTRNAME1, ATTRVALUE1, ATTRNAME2,
+            %    ATTRVALUE2, ...) specifies attributes as trailing
+            %    name-value pairs.
             obj.processValue(value, varargin{:});
         end
     end

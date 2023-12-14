@@ -38,10 +38,19 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
         auto reader = std::static_pointer_cast<PeriodicExportingMetricReaderProxy>(
 	            libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance();
         
-        auto view = metrics_sdk::ViewRegistryFactory::Create();
-        auto p = metrics_sdk::MeterProviderFactory::Create(std::move(view), resource_custom);
+        auto view_registry = metrics_sdk::ViewRegistryFactory::Create();
+        auto p = metrics_sdk::MeterProviderFactory::Create(std::move(view_registry), resource_custom);
         auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
         p_sdk->AddMetricReader(std::move(reader));
+
+	// View
+        matlab::data::TypedArray<bool> supplied_view_mda = constructor_arguments[3];
+	if (supplied_view_mda[0]) {   // process the supplied View
+            matlab::data::TypedArray<uint64_t> viewid_mda = constructor_arguments[4];
+	    libmexclass::proxy::ID viewid = viewid_mda[0];
+            auto view = std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid));
+            p_sdk->AddView(view->getInstrumentSelector(), view->getMeterSelector(), view->getView());
+	}
 
         auto p_out = nostd::shared_ptr<metrics_api::MeterProvider>(std::move(p));
         out = std::make_shared<MeterProviderProxy>(p_out);
@@ -61,12 +70,9 @@ void MeterProviderProxy::addMetricReader(libmexclass::proxy::method::Context& co
 
 void MeterProviderProxy::addView(libmexclass::proxy::method::Context& context) {
     matlab::data::TypedArray<uint64_t> viewid_mda = context.inputs[0];
-    libmexclass::proxy::ID viewid = viewid_mda[0];
-
+    std::shared_ptr<ViewProxy> view = std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid_mda[0]));
     static_cast<metrics_sdk::MeterProvider&>(*CppMeterProvider).AddView(
-		    std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getInstrumentSelector(context),
-            std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getMeterSelector(context),
-		    std::static_pointer_cast<ViewProxy>(libmexclass::proxy::ProxyManager::getProxy(viewid))->getView(context));
+		    view->getInstrumentSelector(), view->getMeterSelector(), view->getView());
    return;
 }
 
