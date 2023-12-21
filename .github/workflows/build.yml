@@ -60,9 +60,12 @@ jobs:
               uses: matlab-actions/run-tests@v1
               with:
                  select-by-folder: opentelemetry-matlab/test
-     build-and-run-tests-macos:
-         runs-on: macos-latest
-         steps:
+    build-and-run-tests-macos:
+        runs-on: macos-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
+        steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
               with: 
