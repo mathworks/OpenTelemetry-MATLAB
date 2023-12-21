@@ -1,4 +1,4 @@
-function dexp = defaultMetricExporter
+function dexp = defaultMetricExporter(varargin)
 % Get the default Metric exporter depending on installation
 %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.DEFAULTMETRICEXPORTER returns the 
 %    default Metric exporter. OtlpHttpMetricExporter is the default if it is 
@@ -10,7 +10,7 @@ function dexp = defaultMetricExporter
 % Copyright 2023 The MathWorks, Inc.
 
 if exist("opentelemetry.exporters.otlp.OtlpHttpMetricExporter", "class")
-    dexp = opentelemetry.exporters.otlp.OtlpHttpMetricExporter;
+    dexp = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(varargin{:});
 else
-    dexp = opentelemetry.exporters.otlp.OtlpGrpcMetricExporter;
+    dexp = opentelemetry.exporters.otlp.OtlpGrpcMetricExporter(varargin{:});
 end
