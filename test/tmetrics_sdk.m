@@ -21,7 +21,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         function setupOnce(testCase)
             commonSetupOnce(testCase);
             testCase.ShortIntervalReader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(...
-                opentelemetry.exporters.otlp.OtlpHttpMetricExporter(), ...
+                opentelemetry.exporters.otlp.defaultMetricExporter(), ...
                 "Interval", seconds(2), "Timeout", seconds(1));
         end
     end
@@ -41,8 +41,8 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
     methods (Test)
         function testDefaultExporter(testCase)
             exporter = opentelemetry.exporters.otlp.defaultMetricExporter;
-            verifyEqual(testCase, string(class(exporter)), "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
-            verifyEqual(testCase, string(exporter.Endpoint), "http://localhost:4318/v1/metrics");
+            % do not test the exporter class or the endpoint, as they
+            % depend on which exporters are installed
             verifyEqual(testCase, exporter.Timeout, seconds(10));
             verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), "cumulative");
         end
@@ -51,7 +51,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         function testExporterBasic(testCase)
             timeout = seconds(5);
             temporality = "delta";
-            exporter = opentelemetry.exporters.otlp.OtlpHttpMetricExporter("Timeout", timeout, ...
+            exporter = opentelemetry.exporters.otlp.defaultMetricExporter("Timeout", timeout, ...
                 "PreferredAggregationTemporality", temporality);
             verifyEqual(testCase, exporter.Timeout, timeout);
             verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), temporality);
@@ -60,8 +60,8 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         
         function testDefaultReader(testCase)
             reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader();
-            verifyEqual(testCase, string(class(reader.MetricExporter)), ...
-                "opentelemetry.exporters.otlp.OtlpHttpMetricExporter");
+            verifyEqual(testCase, class(reader.MetricExporter), ...
+                class(opentelemetry.exporters.otlp.defaultMetricExporter));
             verifyEqual(testCase, reader.Interval, minutes(1));
             verifyEqual(testCase, reader.Interval.Format, 'm');  
             verifyEqual(testCase, reader.Timeout, seconds(30));
@@ -86,9 +86,9 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         function testAddMetricReader(testCase)
             metername = "foo";
             countername = "bar";
-            exporter1 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+            exporter1 = opentelemetry.exporters.otlp.defaultMetricExporter(...
                 "PreferredAggregationTemporality", "delta");
-            exporter2 = opentelemetry.exporters.otlp.OtlpHttpMetricExporter(...
+            exporter2 = opentelemetry.exporters.otlp.defaultMetricExporter(...
                 "PreferredAggregationTemporality", "delta");
             reader1 = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter1, ...,
                 "Interval", seconds(2), "Timeout", seconds(1));
