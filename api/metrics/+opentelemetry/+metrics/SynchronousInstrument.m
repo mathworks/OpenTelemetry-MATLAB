@@ -1,12 +1,12 @@
 classdef SynchronousInstrument < handle
     % Base class inherited by all synchronous instruments
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Name        (1,1) string  
-        Description (1,1) string   
-        Unit        (1,1) string   
+        Name        (1,1) string     % Instrument name
+        Description (1,1) string     % Description of instrument
+        Unit        (1,1) string     % Measurement unit
     end
 
     properties (Access=private)

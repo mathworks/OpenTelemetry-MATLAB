@@ -2,7 +2,7 @@ classdef Meter < handle
     % A Meter creates metric instruments, capturing measurements about a service at runtime. 
     % Meters are created from Meter Providers.
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
         Name    (1,1) string   % Meter name
@@ -38,7 +38,8 @@ classdef Meter < handle
             %    C = CREATECOUNTER(M, NAME, DESCRIPTION, UNIT) also 
             %    specifies a description and a unit.
             %     
-            %    See also CREATEUPDOWNCOUNTER, CREATEHISTOGRAM
+            %    See also CREATEUPDOWNCOUNTER, CREATEHISTOGRAM,
+            %    CREATEOBSERVABLECOUNTER
             arguments
                 obj
                 name
@@ -63,7 +64,8 @@ classdef Meter < handle
             %    C = CREATEUPDOWNCOUNTER(M, NAME, DESCRIPTION, UNIT) also 
             %    specifies a description and a unit.
             %     
-            %    See also CREATECOUNTER, CREATEHISTOGRAM
+            %    See also CREATECOUNTER, CREATEHISTOGRAM,
+            %    CREATEOBSERVABLEUPDOWNCOUNTER
             arguments
                 obj
                 name
@@ -107,6 +109,19 @@ classdef Meter < handle
         end
 
     	function obscounter = createObservableCounter(obj, callback, name, description, unit)
+            % CREATEOBSERVABLECOUNTER Create an observable counter
+            %    C = CREATEOBSERVABLECOUNTER(M, CALLBACK, NAME) creates an 
+            %    observable counter with the specified callback function 
+            %    and name. The callback function, specified as a 
+            %    function handle, must accept no input and return one
+            %    output of type opentelemetry.metrics.ObservableResult.
+            %    The counter's value can only increase but not decrease.
+            %
+            %    C = CREATEOBSERVABLECOUNTER(M, CALLBACK NAME, DESCRIPTION, UNIT) 
+            %    also specifies a description and a unit.
+            %     
+            %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
+            %    CREATEOBSERVABLEUPDOWNCOUNTER, CREATEOBSERVABLEGAUGE, CREATECOUNTER
             arguments
                 obj
                 callback
@@ -124,6 +139,19 @@ classdef Meter < handle
         end
 
         function obsudcounter = createObservableUpDownCounter(obj, callback, name, description, unit)
+            % CREATEOBSERVABLEUPDOWNCOUNTER Create an observable UpDownCounter
+            %    C = CREATEOBSERVABLEUPDOWNCOUNTER(M, CALLBACK, NAME) 
+            %    creates an observable UpDownCounter with the specified 
+            %    callback function and name. The callback function, 
+            %    specified as a function handle, must accept no input and 
+            %    return one output of type opentelemetry.metrics.ObservableResult.
+            %    The UpDownCounter's value can increase or decrease.
+            %
+            %    C = CREATEOBSERVABLEUPDOWNCOUNTER(M, CALLBACK, NAME, DESCRIPTION, UNIT) 
+            %    also specifies a description and a unit.
+            %     
+            %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
+            %    CREATEOBSERVABLECOUNTER, CREATEOBSERVABLEGAUGE, CREATEUPDOWNCOUNTER
             arguments
                 obj
                 callback
@@ -142,6 +170,20 @@ classdef Meter < handle
         end
 
         function obsgauge = createObservableGauge(obj, callback, name, description, unit)
+            % CREATEOBSERVABLEGAUGE Create an observable gauge
+            %    C = CREATEOBSERVABLEGAUGE(M, CALLBACK, NAME) creates an 
+            %    observable gauge with the specified callback function 
+            %    and name. The callback function, specified as a 
+            %    function handle, must accept no input and return one
+            %    output of type opentelemetry.metrics.ObservableResult.
+            %    A gauge's value can increase or decrease but it should 
+            %    never be summed in aggregation.
+            %
+            %    C = CREATEOBSERVABLEGAUGE(M, CALLBACK NAME, DESCRIPTION, UNIT) 
+            %    also specifies a description and a unit.
+            %     
+            %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
+            %    CREATEOBSERVABLECOUNTER, CREATEOBSERVABLEUPDOWNCOUNTER
             arguments
                 obj
                 callback

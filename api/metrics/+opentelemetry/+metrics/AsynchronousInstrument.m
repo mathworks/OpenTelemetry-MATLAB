@@ -1,16 +1,16 @@
 classdef AsynchronousInstrument < handle
     % Base class inherited by all asynchronous instruments
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Name        (1,1) string
-        Description (1,1) string
-        Unit        (1,1) string    
+        Name        (1,1) string    % Instrument name
+        Description (1,1) string    % Description of instrument
+        Unit        (1,1) string    % Measurement unit
     end
 
     properties (SetAccess=private)
-        Callbacks        
+        Callbacks     % Callback function, called at each data export
     end
 
     properties (Access=private)
@@ -30,6 +30,13 @@ classdef AsynchronousInstrument < handle
 
     methods
         function addCallback(obj, callback)
+            % ADDCALLBACK   Add a callback function
+            %    ADDCALLBACK(INST, CALLBACK) adds a callback function to
+            %    collect metrics at every export. CALLBACK is specified as a 
+            %    function handle, and must accept no input and return one
+            %    output of type opentelemetry.metrics.ObservableResult.
+            %
+            %    See also REMOVECALLBACK, OPENTELEMETRY.METRICS.OBSERVABLERESULT
             if isa(callback, "function_handle")
                 callbackstr = string(func2str(callback));
                 if ~startsWith(callbackstr, '@')   % do not allow anonymous functions for now
@@ -47,6 +54,11 @@ classdef AsynchronousInstrument < handle
         end
 
         function removeCallback(obj, callback)
+            % REMOVECALLBACK   Remove a callback function
+            %    REMOVECALLBACK(INST, CALLBACK) removes a callback function 
+            %    CALLBACK specified as a function handle.
+            %
+            %    See also ADDCALLBACK
             if isa(callback, "function_handle") && ~isempty(obj.Callbacks)
                 callbackstr = string(func2str(callback));
                 if iscell(obj.Callbacks)

@@ -1,13 +1,24 @@
 classdef ObservableResult
     % Object to record results from observable instrument callbacks
 
-    % Copyright 2023 The MathWorks, Inc
+    % Copyright 2023-2024 The MathWorks, Inc
     properties (SetAccess=private, Hidden)
-        Results = cell(1,0)
+        Results = cell(1,0)    % observed results. Each observation in a cell
     end
 
     methods
         function obj = observe(obj, value, varargin)
+            % OBSERVE   Record a new metric value
+            %    R = OBSERVE(R, VAL) records a new metric in VAL. VAL must 
+            %    be a real numeric scalar that can be converted to a
+            %    double.
+            %
+            %    R = OBSERVE(R, VAL, ATTRIBUTES) also specifies attributes 
+            %    as a dictionary.
+            %
+            %    R = OBSERVE(R, VAL, ATTRNAME1, ATTRVALUE1, ATTRNAME2,
+            %    ATTRVALUE2, ...) specifies attributes as trailing
+            %    name-value pairs.
             if isnumeric(value) && isscalar(value) && isreal(value)
                 value = double(value);  
                 if nargin == 2
