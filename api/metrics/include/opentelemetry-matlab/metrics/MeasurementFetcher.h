@@ -8,7 +8,7 @@ namespace libmexclass::opentelemetry {
 class MeasurementFetcher
 {
 public:
-  __declspec(dllexport) static void Fetcher(metrics_api::ObserverResult observer_result, void * /* state */);
+  static void Fetcher(metrics_api::ObserverResult observer_result, void * /* state */);
   static std::shared_ptr<matlab::engine::MATLABEngine> mlptr;
 };
 } // namespace libmexclass::opentelemetry
