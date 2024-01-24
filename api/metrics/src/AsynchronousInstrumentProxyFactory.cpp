@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/metrics/AsynchronousInstrumentProxyFactory.h"
 #include "opentelemetry-matlab/metrics/ObservableCounterProxy.h"
@@ -7,7 +7,7 @@
 
 namespace libmexclass::opentelemetry {
 std::shared_ptr<libmexclass::proxy::Proxy> AsynchronousInstrumentProxyFactory::create(AsynchronousInstrumentType type, 
-		const std::string& callback, const std::string& name, const std::string& description, const std::string& unit) {
+		const matlab::data::Array& callback, const std::string& name, const std::string& description, const std::string& unit) {
    std::shared_ptr<libmexclass::proxy::Proxy> proxy;
    switch(type) {
        case AsynchronousInstrumentType::ObservableCounter:
@@ -30,7 +30,7 @@ std::shared_ptr<libmexclass::proxy::Proxy> AsynchronousInstrumentProxyFactory::c
 	       break;
    }
    // add callback
-   if (!callback.empty()) {
+   if (!callback.isEmpty()) {
        std::static_pointer_cast<AsynchronousInstrumentProxy>(proxy)->addCallback_helper(callback);
    }
    return proxy;

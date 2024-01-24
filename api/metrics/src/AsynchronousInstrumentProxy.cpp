@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/metrics/AsynchronousInstrumentProxy.h"
 #include "opentelemetry-matlab/metrics/MeasurementFetcher.h"
@@ -10,24 +10,22 @@ namespace libmexclass::opentelemetry {
 
 
 void AsynchronousInstrumentProxy::addCallback(libmexclass::proxy::method::Context& context){
-    matlab::data::StringArray callback_mda = context.inputs[0];
-    std::string callback = static_cast<std::string>(callback_mda[0]); 
-    addCallback_helper(callback);
+    addCallback_helper(context.inputs[0]);
 }
 
-void AsynchronousInstrumentProxy::addCallback_helper(const std::string& callback){
+void AsynchronousInstrumentProxy::addCallback_helper(const matlab::data::Array& callback){
     CallbackFunctions.push_back(callback);
     CppInstrument->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&CallbackFunctions.back()));
 }
 
 void AsynchronousInstrumentProxy::removeCallback(libmexclass::proxy::method::Context& context){
-    matlab::data::StringArray callback_mda = context.inputs[0];
-    std::string callback = static_cast<std::string>(callback_mda[0]); 
-    auto iter = std::find(CallbackFunctions.begin(), CallbackFunctions.end(), callback);
-    if (iter != CallbackFunctions.end()) {  // found a match
-	CallbackFunctions.erase(iter);
-        CppInstrument->RemoveCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(*iter)));
-    }
+    matlab::data::Array callback_mda = context.inputs[0];
+    matlab::data::TypedArray<double> idx_mda = context.inputs[1];
+    double idx = idx_mda[0] - 1;   // adjust index from 1-based in MATLAB to 0-based in C++
+    auto iter = CallbackFunctions.begin();
+    std::advance(iter, idx);
+    CallbackFunctions.erase(iter);
+    CppInstrument->RemoveCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(*iter)));
 }
 
 } // namespace libmexclass::opentelemetry

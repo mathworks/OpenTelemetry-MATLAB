@@ -38,17 +38,14 @@ classdef AsynchronousInstrument < handle
             %
             %    See also REMOVECALLBACK, OPENTELEMETRY.METRICS.OBSERVABLERESULT
             if isa(callback, "function_handle")
-                callbackstr = string(func2str(callback));
-                if ~startsWith(callbackstr, '@')   % do not allow anonymous functions for now
-                    obj.Proxy.addCallback(callbackstr);
-                    % append to Callbacks property
-                    if isempty(obj.Callbacks)
-                        obj.Callbacks = callback;
-                    elseif isa(obj.Callbacks, "function_handle")
-                        obj.Callbacks = {obj.Callbacks, callback};
-                    else
-                        obj.Callbacks = [obj.Callbacks, {callback}];
-                    end
+                obj.Proxy.addCallback(callback);
+                % append to Callbacks property
+                if isempty(obj.Callbacks)
+                    obj.Callbacks = callback;
+                elseif isa(obj.Callbacks, "function_handle")
+                    obj.Callbacks = {obj.Callbacks, callback};
+                else
+                    obj.Callbacks = [obj.Callbacks, {callback}];
                 end
             end 
         end
@@ -60,19 +57,19 @@ classdef AsynchronousInstrument < handle
             %
             %    See also ADDCALLBACK
             if isa(callback, "function_handle") && ~isempty(obj.Callbacks)
-                callbackstr = string(func2str(callback));
                 if iscell(obj.Callbacks)
-                    found = strcmp(cellfun(@func2str, obj.Callbacks, 'UniformOutput', false), callbackstr);
+                    found = cellfun(@(x)isequal(x,callback), obj.Callbacks);
                 else   % scalar function handle
-                    found = strcmp(func2str(obj.Callbacks), callbackstr);
+                    found = isequal(obj.Callbacks, callback);
                 end
                 if sum(found) > 0
-                    obj.Proxy.removeCallback(callbackstr);
+                    idx = find(found,1);  % remove only the first match
+                    obj.Proxy.removeCallback(callback, idx);
                     % update Callback property
                     if isa(obj.Callbacks, "function_handle")
                         obj.Callbacks = [];
                     else
-                        obj.Callbacks(find(found,1)) = [];  % remove only the first match
+                        obj.Callbacks(idx) = [];  
                         if isscalar(obj.Callbacks)   % if there is only one left, remove the cell
                             obj.Callbacks = obj.Callbacks{1};
                         end

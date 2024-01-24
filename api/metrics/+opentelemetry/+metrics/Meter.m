@@ -130,9 +130,9 @@ classdef Meter < handle
                 unit = ""
             end
 
-            [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+            [callback, name, description, unit] = processAsynchronousInputs(...
                 callback, name, description, unit);
-            id = obj.Proxy.createObservableCounter(name, description, unit, callbackstr);
+            id = obj.Proxy.createObservableCounter(name, description, unit, callback);
             ObservableCounterproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ObservableCounterProxy", "ID", id);
             obscounter = opentelemetry.metrics.ObservableCounter(ObservableCounterproxy, name, description, unit, callback);
@@ -160,9 +160,9 @@ classdef Meter < handle
                 unit = ""
             end
 
-            [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+            [callback, name, description, unit] = processAsynchronousInputs(...
                 callback, name, description, unit);
-            id = obj.Proxy.createObservableUpDownCounter(name, description, unit, callbackstr);
+            id = obj.Proxy.createObservableUpDownCounter(name, description, unit, callback);
             ObservableUpDownCounterproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ObservableUpDownCounterProxy", "ID", id);
             obsudcounter = opentelemetry.metrics.ObservableUpDownCounter(...
@@ -192,9 +192,9 @@ classdef Meter < handle
                 unit = ""
             end
 
-            [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+            [callback, name, description, unit] = processAsynchronousInputs(...
                 callback, name, description, unit);
-            id = obj.Proxy.createObservableGauge(name, description, unit, callbackstr);
+            id = obj.Proxy.createObservableGauge(name, description, unit, callback);
             ObservableGaugeproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ObservableGaugeProxy", "ID", id);
             obsgauge = opentelemetry.metrics.ObservableGauge(...
@@ -211,16 +211,10 @@ description = mustBeScalarString(description);
 unit = mustBeScalarString(unit);
 end
 
-function [callback, callbackstr, name, description, unit] = processAsynchronousInputs(...
+function [callback, name, description, unit] = processAsynchronousInputs(...
     callback, name, description, unit)
 [name, description, unit] = processSynchronousInputs(name, description, unit);
-if isa(callback, "function_handle")
-    callbackstr = string(func2str(callback));
-    if ~startsWith(callbackstr, '@')   % do not allow anonymous functions for now
-        return
-    end
+if ~isa(callback, "function_handle")
+    callback = [];   % callback is invalid, set to empty double
 end
-% if we get here, callback is invalid
-callback = [];
-callbackstr = "";
 end

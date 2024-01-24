@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
 
@@ -18,7 +18,7 @@ class AsynchronousInstrumentProxyFactory {
     AsynchronousInstrumentProxyFactory(nostd::shared_ptr<metrics_api::Meter> mt) : CppMeter(mt) {}
 
     std::shared_ptr<libmexclass::proxy::Proxy> create(AsynchronousInstrumentType type, 
-		    const std::string& callback, const std::string& name, const std::string& description, 
+		    const matlab::data::Array& callback, const std::string& name, const std::string& description, 
 		    const std::string& unit);
 
   private:

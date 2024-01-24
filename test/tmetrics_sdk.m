@@ -1,7 +1,7 @@
 classdef tmetrics_sdk < matlab.unittest.TestCase
     % tests for metrics SDK
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -15,14 +15,18 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
         Sigint
         Sigterm
         ShortIntervalReader
+        WaitTime
     end
 
     methods (TestClassSetup)
         function setupOnce(testCase)
             commonSetupOnce(testCase);
+            interval = seconds(2);
+            timeout = seconds(1);
             testCase.ShortIntervalReader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(...
                 opentelemetry.exporters.otlp.OtlpHttpMetricExporter(), ...
-                "Interval", seconds(2), "Timeout", seconds(1));
+                "Interval", interval, "Timeout", timeout);
+            testCase.WaitTime = seconds(interval * 1.25); 
         end
     end
 
@@ -106,7 +110,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % verify if the json results has two exported instances after
             % adding a single value
             ct.add(1);
-            pause(2.5);
+            pause(testCase.WaitTime);
             clear p;
             results = readJsonResults(testCase);
             result_count = numel(results);
@@ -130,7 +134,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % add value and attributes
             c.add(val);
 
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             clear mp;
 
@@ -163,7 +167,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             val = 10;
             c.add(val);
             
-            pause(2.5);
+            pause(testCase.WaitTime);
             
             clear m;
             results = readJsonResults(testCase);
@@ -208,7 +212,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             hist.record(402);
             
             % wait for collector response
-            pause(2.5);
+            pause(testCase.WaitTime);
             
             clear m;
             results = readJsonResults(testCase);
@@ -265,7 +269,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             cbar.add(valbar);
             cquux.add(valquux);
             
-            pause(2.5);
+            pause(testCase.WaitTime);
             
             clear mxyz mabc;
             results = readJsonResults(testCase);
@@ -308,7 +312,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % wait a little and then gather results, verify no metrics are
             % generated
-            pause(2.5);
+            pause(testCase.WaitTime);
             clear mp;
             results = readJsonResults(testCase);
             verifyEmpty(testCase, results);
@@ -330,7 +334,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % wait a little and then gather results, verify no metrics are
             % generated
-            pause(2.5);
+            pause(testCase.WaitTime);
             clear mp;
             results = readJsonResults(testCase);
             verifyEmpty(testCase, results);
@@ -355,7 +359,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % wait a little and then gather results, verify no metrics are
             % generated
-            pause(2.5);
+            pause(testCase.WaitTime);
             clear("mp_api");
             results = readJsonResults(testCase);
             verifyEmpty(testCase, results);

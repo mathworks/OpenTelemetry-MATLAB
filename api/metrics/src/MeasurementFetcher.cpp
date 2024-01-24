@@ -1,3 +1,4 @@
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
@@ -22,12 +23,13 @@ namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;
 
 namespace libmexclass::opentelemetry {
-void MeasurementFetcher::Fetcher(metrics_api::ObserverResult observer_result, void * fcn_name_ptr)
+void MeasurementFetcher::Fetcher(metrics_api::ObserverResult observer_result, void * fh)
 {
   if (nostd::holds_alternative<
           nostd::shared_ptr<metrics_api::ObserverResultT<double>>>(observer_result))
   {
-    auto future = mlptr->fevalAsync(static_cast<std::string*>(fcn_name_ptr)->c_str(), std::vector<matlab::data::Array>());
+    auto future = mlptr->fevalAsync(u"opentelemetry.metrics.collectObservableMetrics", 
+		    *(static_cast<matlab::data::Array*>(fh)));
     try {
         matlab::data::ObjectArray resultobj = future.get();
 	auto futureresult = mlptr->getPropertyAsync(resultobj, 0, u"Results");
