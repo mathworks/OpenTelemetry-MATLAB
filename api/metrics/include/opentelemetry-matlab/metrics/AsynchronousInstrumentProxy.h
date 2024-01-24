@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <list>
+
 #include "libmexclass/proxy/Proxy.h"
 #include "libmexclass/proxy/method/Context.h"
 
