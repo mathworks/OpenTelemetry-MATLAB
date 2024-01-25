@@ -169,7 +169,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             
             pause(testCase.WaitTime);
             
-            clear m;
+            clear mp;
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -214,7 +214,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % wait for collector response
             pause(testCase.WaitTime);
             
-            clear m;
+            clear mp;
             results = readJsonResults(testCase);
             results = results{end};
 
@@ -271,7 +271,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             
             pause(testCase.WaitTime);
             
-            clear mxyz mabc;
+            clear mp;
             results = readJsonResults(testCase);
             results = vertcat(results{end}.resourceMetrics.scopeMetrics.metrics);
 
