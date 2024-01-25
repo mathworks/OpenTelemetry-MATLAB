@@ -192,7 +192,11 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            verifyEmpty(testCase, results);  % results should be empty since all adds were invalid
+            results = results{end};
+
+            % verify that the counter value is still 0
+            verifyEqual(testCase, ...
+                results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, 0);
         end
 
 
