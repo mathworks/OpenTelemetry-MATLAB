@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/metrics/MeterProviderProxy.h"
 #include "opentelemetry-matlab/metrics/MeterProxy.h"
@@ -20,7 +20,11 @@ void MeterProviderProxy::getMeter(libmexclass::proxy::method::Context& context) 
    auto mt = CppMeterProvider->GetMeter(name, version, schema);
 
    // instantiate a MeterProxy instance
-   MeterProxy* newproxy = new MeterProxy(mt);
+   // initialize MATLAB mex engine the first time 
+   if (MexEngine == nullptr) {
+      MexEngine = context.matlab; 
+   }
+   MeterProxy* newproxy = new MeterProxy(mt, MexEngine);
    auto mtproxy = std::shared_ptr<libmexclass::proxy::Proxy>(newproxy);
 
    // obtain a proxy ID
