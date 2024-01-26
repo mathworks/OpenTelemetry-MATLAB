@@ -1,4 +1,4 @@
-function dexp = defaultSpanExporter
+function dexp = defaultSpanExporter(varargin)
 % Get the default span exporter depending on installation
 %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.DEFAULTSPANEXPORTER returns the 
 %    default span exporter. OtlpHttpSpanExporter is the default if it is 
@@ -10,7 +10,7 @@ function dexp = defaultSpanExporter
 % Copyright 2023 The MathWorks, Inc.
 
 if exist("opentelemetry.exporters.otlp.OtlpHttpSpanExporter", "class")
-    dexp = opentelemetry.exporters.otlp.OtlpHttpSpanExporter;
+    dexp = opentelemetry.exporters.otlp.OtlpHttpSpanExporter(varargin{:});
 else
-    dexp = opentelemetry.exporters.otlp.OtlpGrpcSpanExporter;
+    dexp = opentelemetry.exporters.otlp.OtlpGrpcSpanExporter(varargin{:});
 end
