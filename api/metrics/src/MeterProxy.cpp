@@ -56,12 +56,7 @@ void MeterProxy::createAsynchronous(libmexclass::proxy::method::Context& context
    std::string unit = static_cast<std::string>(unit_mda[0]); 
    matlab::data::Array callback_mda = context.inputs[3];
 	
-   // initialize MATLAB mex engine the first time an asynchronous instrument is created 
-   if (MeasurementFetcher::mlptr == nullptr) {
-      MeasurementFetcher::mlptr = static_cast<std::shared_ptr<matlab::engine::MATLABEngine> >(context.matlab); 
-   }
-
-   AsynchronousInstrumentProxyFactory proxyfactory(CppMeter);
+   AsynchronousInstrumentProxyFactory proxyfactory(CppMeter, MexEngine);
    auto proxy = proxyfactory.create(type, callback_mda, name, description, unit);
    
    // obtain a proxy ID

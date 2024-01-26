@@ -14,17 +14,17 @@ void AsynchronousInstrumentProxy::addCallback(libmexclass::proxy::method::Contex
 }
 
 void AsynchronousInstrumentProxy::addCallback_helper(const matlab::data::Array& callback){
-    CallbackFunctions.push_back(callback);
-    CppInstrument->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&CallbackFunctions.back()));
+    AsynchronousCallbackInput arg(callback, MexEngine);
+    CallbackInputs.push_back(arg);
+    CppInstrument->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&CallbackInputs.back()));
 }
 
 void AsynchronousInstrumentProxy::removeCallback(libmexclass::proxy::method::Context& context){
-    matlab::data::Array callback_mda = context.inputs[0];
-    matlab::data::TypedArray<double> idx_mda = context.inputs[1];
+    matlab::data::TypedArray<double> idx_mda = context.inputs[0];
     double idx = idx_mda[0] - 1;   // adjust index from 1-based in MATLAB to 0-based in C++
-    auto iter = CallbackFunctions.begin();
+    auto iter = CallbackInputs.begin();
     std::advance(iter, idx);
-    CallbackFunctions.erase(iter);
+    CallbackInputs.erase(iter);
     CppInstrument->RemoveCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(*iter)));
 }
 

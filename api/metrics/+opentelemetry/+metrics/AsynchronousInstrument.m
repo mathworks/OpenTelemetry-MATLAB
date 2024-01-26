@@ -64,7 +64,7 @@ classdef AsynchronousInstrument < handle
                 end
                 if sum(found) > 0
                     idx = find(found,1);  % remove only the first match
-                    obj.Proxy.removeCallback(callback, idx);
+                    obj.Proxy.removeCallback(idx);
                     % update Callback property
                     if isa(obj.Callbacks, "function_handle")
                         obj.Callbacks = [];

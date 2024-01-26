@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
 
@@ -9,7 +9,6 @@ class MeasurementFetcher
 {
 public:
   static void Fetcher(metrics_api::ObserverResult observer_result, void * /* state */);
-  static std::shared_ptr<matlab::engine::MATLABEngine> mlptr;
 };
 } // namespace libmexclass::opentelemetry
 

@@ -15,7 +15,9 @@ enum class AsynchronousInstrumentType {ObservableCounter, ObservableUpDownCounte
 
 class AsynchronousInstrumentProxyFactory {
   public:
-    AsynchronousInstrumentProxyFactory(nostd::shared_ptr<metrics_api::Meter> mt) : CppMeter(mt) {}
+    AsynchronousInstrumentProxyFactory(nostd::shared_ptr<metrics_api::Meter> mt, 
+                    const std::shared_ptr<matlab::engine::MATLABEngine> eng) 
+            : CppMeter(mt), MexEngine(eng) {}
 
     std::shared_ptr<libmexclass::proxy::Proxy> create(AsynchronousInstrumentType type, 
 		    const matlab::data::Array& callback, const std::string& name, const std::string& description, 
@@ -24,5 +26,6 @@ class AsynchronousInstrumentProxyFactory {
   private:
 
     nostd::shared_ptr<metrics_api::Meter> CppMeter;
+    const std::shared_ptr<matlab::engine::MATLABEngine> MexEngine;  // used for feval on callbacks
 };
 } // namespace libmexclass::opentelemetry

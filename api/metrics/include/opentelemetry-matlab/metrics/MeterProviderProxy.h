@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
 
@@ -18,7 +18,7 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class MeterProviderProxy : public libmexclass::proxy::Proxy {
   public:
-    MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : CppMeterProvider(mp) {
+    MeterProviderProxy(nostd::shared_ptr<metrics_api::MeterProvider> mp) : CppMeterProvider(mp), MexEngine(nullptr) {
         REGISTER_METHOD(MeterProviderProxy, getMeter);
         REGISTER_METHOD(MeterProviderProxy, setMeterProvider);
         REGISTER_METHOD(MeterProviderProxy, postShutdown);
@@ -46,5 +46,6 @@ class MeterProviderProxy : public libmexclass::proxy::Proxy {
 
   protected:
     nostd::shared_ptr<metrics_api::MeterProvider> CppMeterProvider;
+    std::shared_ptr<matlab::engine::MATLABEngine> MexEngine;  // mex engine pointer used by asynchronous instruments for feval
 };
 } // namespace libmexclass::opentelemetry

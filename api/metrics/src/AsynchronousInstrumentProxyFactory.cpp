@@ -13,19 +13,19 @@ std::shared_ptr<libmexclass::proxy::Proxy> AsynchronousInstrumentProxyFactory::c
        case AsynchronousInstrumentType::ObservableCounter:
        {
                nostd::shared_ptr<metrics_api::ObservableInstrument > ct = std::move(CppMeter->CreateDoubleObservableCounter(name, description, unit));
-               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ObservableCounterProxy(ct));
+               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ObservableCounterProxy(ct, MexEngine));
        }
 	       break;
        case AsynchronousInstrumentType::ObservableUpDownCounter:
        {
                nostd::shared_ptr<metrics_api::ObservableInstrument > udct = std::move(CppMeter->CreateDoubleObservableUpDownCounter(name, description, unit));
-               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ObservableUpDownCounterProxy(udct));
+               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ObservableUpDownCounterProxy(udct, MexEngine));
        }
 	       break;
        case AsynchronousInstrumentType::ObservableGauge:
        {
                nostd::shared_ptr<metrics_api::ObservableInstrument > g = std::move(CppMeter->CreateDoubleObservableGauge(name, description, unit));
-               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ObservableGaugeProxy(g));
+               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new ObservableGaugeProxy(g, MexEngine));
        }
 	       break;
    }

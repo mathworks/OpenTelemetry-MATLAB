@@ -512,6 +512,10 @@ classdef tmetrics < matlab.unittest.TestCase
     methods (Test, ParameterCombination="sequential")
         function testAsynchronousInstrumentBasic(testCase, create_async, datapoint_name)
             % test basic functionalities of an observable counter
+
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+
             countername = "bar";
             callback = @callbackNoAttributes;
             
@@ -541,6 +545,10 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testAsynchronousInstrumentAttributes(testCase, create_async, datapoint_name)
             % test for attributes when observing metrics for an observable counter
+            
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+            
             countername = "bar";
             callback = @callbackWithAttributes;
             
@@ -574,6 +582,10 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testAsynchronousInstrumentAnonymousCallback(testCase, create_async, datapoint_name)
             % use an anonymous function as callback
+
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+
             countername = "bar";
             addvalue = 20;
             callback = @(x)callbackOneInput(addvalue);

@@ -18,21 +18,23 @@
 
 #include "opentelemetry-matlab/metrics/MeasurementFetcher.h"
 #include "opentelemetry-matlab/common/attribute.h"
+#include "opentelemetry-matlab/metrics/AsynchronousCallbackInput.h"
 
 namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;
 
 namespace libmexclass::opentelemetry {
-void MeasurementFetcher::Fetcher(metrics_api::ObserverResult observer_result, void * fh)
+void MeasurementFetcher::Fetcher(metrics_api::ObserverResult observer_result, void * in)
 {
   if (nostd::holds_alternative<
           nostd::shared_ptr<metrics_api::ObserverResultT<double>>>(observer_result))
   {
-    auto future = mlptr->fevalAsync(u"opentelemetry.metrics.collectObservableMetrics", 
-		    *(static_cast<matlab::data::Array*>(fh)));
+    auto arg = static_cast<AsynchronousCallbackInput*>(in);
+    auto future = arg->MexEngine->fevalAsync(u"opentelemetry.metrics.collectObservableMetrics", 
+		    arg->FunctionHandle);
     try {
         matlab::data::ObjectArray resultobj = future.get();
-	auto futureresult = mlptr->getPropertyAsync(resultobj, 0, u"Results");
+	auto futureresult = arg->MexEngine->getPropertyAsync(resultobj, 0, u"Results");
 	matlab::data::CellArray resultdata = futureresult.get();
 	size_t n = resultdata.getNumberOfElements();
 	size_t i = 0;
@@ -60,6 +62,4 @@ void MeasurementFetcher::Fetcher(metrics_api::ObserverResult observer_result, vo
     }
   }
 }
-
-std::shared_ptr<matlab::engine::MATLABEngine> MeasurementFetcher::mlptr = nullptr;
 }  // namespace

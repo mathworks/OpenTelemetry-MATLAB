@@ -4,6 +4,8 @@
 
 #include <list>
 
+#include "opentelemetry-matlab/metrics/AsynchronousCallbackInput.h"
+
 #include "libmexclass/proxy/Proxy.h"
 #include "libmexclass/proxy/method/Context.h"
 
@@ -15,7 +17,8 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry {
 class AsynchronousInstrumentProxy : public libmexclass::proxy::Proxy {
   protected:
-    AsynchronousInstrumentProxy(nostd::shared_ptr<metrics_api::ObservableInstrument> inst) : CppInstrument(inst) {}
+    AsynchronousInstrumentProxy(nostd::shared_ptr<metrics_api::ObservableInstrument> inst, 
+                    const std::shared_ptr<matlab::engine::MATLABEngine> eng) : CppInstrument(inst), MexEngine(eng) {}
 
   public:
     void addCallback(libmexclass::proxy::method::Context& context);
@@ -29,8 +32,9 @@ class AsynchronousInstrumentProxy : public libmexclass::proxy::Proxy {
   private:
     nostd::shared_ptr<metrics_api::ObservableInstrument> CppInstrument;
 
-    std::list<matlab::data::Array> CallbackFunctions;
+    std::list<AsynchronousCallbackInput> CallbackInputs;
 
+    const std::shared_ptr<matlab::engine::MATLABEngine> MexEngine;  // used for feval on callbacks
 }; 
 } // namespace libmexclass::opentelemetry
 
