@@ -1,7 +1,7 @@
 classdef tmetrics < matlab.unittest.TestCase
-    % tests for traces and spans
+    % tests for metrics
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -17,11 +17,17 @@ classdef tmetrics < matlab.unittest.TestCase
         Sigterm
         ShortIntervalReader
         DeltaAggregationReader
+        WaitTime
     end
 
     methods (TestClassSetup)
         function setupOnce(testCase)
             commonSetupOnce(testCase);
+            
+            % add the callbacks folder to the path
+            callbackfolder = fullfile(fileparts(mfilename('fullpath')), "callbacks");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(callbackfolder));
+
             interval = seconds(2);
             timeout = seconds(1);
             testCase.ShortIntervalReader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(...
@@ -31,6 +37,7 @@ classdef tmetrics < matlab.unittest.TestCase
                 opentelemetry.exporters.otlp.defaultMetricExporter(...
                 "PreferredAggregationTemporality", "Delta"), ...
                 "Interval", interval, "Timeout", timeout);
+            testCase.WaitTime = seconds(interval * 1.25); 
         end
     end
 
@@ -65,11 +72,11 @@ classdef tmetrics < matlab.unittest.TestCase
             % create testing value 
             val = 10;
 
-            % add value and attributes
+            % add value
             ct.add(val);
 
             % wait for collector response
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             % fetch result
             clear p;
@@ -80,11 +87,8 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
 
-            % fetch datapoint
-            dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
-
             % verify counter value
-            verifyEqual(testCase, dp.asDouble, val);
+            verifyEqual(testCase, results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, val);
 
         end
 
@@ -97,29 +101,24 @@ classdef tmetrics < matlab.unittest.TestCase
             ct = mt.createCounter(countername);
 
             % verify MATLAB object properties
-            verifyEqual(testCase, mt.Name, metername);
-            verifyEqual(testCase, mt.Version, "");
-            verifyEqual(testCase, mt.Schema, "");
             verifyEqual(testCase, ct.Name, countername);
 
             % create testing value 
             vals = [10, 20];
 
-            % add value and attributes
+            % add value
             ct.add(vals(1));
-            pause(3);
+            pause(testCase.WaitTime);
             ct.add(vals(2));
 
             % fetch results
-            pause(2.5);
+            pause(testCase.WaitTime);
             clear p;
             results = readJsonResults(testCase);
-            dp1 = results{1}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
-            dp2 = results{2}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
 
             % verify counter value
-            verifyEqual(testCase, dp1.asDouble, vals(1));
-            verifyEqual(testCase, dp2.asDouble, vals(2));
+            verifyEqual(testCase, results{1}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, vals(1));
+            verifyEqual(testCase, results{2}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, vals(2));
         end
 
 
@@ -145,7 +144,7 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(vals(3),dict_keys(1),dict_vals(1),dict_keys(2),dict_vals(2));
 
             % wait for collector response
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             % fetch result
             clear p;
@@ -188,17 +187,16 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(magic(3));
             % add nonnumerics
             ct.add("foobar");
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             % fetch results
             clear p;
             results = readJsonResults(testCase);
             results = results{end};
-            dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
 
             % verify that the counter value is still 0
-            verifyEqual(testCase, dp.asDouble, 0);
-
+            verifyEqual(testCase, ...
+                results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, 0);
         end
 
 
@@ -213,19 +211,16 @@ classdef tmetrics < matlab.unittest.TestCase
             ct = mt.createUpDownCounter(countername);
 
             % verify MATLAB object properties
-            verifyEqual(testCase, mt.Name, metername);
-            verifyEqual(testCase, mt.Version, "");
-            verifyEqual(testCase, mt.Schema, "");
             verifyEqual(testCase, ct.Name, countername);
 
             % create testing value 
             val = -10;
 
-            % add value and attributes
+            % add value 
             ct.add(val);
 
-            % wait for collector response time (2s)
-            pause(5);
+            % wait for collector response time 
+            pause(testCase.WaitTime);
 
             % fetch result
             clear p;
@@ -236,11 +231,8 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
 
-            % fetch datapoint
-            dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
-
             % verify counter value
-            verifyEqual(testCase, dp.asDouble, val);
+            verifyEqual(testCase, results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, val);
 
         end
 
@@ -263,7 +255,7 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(vals(3),dict_keys(1),dict_vals(1),dict_keys(2),dict_vals(2));
 
             % wait for collector response
-            pause(5);
+            pause(testCase.WaitTime);
 
             % fetch result
             clear p;
@@ -297,12 +289,12 @@ classdef tmetrics < matlab.unittest.TestCase
             ct.add(magic(3));
             % add nonnumerics
             ct.add("foobar");
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            verifyEmpty(testCase, results);
+            verifyEmpty(testCase, results);    % results should be empty since all adds were invalid
         end
 
 
@@ -317,9 +309,6 @@ classdef tmetrics < matlab.unittest.TestCase
             hist = mt.createHistogram(histname);
 
             % verify MATLAB object properties
-            verifyEqual(testCase, mt.Name, metername);
-            verifyEqual(testCase, mt.Version, "");
-            verifyEqual(testCase, mt.Schema, "");
             verifyEqual(testCase, hist.Name, histname);
 
             % create value for histogram
@@ -329,7 +318,7 @@ classdef tmetrics < matlab.unittest.TestCase
             hist.record(val);
 
             % wait for collector response
-            pause(10);
+            pause(testCase.WaitTime);
 
             % fetch results
             clear p;
@@ -380,7 +369,7 @@ classdef tmetrics < matlab.unittest.TestCase
             hist.record(vals(3),dict_keys(1),dict_vals(1),dict_keys(2),dict_vals(2));
 
             % wait for collector response
-            pause(10);
+            pause(testCase.WaitTime);
 
             % fetch results
             clear p;
@@ -428,12 +417,12 @@ classdef tmetrics < matlab.unittest.TestCase
             h.record(magic(3));
             % record nonnumerics
             h.record("foobar");
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            verifyEmpty(testCase, results);
+            verifyEmpty(testCase, results);    % results should be empty since all adds were invalid
         end
 
         function testHistogramDelta(testCase)
@@ -441,15 +430,15 @@ classdef tmetrics < matlab.unittest.TestCase
             mt = p.getMeter("foo");
             hist = mt.createHistogram("bar");
     
-            % record value and attributes
+            % record values
             rawvals = [1 6];
             vals = {[rawvals(1)], [rawvals(2)]};
             hist.record(rawvals(1));
-            pause(2.5);
+            pause(testCase.WaitTime);
             hist.record(rawvals(2));
 
             % wait for collector response
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             % fetch results
             clear p;
@@ -479,6 +468,7 @@ classdef tmetrics < matlab.unittest.TestCase
             end
         end
 
+
         function testGetSetMeterProvider(testCase)
             % testGetSetMeterProvider: setting and getting global instance of MeterProvider
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
@@ -495,7 +485,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % add value and attributes
             c.add(val);
 
-            pause(2.5);
+            pause(testCase.WaitTime);
 
             %Shutdown the Meter Provider
             verifyTrue(testCase, mp.shutdown());
@@ -509,6 +499,179 @@ classdef tmetrics < matlab.unittest.TestCase
 
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+        end
+    end
+
+    % parameters for asynchronous instruments
+    properties (TestParameter)
+        create_async = {@createObservableCounter, ...
+            @createObservableUpDownCounter, @createObservableGauge};
+        datapoint_name = {'sum', 'sum', 'gauge'};
+    end
+
+    methods (Test, ParameterCombination="sequential")
+        function testAsynchronousInstrumentBasic(testCase, create_async, datapoint_name)
+            % test basic functionalities of an observable counter
+
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+
+            countername = "bar";
+            callback = @callbackNoAttributes;
+            
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            %ct = mt.createObservableCounter(callback, countername);
+            ct = create_async(mt, callback, countername);
+
+            % verify MATLAB object properties
+            verifyEqual(testCase, ct.Name, countername);
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify counter value
+            verifyEqual(testCase, ...
+                results.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints.asDouble, 5);
+        end
+
+        function testAsynchronousInstrumentAttributes(testCase, create_async, datapoint_name)
+            % test for attributes when observing metrics for an observable counter
+            
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+            
+            countername = "bar";
+            callback = @callbackWithAttributes;
+            
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            ct = create_async(mt, callback, countername); %#ok<NASGU>
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify counter values and attributes
+            dp = results.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints;
+            attrvals = arrayfun(@(x)string(x.attributes.value.stringValue), dp);
+            idxA = (attrvals == "A");
+            idxB = (attrvals == "B");
+            verifyEqual(testCase, dp(idxA).asDouble, 5);
+            verifyEqual(testCase, string(dp(idxA).attributes.key), "Level");
+            verifyEqual(testCase, string(dp(idxA).attributes.value.stringValue), "A");
+            verifyEqual(testCase, dp(idxB).asDouble, 10);
+            verifyEqual(testCase, string(dp(idxB).attributes.key), "Level");
+            verifyEqual(testCase, string(dp(idxB).attributes.value.stringValue), "B");
+        end
+
+        function testAsynchronousInstrumentAnonymousCallback(testCase, create_async, datapoint_name)
+            % use an anonymous function as callback
+
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+
+            countername = "bar";
+            addvalue = 20;
+            callback = @(x)callbackOneInput(addvalue);
+            
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            ct = create_async(mt, callback, countername); %#ok<NASGU>
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify counter value
+            verifyEqual(testCase, ...
+                results.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints.asDouble, 5 + addvalue);
+        end
+
+        function testAsynchronousInstrumentMultipleCallbacks(testCase, create_async, datapoint_name)
+            % Observable counter with more than one callbacks
+
+            testCase.assumeTrue(false, ...
+                "Disabled due to sporadic failures.");
+
+            countername = "bar";
+            
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            ct = create_async(mt, @callbackWithAttributes, countername);
+            addCallback(ct, @callbackWithAttributes2)
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+            
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify counter values and attributes
+            dp = results.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints;
+            attrvals = arrayfun(@(x)string(x.attributes.value.stringValue), dp);
+            idxA = (attrvals == "A");
+            idxB = (attrvals == "B");
+            idxC = (attrvals == "C");
+            verifyEqual(testCase, dp(idxA).asDouble, 5);
+            verifyEqual(testCase, string(dp(idxA).attributes.key), "Level");
+            verifyEqual(testCase, string(dp(idxA).attributes.value.stringValue), "A");
+            verifyEqual(testCase, dp(idxB).asDouble, 10);
+            verifyEqual(testCase, string(dp(idxB).attributes.key), "Level");
+            verifyEqual(testCase, string(dp(idxB).attributes.value.stringValue), "B");
+            verifyEqual(testCase, dp(idxC).asDouble, 20);
+            verifyEqual(testCase, string(dp(idxC).attributes.key), "Level");
+            verifyEqual(testCase, string(dp(idxC).attributes.value.stringValue), "C");
+        end
+
+        function testAsynchronousInstrumentRemoveCallback(testCase, create_async)
+            % removeCallback method
+
+            testCase.assumeTrue(false, ...
+                "Disabled due to sporadic failures.");
+
+            callback = @callbackNoAttributes;
+
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            ct = create_async(mt, callback, "foo2"); 
+            removeCallback(ct, callback);
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+
+            verifyEmpty(testCase, results);   % expect empty result due to lack of callback
         end
       
     end

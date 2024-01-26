@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 
@@ -28,9 +28,15 @@ libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::Functio
         instrument_type = metrics_sdk::InstrumentType::kCounter;
     } else if (instrument_type_str.compare(u"updowncounter") == 0) {
 	instrument_type = metrics_sdk::InstrumentType::kUpDownCounter;
-    } else {
-	assert(instrument_type_str.compare(u"histogram") == 0);
+    } else if (instrument_type_str.compare(u"histogram") == 0) {
 	instrument_type = metrics_sdk::InstrumentType::kHistogram;
+    } else if (instrument_type_str.compare(u"observablecounter") == 0) {
+	instrument_type = metrics_sdk::InstrumentType::kObservableCounter;
+    } else if (instrument_type_str.compare(u"observableupdowncounter") == 0) {
+	instrument_type = metrics_sdk::InstrumentType::kObservableUpDownCounter;
+    } else {
+	assert(instrument_type_str.compare(u"observablegauge") == 0);
+	instrument_type = metrics_sdk::InstrumentType::kObservableGauge;
     }
 
     // InstrumentUnit
