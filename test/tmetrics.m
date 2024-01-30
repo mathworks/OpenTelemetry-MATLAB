@@ -612,10 +612,6 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testAsynchronousInstrumentMultipleCallbacks(testCase, create_async, datapoint_name)
             % Observable counter with more than one callbacks
-
-            testCase.assumeTrue(false, ...
-                "Disabled due to sporadic failures.");
-
             countername = "bar";
             
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
@@ -653,10 +649,6 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testAsynchronousInstrumentRemoveCallback(testCase, create_async)
             % removeCallback method
-
-            testCase.assumeTrue(false, ...
-                "Disabled due to sporadic failures.");
-
             callback = @callbackNoAttributes;
 
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
