@@ -64,7 +64,6 @@ jobs:
         runs-on: macos-latest
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
-            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
@@ -72,10 +71,12 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v1
+              with: 
+                release: R2023a
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
-                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
