@@ -23,6 +23,9 @@ classdef tmetrics < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
+            % add the utils folder to the path
+            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
             
             % add the callbacks folder to the path

@@ -1,7 +1,7 @@
 classdef ttrace_sdk < matlab.unittest.TestCase
     % tests for tracing SDK (span processors, exporters, samplers, resource)
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -18,6 +18,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
+            % add the utils folder to the path
+            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
         end
     end
