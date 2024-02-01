@@ -13,6 +13,10 @@ classdef AsynchronousInstrument < handle
         Callbacks     % Callback function, called at each data export
     end
 
+    properties (Constant, Hidden)
+        DefaultTimeout = seconds(30)
+    end
+
     properties (Access=private)
         Proxy   % Proxy object to interface C++ code
     end
@@ -29,16 +33,42 @@ classdef AsynchronousInstrument < handle
     end
 
     methods
-        function addCallback(obj, callback)
+        function addCallback(obj, callback, optionnames, optionvalues)
             % ADDCALLBACK   Add a callback function
             %    ADDCALLBACK(INST, CALLBACK) adds a callback function to
-            %    collect metrics at every export. CALLBACK is specified as a 
+            %    collect metrics at every export. CALLBACK is specified as a
             %    function handle, and must accept no input and return one
             %    output of type opentelemetry.metrics.ObservableResult.
             %
+            %    ADDCALLBACK(INST, CALLBACK, "Timeout", TIMEOUT) 
+            %    also specifies the maximum time before callback is timed 
+            %    out and its results not get recorded. TIMEOUT must be a
+            %    positive duration scalar.
+            %
             %    See also REMOVECALLBACK, OPENTELEMETRY.METRICS.OBSERVABLERESULT
+            arguments
+                obj
+                callback
+            end
+            arguments (Repeating)
+                optionnames 
+                optionvalues
+            end
+
             if isa(callback, "function_handle")
-                obj.Proxy.addCallback(callback);
+                % parse name-value pairs
+                validnames = "Timeout";
+                timeout = obj.DefaultTimeout; 
+                for i = 1:length(optionnames)
+                    try
+                        validatestring(optionnames{i}, validnames);
+                    catch
+                        continue
+                    end
+                    timeout = optionvalues{i};
+                end
+                timeout = obj.mustBeScalarPositiveDurationTimeout(timeout);
+                obj.Proxy.addCallback(callback, milliseconds(timeout));
                 % append to Callbacks property
                 if isempty(obj.Callbacks)
                     obj.Callbacks = callback;
@@ -47,7 +77,7 @@ classdef AsynchronousInstrument < handle
                 else
                     obj.Callbacks = [obj.Callbacks, {callback}];
                 end
-            end 
+            end
         end
 
         function removeCallback(obj, callback)
@@ -75,6 +105,14 @@ classdef AsynchronousInstrument < handle
                         end
                     end
                 end
+            end
+        end
+    end
+
+    methods (Static)
+        function timeout = mustBeScalarPositiveDurationTimeout(timeout)
+            if ~(isscalar(timeout) && isa(timeout, "duration") && timeout > 0)
+                timeout = opentelemetry.metrics.AsynchronousInstrument.DefaultTimeout;   
             end
         end
     end

@@ -1,5 +1,7 @@
 // Copyright 2023-2024 The MathWorks, Inc.
 
+#include <chrono>
+
 #include "MatlabDataArray.hpp"
 #include "mex.hpp"
 #include "cppmex/detail/mexErrorDispatch.hpp"
@@ -30,11 +32,21 @@ void MeasurementFetcher::Fetcher(metrics_api::ObserverResult observer_result, vo
           nostd::shared_ptr<metrics_api::ObserverResultT<double>>>(observer_result))
   {
     auto arg = static_cast<AsynchronousCallbackInput*>(in);
+    auto callback_timeout = arg->Timeout;
+    const std::chrono::seconds property_timeout(1);   // for getProperty, use a fixed timeout of 1 second, should be sufficient
     auto future = arg->MexEngine->fevalAsync(u"opentelemetry.metrics.collectObservableMetrics", 
 		    arg->FunctionHandle);
     try {
+	auto status = future.wait_for(callback_timeout);
+	if (status != std::future_status::ready) {
+	    return;
+	}
         matlab::data::ObjectArray resultobj = future.get();
 	auto futureresult = arg->MexEngine->getPropertyAsync(resultobj, 0, u"Results");
+	status = futureresult.wait_for(property_timeout);
+	if (status != std::future_status::ready) {
+	    return;
+	}
 	matlab::data::CellArray resultdata = futureresult.get();
 	size_t n = resultdata.getNumberOfElements();
 	size_t i = 0;

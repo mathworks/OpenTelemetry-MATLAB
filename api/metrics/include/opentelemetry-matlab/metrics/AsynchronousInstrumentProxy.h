@@ -3,6 +3,7 @@
 #pragma once
 
 #include <list>
+#include <chrono>
 
 #include "opentelemetry-matlab/metrics/AsynchronousCallbackInput.h"
 
@@ -25,7 +26,7 @@ class AsynchronousInstrumentProxy : public libmexclass::proxy::Proxy {
 
     // This method should ideally be an overloaded version of addCallback. However, addCallback is a registered 
     // method and REGISTER_METHOD macro doesn't like overloaded methods. Rename to avoid overloading.
-    void addCallback_helper(const matlab::data::Array& callback);
+    void addCallback_helper(const matlab::data::Array& callback, const std::chrono::milliseconds& timeout);
 
     void removeCallback(libmexclass::proxy::method::Context& context);
 

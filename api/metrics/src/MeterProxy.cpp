@@ -55,9 +55,11 @@ void MeterProxy::createAsynchronous(libmexclass::proxy::method::Context& context
    matlab::data::StringArray unit_mda = context.inputs[2];
    std::string unit = static_cast<std::string>(unit_mda[0]); 
    matlab::data::Array callback_mda = context.inputs[3];
+   matlab::data::TypedArray<double> timeout_mda = context.inputs[4];
+   auto timeout = std::chrono::milliseconds(static_cast<int64_t>(timeout_mda[0])); // milliseconds
 	
    AsynchronousInstrumentProxyFactory proxyfactory(CppMeter, MexEngine);
-   auto proxy = proxyfactory.create(type, callback_mda, name, description, unit);
+   auto proxy = proxyfactory.create(type, callback_mda, name, description, unit, timeout);
    
    // obtain a proxy ID
    libmexclass::proxy::ID proxyid = libmexclass::proxy::ProxyManager::manageProxy(proxy);
