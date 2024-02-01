@@ -10,11 +10,13 @@ namespace libmexclass::opentelemetry {
 
 
 void AsynchronousInstrumentProxy::addCallback(libmexclass::proxy::method::Context& context){
-    addCallback_helper(context.inputs[0]);
+    matlab::data::TypedArray<double> timeout_mda = context.inputs[1];
+    addCallback_helper(context.inputs[0], std::chrono::milliseconds(static_cast<int64_t>(timeout_mda[0])));
 }
 
-void AsynchronousInstrumentProxy::addCallback_helper(const matlab::data::Array& callback){
-    AsynchronousCallbackInput arg(callback, MexEngine);
+void AsynchronousInstrumentProxy::addCallback_helper(const matlab::data::Array& callback, 
+		const std::chrono::milliseconds& timeout){
+    AsynchronousCallbackInput arg(callback, timeout, MexEngine);
     CallbackInputs.push_back(arg);
     CppInstrument->AddCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&CallbackInputs.back()));
 }

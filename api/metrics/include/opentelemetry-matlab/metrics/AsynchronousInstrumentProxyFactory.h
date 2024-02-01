@@ -1,6 +1,7 @@
 // Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
+#include <chrono>
 
 #include "libmexclass/proxy/Proxy.h"
 
@@ -21,7 +22,7 @@ class AsynchronousInstrumentProxyFactory {
 
     std::shared_ptr<libmexclass::proxy::Proxy> create(AsynchronousInstrumentType type, 
 		    const matlab::data::Array& callback, const std::string& name, const std::string& description, 
-		    const std::string& unit);
+		    const std::string& unit, const std::chrono::milliseconds& timeout);
 
   private:
 

@@ -8,7 +8,7 @@ classdef tmetrics < matlab.unittest.TestCase
         OtelRoot
         JsonFile
         PidFile
-	OtelcolName
+        OtelcolName
         Otelcol
         ListPid
         ReadPidList
@@ -18,10 +18,14 @@ classdef tmetrics < matlab.unittest.TestCase
         ShortIntervalReader
         DeltaAggregationReader
         WaitTime
+        CallbackTimeout
     end
 
     methods (TestClassSetup)
         function setupOnce(testCase)
+            % add the utils folder to the path
+            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
             
             % add the callbacks folder to the path
@@ -37,7 +41,8 @@ classdef tmetrics < matlab.unittest.TestCase
                 opentelemetry.exporters.otlp.defaultMetricExporter(...
                 "PreferredAggregationTemporality", "Delta"), ...
                 "Interval", interval, "Timeout", timeout);
-            testCase.WaitTime = seconds(interval * 1.25); 
+            testCase.WaitTime = seconds(interval * 1.25);
+            testCase.CallbackTimeout = seconds(3);
         end
     end
 
@@ -443,8 +448,7 @@ classdef tmetrics < matlab.unittest.TestCase
             % fetch results
             clear p;
             results = readJsonResults(testCase);
-            rsize = size(results);
-            for i = 1:rsize(2)
+            for i = 1:length(results)
                 dp = results{i}.resourceMetrics.scopeMetrics.metrics.histogram.dataPoints;
                 bounds = dp.explicitBounds;
                 counts = dp.bucketCounts;
@@ -522,7 +526,7 @@ classdef tmetrics < matlab.unittest.TestCase
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             mt = p.getMeter("foo");
             %ct = mt.createObservableCounter(callback, countername);
-            ct = create_async(mt, callback, countername);
+            ct = create_async(mt, callback, countername, "", "", testCase.CallbackTimeout);
 
             % verify MATLAB object properties
             verifyEqual(testCase, ct.Name, countername);
@@ -554,7 +558,7 @@ classdef tmetrics < matlab.unittest.TestCase
             
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             mt = p.getMeter("foo");
-            ct = create_async(mt, callback, countername); %#ok<NASGU>
+            ct = create_async(mt, callback, countername, "", "", testCase.CallbackTimeout); %#ok<NASGU>
 
             % wait for collector response
             pause(testCase.WaitTime);
@@ -592,7 +596,7 @@ classdef tmetrics < matlab.unittest.TestCase
             
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             mt = p.getMeter("foo");
-            ct = create_async(mt, callback, countername); %#ok<NASGU>
+            ct = create_async(mt, callback, countername, "", "", testCase.CallbackTimeout); %#ok<NASGU>
 
             % wait for collector response
             pause(testCase.WaitTime);
@@ -612,12 +616,16 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testAsynchronousInstrumentMultipleCallbacks(testCase, create_async, datapoint_name)
             % Observable counter with more than one callbacks
+
+            testCase.assumeTrue(isequal(create_async, @createObservableGauge), ...
+                "Sporadic failures for counters and updowncounters fixed in otel-cpp 1.14.0");
+
             countername = "bar";
             
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             mt = p.getMeter("foo");
-            ct = create_async(mt, @callbackWithAttributes, countername);
-            addCallback(ct, @callbackWithAttributes2)
+            ct = create_async(mt, @callbackWithAttributes, countername, "", "", testCase.CallbackTimeout);
+            addCallback(ct, @callbackWithAttributes2, "Timeout", testCase.CallbackTimeout)
 
             % wait for collector response
             pause(testCase.WaitTime);
@@ -653,7 +661,7 @@ classdef tmetrics < matlab.unittest.TestCase
 
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             mt = p.getMeter("foo");
-            ct = create_async(mt, callback, "foo2"); 
+            ct = create_async(mt, callback, "foo2", "", "", testCase.CallbackTimeout); 
             removeCallback(ct, callback);
 
             % wait for collector response
