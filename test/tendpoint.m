@@ -1,7 +1,7 @@
 classdef tendpoint < matlab.unittest.TestCase
     % tests for setting endpoint in the exporter
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -18,13 +18,17 @@ classdef tendpoint < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
+            % add the utils folder to the path
+            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
         end
     end
 
     methods (TestMethodSetup)
         function setup(testCase)
-            commonSetup(testCase, "nondefault_endpoint.yml");
+            config = fullfile(fileparts(mfilename("fullpath")), "config", "nondefault_endpoint.yml");
+            commonSetup(testCase, config);
         end
     end
 

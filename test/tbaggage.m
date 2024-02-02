@@ -1,7 +1,7 @@
 classdef tbaggage < matlab.unittest.TestCase
     % tests for creating and manipulating baggage object
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         BaggageKeys
@@ -15,7 +15,7 @@ classdef tbaggage < matlab.unittest.TestCase
 
             % set up path
             if ~isempty(otelroot)
-                addpath(otelroot);
+                testCase.applyFixture(matlab.unittest.fixtures.PathFixture(otelroot));
             end
 
             testCase.BaggageKeys = ["userId", "serverNode", "isProduction"];

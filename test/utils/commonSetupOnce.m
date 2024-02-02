@@ -6,7 +6,7 @@ function commonSetupOnce(testCase)
 % file definitions
 otelcolroot = getenv("OPENTELEMETRY_COLLECTOR_INSTALL");
 testCase.OtelConfigFile = fullfile(fileparts(mfilename("fullpath")), ...
-    "otelcol_config.yml");
+    "..", "config", "otelcol_config.yml");
 otelroot = getenv("OPENTELEMETRY_MATLAB_INSTALL");
 testCase.JsonFile = "myoutput.json";
 testCase.PidFile = "testoutput.txt";

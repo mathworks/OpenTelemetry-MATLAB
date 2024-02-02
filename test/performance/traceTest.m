@@ -1,6 +1,8 @@
 classdef traceTest < matlab.perftest.TestCase
 % performance tests for tracing
 
+% Copyright 2023-2024 The MathWorks, Inc.
+
     properties
         OtelConfigFile
         JsonFile
@@ -17,7 +19,7 @@ classdef traceTest < matlab.perftest.TestCase
     methods (TestClassSetup)
         function setupOnce(testCase)
             testdir = fileparts(mfilename("fullpath"));
-            addpath(fullfile(testdir, ".."));  % add directory where common setup and teardown code lives
+            addpath(fullfile(testdir, "..", "utils"));  % add directory where common setup and teardown code lives
             commonSetupOnce(testCase);
 
             % create a global tracer provider

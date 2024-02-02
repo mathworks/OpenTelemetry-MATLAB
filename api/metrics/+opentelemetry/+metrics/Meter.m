@@ -108,7 +108,8 @@ classdef Meter < handle
             histogram = opentelemetry.metrics.Histogram(HistogramProxy, name, description, unit);
         end
 
-    	function obscounter = createObservableCounter(obj, callback, name, description, unit)
+    	function obscounter = createObservableCounter(obj, callback, name, ...
+                description, unit, timeout)
             % CREATEOBSERVABLECOUNTER Create an observable counter
             %    C = CREATEOBSERVABLECOUNTER(M, CALLBACK, NAME) creates an 
             %    observable counter with the specified callback function 
@@ -117,9 +118,14 @@ classdef Meter < handle
             %    output of type opentelemetry.metrics.ObservableResult.
             %    The counter's value can only increase but not decrease.
             %
-            %    C = CREATEOBSERVABLECOUNTER(M, CALLBACK NAME, DESCRIPTION, UNIT) 
+            %    C = CREATEOBSERVABLECOUNTER(M, CALLBACK, NAME, DESCRIPTION, UNIT) 
             %    also specifies a description and a unit.
             %     
+            %    C = CREATEOBSERVABLECOUNTER(M, CALLBACK, NAME, DESCRIPTION, UNIT, TIMEOUT) 
+            %    also specifies the maximum time before callback is timed 
+            %    out and its results not get recorded. TIMEOUT must be a
+            %    duration.
+            %
             %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
             %    CREATEOBSERVABLEUPDOWNCOUNTER, CREATEOBSERVABLEGAUGE, CREATECOUNTER
             arguments
@@ -128,17 +134,20 @@ classdef Meter < handle
                 name
                 description = ""
                 unit = ""
+                timeout = opentelemetry.metrics.ObservableCounter.DefaultTimeout
             end
 
-            [callback, name, description, unit] = processAsynchronousInputs(...
-                callback, name, description, unit);
-            id = obj.Proxy.createObservableCounter(name, description, unit, callback);
+            [callback, name, description, unit, timeout] = processAsynchronousInputs(...
+                callback, name, description, unit, timeout);
+            id = obj.Proxy.createObservableCounter(name, description, unit, ...
+                callback, milliseconds(timeout));
             ObservableCounterproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ObservableCounterProxy", "ID", id);
             obscounter = opentelemetry.metrics.ObservableCounter(ObservableCounterproxy, name, description, unit, callback);
         end
 
-        function obsudcounter = createObservableUpDownCounter(obj, callback, name, description, unit)
+        function obsudcounter = createObservableUpDownCounter(obj, callback, ...
+                name, description, unit, timeout)
             % CREATEOBSERVABLEUPDOWNCOUNTER Create an observable UpDownCounter
             %    C = CREATEOBSERVABLEUPDOWNCOUNTER(M, CALLBACK, NAME) 
             %    creates an observable UpDownCounter with the specified 
@@ -149,7 +158,12 @@ classdef Meter < handle
             %
             %    C = CREATEOBSERVABLEUPDOWNCOUNTER(M, CALLBACK, NAME, DESCRIPTION, UNIT) 
             %    also specifies a description and a unit.
-            %     
+            %         
+            %    C = CREATEOBSERVABLEUPDOWNCOUNTER(M, CALLBACK, NAME, DESCRIPTION, UNIT, TIMEOUT) 
+            %    also specifies the maximum time before callback is timed 
+            %    out and its results not get recorded. TIMEOUT must be a
+            %    duration.
+            %
             %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
             %    CREATEOBSERVABLECOUNTER, CREATEOBSERVABLEGAUGE, CREATEUPDOWNCOUNTER
             arguments
@@ -158,18 +172,21 @@ classdef Meter < handle
                 name
                 description = ""
                 unit = ""
+                timeout = opentelemetry.metrics.ObservableUpDownCounter.DefaultTimeout
             end
 
-            [callback, name, description, unit] = processAsynchronousInputs(...
-                callback, name, description, unit);
-            id = obj.Proxy.createObservableUpDownCounter(name, description, unit, callback);
+            [callback, name, description, unit, timeout] = processAsynchronousInputs(...
+                callback, name, description, unit, timeout);
+            id = obj.Proxy.createObservableUpDownCounter(name, description, ...
+                unit, callback, milliseconds(timeout));
             ObservableUpDownCounterproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ObservableUpDownCounterProxy", "ID", id);
             obsudcounter = opentelemetry.metrics.ObservableUpDownCounter(...
                 ObservableUpDownCounterproxy, name, description, unit, callback);
         end
 
-        function obsgauge = createObservableGauge(obj, callback, name, description, unit)
+        function obsgauge = createObservableGauge(obj, callback, name, ...
+                description, unit, timeout)
             % CREATEOBSERVABLEGAUGE Create an observable gauge
             %    C = CREATEOBSERVABLEGAUGE(M, CALLBACK, NAME) creates an 
             %    observable gauge with the specified callback function 
@@ -179,9 +196,14 @@ classdef Meter < handle
             %    A gauge's value can increase or decrease but it should 
             %    never be summed in aggregation.
             %
-            %    C = CREATEOBSERVABLEGAUGE(M, CALLBACK NAME, DESCRIPTION, UNIT) 
+            %    C = CREATEOBSERVABLEGAUGE(M, CALLBACK, NAME, DESCRIPTION, UNIT) 
             %    also specifies a description and a unit.
-            %     
+            %          
+            %    C = CREATEOBSERVABLEGAUGE(M, CALLBACK, NAME, DESCRIPTION, UNIT, TIMEOUT) 
+            %    also specifies the maximum time before callback is timed 
+            %    out and its results not get recorded. TIMEOUT must be a
+            %    positive duration scalar.
+            %
             %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
             %    CREATEOBSERVABLECOUNTER, CREATEOBSERVABLEUPDOWNCOUNTER
             arguments
@@ -190,11 +212,13 @@ classdef Meter < handle
                 name
                 description = ""
                 unit = ""
+                timeout = opentelemetry.metrics.ObservableGauge.DefaultTimeout
             end
 
-            [callback, name, description, unit] = processAsynchronousInputs(...
-                callback, name, description, unit);
-            id = obj.Proxy.createObservableGauge(name, description, unit, callback);
+            [callback, name, description, unit, timeout] = processAsynchronousInputs(...
+                callback, name, description, unit, timeout);
+            id = obj.Proxy.createObservableGauge(name, description, unit, ...
+                callback, milliseconds(timeout));
             ObservableGaugeproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ObservableGaugeProxy", "ID", id);
             obsgauge = opentelemetry.metrics.ObservableGauge(...
@@ -211,10 +235,11 @@ description = mustBeScalarString(description);
 unit = mustBeScalarString(unit);
 end
 
-function [callback, name, description, unit] = processAsynchronousInputs(...
-    callback, name, description, unit)
+function [callback, name, description, unit, timeout] = processAsynchronousInputs(...
+    callback, name, description, unit, timeout)
 [name, description, unit] = processSynchronousInputs(name, description, unit);
 if ~isa(callback, "function_handle")
     callback = [];   % callback is invalid, set to empty double
 end
+timeout = opentelemetry.metrics.AsynchronousInstrument.mustBeScalarPositiveDurationTimeout(timeout);
 end
