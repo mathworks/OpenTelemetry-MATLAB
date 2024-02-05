@@ -2,7 +2,7 @@ function response = webread_example
 % This example shows how to propagate context (span ID and trace ID) 
 % to another process when using webread.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
 % initialize tracing
 runOnce(@initTracer);
@@ -26,7 +26,9 @@ end
 
 function initTracer
 % set up global TracerProvider
-tp = opentelemetry.sdk.trace.TracerProvider();
+resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
+tp = opentelemetry.sdk.trace.TracerProvider(...
+    opentelemetry.sdk.trace.SimpleSpanProcessor, Resource=resource);
 setTracerProvider(tp);
 
 % set up global propagator

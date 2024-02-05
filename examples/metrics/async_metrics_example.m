@@ -25,7 +25,8 @@ function initMetrics
 exp = opentelemetry.exporters.otlp.defaultMetricExporter();
 reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exp, ...
     "Interval", seconds(5), "Timeout", seconds(2.5));  % exports every 5 seconds
-mp = opentelemetry.sdk.metrics.MeterProvider(reader);
+resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
+mp = opentelemetry.sdk.metrics.MeterProvider(reader, Resource=resource);
 setMeterProvider(mp);
 end
 

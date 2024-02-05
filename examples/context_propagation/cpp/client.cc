@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry/ext/http/client/http_client_factory.h"
 #include "opentelemetry/ext/http/common/url_parser.h"
@@ -34,8 +34,10 @@ void InitTracer()
       opentelemetry::sdk::trace::SimpleSpanProcessorFactory::Create(std::move(exporter));
   std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanProcessor>> processors;
   processors.push_back(std::move(processor));
+  opentelemetry::sdk::common::AttributeMap servicename = { {"service.name", "OpenTelemetry-Matlab_examples"} };  
+  auto resource = opentelemetry::sdk::resource::Resource::Create(servicename);
   std::unique_ptr<opentelemetry::sdk::trace::TracerContext> context =
-      opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors));
+      opentelemetry::sdk::trace::TracerContextFactory::Create(std::move(processors), resource);
   std::shared_ptr<opentelemetry::trace::TracerProvider> provider =
       opentelemetry::sdk::trace::TracerProviderFactory::Create(std::move(context));
   // Set the global trace provider

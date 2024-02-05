@@ -2,7 +2,7 @@ function response = mymagic(request)
 % Web request handler function that takes context information (trace ID and span ID)
 % from incoming request and set as current context
 %
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
 % initialize tracing
 runOnce(@initTracer);
@@ -40,7 +40,9 @@ end
 
 function initTracer
 % set up global TracerProvider
-tp = opentelemetry.sdk.trace.TracerProvider();
+resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
+tp = opentelemetry.sdk.trace.TracerProvider(...
+    opentelemetry.sdk.trace.SimpleSpanProcessor, Resource=resource);
 setTracerProvider(tp);
 
 % set up global propagator

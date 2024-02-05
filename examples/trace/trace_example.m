@@ -2,7 +2,7 @@ function yf = trace_example
 % This example creates spans to form a trace to instrument some simple
 % MATLAB code that fits a line through a cluster of data points. 
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
 % initialize tracing during first run
 runOnce(@initTracer);
@@ -41,7 +41,9 @@ end
 
 function initTracer
 % set up global TracerProvider
-tp = opentelemetry.sdk.trace.TracerProvider();
+resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
+tp = opentelemetry.sdk.trace.TracerProvider(...
+    opentelemetry.sdk.trace.SimpleSpanProcessor, Resource=resource);
 setTracerProvider(tp);
 end
 
