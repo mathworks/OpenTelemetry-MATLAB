@@ -3,10 +3,10 @@ function metrics_example
 % updowncounter, and a histogram. It then enters a loop and updates the 
 % value of the instruments at each iteration.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
-% initialize meter provider during first run
-runOnce(@initMetrics);
+% initialize meter provider
+initMetrics;
 
 % create meter and instruments
 m = opentelemetry.metrics.getMeter("metrics_example");
@@ -21,6 +21,9 @@ for i = 1:iterations
     h.record(50 + 15*randn);  % normal distribution with mean 50 and std 15
     pause(5);
 end
+
+% clean up
+cleanupMetrics;
 end
 
 
@@ -31,15 +34,14 @@ reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exp, ...
     "Interval", seconds(5), "Timeout", seconds(2.5));  % exports every 5 seconds
 % Use custom histogram bins
 v = opentelemetry.sdk.metrics.View(InstrumentType="histogram", HistogramBinEdges=0:10:100);
-mp = opentelemetry.sdk.metrics.MeterProvider(reader, View=v);
+resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
+mp = opentelemetry.sdk.metrics.MeterProvider(reader, View=v, ...
+    Resource=resource);
 setMeterProvider(mp);
 end
 
-% This helper ensures the input function is only run once
-function runOnce(fh)
-persistent hasrun
-if isempty(hasrun)
-    feval(fh);
-    hasrun = 1;
+function cleanupMetrics
+mp = opentelemetry.metrics.Provider.getMeterProvider();
+opentelemetry.sdk.common.Cleanup.shutdown(mp);   % shutdown
 end
-end
+
