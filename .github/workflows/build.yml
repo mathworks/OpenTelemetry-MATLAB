@@ -44,14 +44,12 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v1
-              with: 
-                release: R2023a
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
                   cmake --version
                   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
-                  cmake --build build --config Release --target install -v
+                  cmake --build build --config Release --target install
             - name: Run tests
               env:
                  # Add the installation directory to the MATLAB Search Path by
@@ -71,8 +69,6 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v1
-              with: 
-                release: R2023a
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
