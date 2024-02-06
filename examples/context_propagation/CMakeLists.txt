@@ -20,7 +20,7 @@ set(CONTEXTPROP_EXAMPLE_DEPLOYNAME mymagic)
 set(CONTEXTPROP_EXAMPLE_MATLAB_SOURCE ${CMAKE_CURRENT_LIST_DIR}/matlab/${CONTEXTPROP_EXAMPLE_DEPLOYNAME}.m)
 set(CONTEXTPROP_EXAMPLE_ROUTES ../../../examples/context_propagation/matlab/routes.json)  #somehow, only relative paths are allowed
 matlab_get_version_from_matlab_run(${Matlab_MAIN_PROGRAM} Matlab_LIST_VERSION)
-if(DEFINED Matlab_LIST_VERSION AND ${Matlab_LIST_VERSION} VERSION_GREATER_EQUAL 23.2.0)
+if(Matlab_LIST_VERSION VERSION_GREATER_EQUAL 23.2.0)
     # since MATLAB R2023b, route mapping can be specified at the archive level
     set(ARCHIVE_ROUTES ",ROUTES:${CONTEXTPROP_EXAMPLE_ROUTES}")
 else()
