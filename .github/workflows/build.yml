@@ -15,6 +15,8 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
@@ -44,6 +46,8 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
@@ -69,6 +73,8 @@ jobs:
                 path: opentelemetry-matlab
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               run: |
                   cd opentelemetry-matlab
