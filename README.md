@@ -4,9 +4,9 @@
 MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), based on the [OpenTelemetry Specification](https://opentelemetry.io/docs/reference/specification/). OpenTelemetry is an observability framework for creating and managing telemetry data, such as traces, metrics, and logs. This data can then be sent to an observability back-end for monitoring, alerts, and analysis. 
 
 ### Status
-- Currently only tracing and metrics are supported. Logs will be in the future.
-- View class in metrics is only partially supported. The properties **Aggregation** and **AllowedAttributes** are not yet supported. 
-- This package is supported and has been tested on Windows&reg;, Linux&reg;, and macOS.
+- Tracing and metrics are fully supported. Logs will be in the future.
+- Supported and tested on Windows&reg;, Linux&reg;, and macOS.
+- Attributes in asynchronous metric instruments are currently ignored because of an issue in the opentelemetry-cpp layer.
 
 ### MathWorks Products (https://www.mathworks.com)
 
@@ -91,4 +91,4 @@ The license is available in the License file within this repository
 ## Community Support
 [MATLAB Central](https://www.mathworks.com/matlabcentral)
 
-Copyright 2023 The MathWorks, Inc.
+Copyright 2023-2024 The MathWorks, Inc.
