@@ -7,7 +7,7 @@ classdef View
     %   * Ignore unwanted instruments
     %   * Ignore unwanted attributes
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties (GetAccess={?opentelemetry.sdk.metrics.MeterProvider})
         Proxy  % Proxy object to interface C++ code
@@ -91,15 +91,13 @@ classdef View
                 options.MeterName {mustBeTextScalar} = ""
                 options.MeterVersion {mustBeTextScalar} = ""
                 options.MeterSchema {mustBeTextScalar} = ""
-                %options.AllowedAttributes {mustBeText, mustBeVector}   % no default here
-                %options.Aggregation {mustBeTextScalar} = "default"
+                options.AllowedAttributes {mustBeText, mustBeVector}   % no default here
+                options.Aggregation {mustBeTextScalar} = "default"
                 options.HistogramBinEdges {mustBeNumeric, mustBeVector} = zeros(1,0)
             end
-            
-            % Aggregation and AllowedAttributes are not yet supported
-            options.Aggregation = "default";
 
-            instrument_types = ["counter", "histogram", "updowncounter"];
+            instrument_types = ["counter", "histogram", "updowncounter", ...
+                "observablecounter", "observableupdowncounter", "observablegauge"];
             instrument_type = validatestring(options.InstrumentType, instrument_types);
 
             aggregation_types = ["drop", "histogram", "lastvalue", "sum", "default"];

@@ -186,7 +186,6 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % verify counter value
             verifyEqual(testCase, dp.asDouble, val);
         end
-        
 
         function testViewHistogram(testCase)
             % testViewHistogram: Change histogram bins
@@ -238,6 +237,74 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % verify histogram buckets
             expected_buckets = {'1'; '0'; '1'; '1'; '0'; '2'; '0'};
             verifyEqual(testCase, dp.bucketCounts, expected_buckets);
+        end
+
+        function testViewAggregation(testCase)
+            % testViewAggregation: change aggregation of metric instruments
+            metername = "foo";
+            countername = "bar";
+            view = opentelemetry.sdk.metrics.View(InstrumentType="Counter", ...
+                InstrumentName=countername, Aggregation="LastValue");
+            mp = opentelemetry.sdk.metrics.MeterProvider(...
+                testCase.ShortIntervalReader, View=view); 
+
+            m = getMeter(mp, metername);
+            c = createCounter(m, countername);
+            
+            % add values
+            maxi = 5;
+            for i = 1:maxi
+                c.add(i);
+            end
+            
+            pause(testCase.WaitTime);
+            
+            clear mp;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify counter value is the last value rather than the sum
+            dp = results.resourceMetrics.scopeMetrics.metrics.gauge.dataPoints;
+            verifyEqual(testCase, dp.asDouble, maxi);
+        end
+
+        function testViewAttributes(testCase)
+            % testViewAttributes: filter out attributes
+            metername = "foo";
+            countername = "bar";
+            view = opentelemetry.sdk.metrics.View(InstrumentType="Counter", ...
+                InstrumentName=countername, AllowedAttributes="Building");
+            mp = opentelemetry.sdk.metrics.MeterProvider(...
+                testCase.ShortIntervalReader, View=view); 
+
+            m = getMeter(mp, metername);
+            c = createCounter(m, countername);
+            
+            % add values
+            values = 10:10:40;
+            add(c, values(1), "Building", 1, "Room", 1);
+            add(c, values(2), "Building", 1, "Room", 2);
+            add(c, values(3), "Building", 1, "Room", 1);
+            add(c, values(4), "Building", 1, "Room", 2);
+            
+            pause(testCase.WaitTime);
+            
+            clear mp;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify "Room" attribute has been filtered out
+            dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
+            verifyEqual(testCase, dp.asDouble, sum(values));
+            verifyLength(testCase, dp.attributes, 1);
+            verifyEqual(testCase, string(dp.attributes(1).key), "Building");
+            verifyEqual(testCase, dp.attributes(1).value.doubleValue, 1);
         end
 
         function testMultipleViews(testCase)

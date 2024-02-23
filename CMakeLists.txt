@@ -125,7 +125,7 @@ else()
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-   set(OTEL_CPP_GIT_TAG "11d5d9e")
+   set(OTEL_CPP_GIT_TAG "e1119ed")
 
    if(DEFINED OTEL_CPP_PREFIX)
        string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
@@ -133,11 +133,7 @@ else()
        set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
    endif()
 
-   if(WITH_OTLP_GRPC)
-       set(OTEL_CPP_CXX_STANDARD 14)  # Abseil requires at least Cxx14
-   else()
-       set(OTEL_CPP_CXX_STANDARD 11)
-   endif()
+   set(OTEL_CPP_CXX_STANDARD 14)
 
    if(NOT APPLE OR SKIP_OTEL_CPP_PATCH)
        set(patch_command "")
