@@ -35,6 +35,13 @@ jobs:
               uses: matlab-actions/run-tests@v2
               with:
                  select-by-folder: opentelemetry-matlab/test
+            - name: Compress into single artifact
+              run: tar -czf otel-matlab-ubuntu.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }} 
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with: 
+                name: otel-matlab-ubuntu.tar.gz
+                path: otel-matlab-ubuntu.tar.gz
     build-and-run-tests-windows:
         runs-on: windows-latest
         env:
