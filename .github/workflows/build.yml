@@ -118,6 +118,10 @@ jobs:
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
+            - name: Checkout OpenTelemetry-Matlab
+              uses: actions/checkout@v4
+              with:
+                path: OpenTelemetry-Matlab
             - name: Download Artifacts
               uses: actions/download-artifact@v3
               with:

@@ -38,7 +38,7 @@ end
 
 disp("Toolbox Version:" + toolboxVersion);
 
-identifier = "ad1d0fe6-22d1-4969-9e6f-0ab5d0f12ce3";
+identifier = "dc2cae2f-4f43-4d2c-b6ed-f1a59f0dfcdf";
 opts = matlab.addons.toolbox.ToolboxOptions(toolboxFolder, identifier);
 opts.ToolboxName = "MATLAB Interface to OpenTelemetry";
 opts.ToolboxVersion = toolboxVersion;
