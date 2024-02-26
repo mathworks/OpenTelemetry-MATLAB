@@ -36,12 +36,13 @@ jobs:
               with:
                  select-by-folder: opentelemetry-matlab/test
             - name: Compress into single artifact
-              run: tar -czf otel-matlab-ubuntu.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }} 
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
                 name: otel-matlab-ubuntu.tar.gz
-                path: otel-matlab-ubuntu.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-ubuntu.tar.gz
     build-and-run-tests-windows:
         runs-on: windows-latest
         env:
@@ -69,12 +70,13 @@ jobs:
               with:
                  select-by-folder: opentelemetry-matlab/test
             - name: Compress into single artifact
-              run: tar -czf otel-matlab-windows.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }} 
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
                 name: otel-matlab-windows.tar.gz
-                path: otel-matlab-windows.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-windows.tar.gz
     build-and-run-tests-macos:
         runs-on: macos-latest
         env:
@@ -102,12 +104,13 @@ jobs:
               with:
                  select-by-folder: opentelemetry-matlab/test
             - name: Compress into single artifact
-              run: tar -czf otel-matlab-macos.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }} 
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-macos.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
                 name: otel-matlab-macos.tar.gz
-                path: otel-matlab-macos.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-macos.tar.gz
     package-mltbx:
         name: Package MATLAB Toolbox (MLTBX) Files
         runs-on: ubuntu-latest
@@ -139,7 +142,7 @@ jobs:
             - name: Run commands
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
-                OTEL_MATLAB_TOOLBOX_FOLDER: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }} 
+                OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
                 OTEL_MATLAB_TOOLBOX_VERSION: 1.6.0
               uses: matlab-actions/run-command@v1
