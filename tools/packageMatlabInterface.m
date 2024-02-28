@@ -24,8 +24,12 @@ opts.ToolboxName = "MATLAB Interface to OpenTelemetry";
 opts.ToolboxVersion = toolboxVersion;
 disp("Toolbox Files:");
 disp(opts.ToolboxFiles);
-disp("Toolbox MATLAB Path (original): " + opts.ToolboxMatlabPath);
-opts.ToolboxMatlabPath = toolboxFolder;
+%disp("Toolbox MATLAB Path (original): " + opts.ToolboxMatlabPath);
+%opts.ToolboxMatlabPath = toolboxFolder;
+disp("Options object:");
+disp(opts);
+disp("pwd: " + pwd);
+dir
 disp("Toolbox MATLAB Path: " + opts.ToolboxMatlabPath);
 opts.AuthorName = "MathWorks DevOps Team";
 opts.AuthorEmail = "";
