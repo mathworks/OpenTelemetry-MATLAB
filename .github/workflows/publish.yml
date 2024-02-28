@@ -1,0 +1,128 @@
+name: "Publish"
+on: 
+    workflow_dispatch:
+    push:
+      branches: 
+        - package
+jobs:
+    build-ubuntu:
+        runs-on: ubuntu-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              run: |
+                  cd opentelemetry-matlab
+                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with: 
+                name: otel-matlab-ubuntu.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-ubuntu.tar.gz
+    build-windows:
+        runs-on: windows-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              run: |
+                  cd opentelemetry-matlab
+                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with: 
+                name: otel-matlab-windows.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-windows.tar.gz
+    build-macos:
+        runs-on: macos-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              run: |
+                  cd opentelemetry-matlab
+                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-macos.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with: 
+                name: otel-matlab-macos.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-macos.tar.gz
+    package-mltbx:
+        name: Package MATLAB Toolbox (MLTBX) Files
+        runs-on: ubuntu-latest
+        needs:
+            - build-ubuntu
+            - build-windows
+            - build-macos
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Checkout OpenTelemetry-Matlab
+              uses: actions/checkout@v3
+              with:
+                path: OpenTelemetry-Matlab
+            - name: Download Artifacts
+              uses: actions/download-artifact@v3
+              with:
+                path: artifacts-downloaded
+            - name: Decompress Artifacts
+              run: |
+                  mv artifacts-downloaded/*/*.tar.gz .
+                  tar -xzf otel-matlab-ubuntu.tar.gz
+                  tar -xzf otel-matlab-macos.tar.gz
+                  tar -xzf otel-matlab-windows.tar.gz
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v1
+              with:
+                release: R2023a
+            - name: Run commands
+              env:
+                MATLABPATH: OpenTelemetry-Matlab/tools
+                OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
+                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
+                OTEL_MATLAB_TOOLBOX_VERSION: 1.6.0
+              uses: matlab-actions/run-command@v1
+              with:
+                command: packageMatlabInterface
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with: 
+                name: otel-matlab.mltbx
+                path: otel-matlab.mltbx
