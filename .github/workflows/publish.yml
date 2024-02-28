@@ -9,7 +9,6 @@ jobs:
         runs-on: ubuntu-latest
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
-            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
@@ -105,9 +104,9 @@ jobs:
             - name: Decompress Artifacts
               run: |
                   mv artifacts-downloaded/*/*.tar.gz .
-                  tar -xzf otel-matlab-ubuntu.tar.gz
-                  tar -xzf otel-matlab-macos.tar.gz
-                  tar -xzf otel-matlab-windows.tar.gz
+                  tar -xzvf otel-matlab-ubuntu.tar.gz
+                  tar -xzvf otel-matlab-macos.tar.gz
+                  tar -xzvf otel-matlab-windows.tar.gz
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v1
               with:
