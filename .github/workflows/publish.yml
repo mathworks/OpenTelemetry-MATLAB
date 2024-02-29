@@ -97,6 +97,9 @@ jobs:
               uses: actions/checkout@v3
               with:
                 path: OpenTelemetry-Matlab
+            - name: Read version
+              id: getversion
+              run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
             - name: Download Artifacts
               uses: actions/download-artifact@v3
               with:
@@ -114,7 +117,7 @@ jobs:
                 MATLABPATH: OpenTelemetry-Matlab/tools
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
-                OTEL_MATLAB_TOOLBOX_VERSION: 1.6.0
+                OTEL_MATLAB_TOOLBOX_VERSION: ${{ steps.getversion.outputs.version }}
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface

@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include <list>
 
@@ -7,8 +7,6 @@
 
 #include "opentelemetry/common/attribute_value.h"
 #include "opentelemetry/nostd/string_view.h"
-
-#define OTEL_MATLAB_VERSION "1.2.0"
 
 namespace common = opentelemetry::common;
 namespace nostd = opentelemetry::nostd;
