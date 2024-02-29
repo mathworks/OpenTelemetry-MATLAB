@@ -6,7 +6,6 @@ MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), base
 ### Status
 - Tracing and metrics are fully supported. Logs will be in the future.
 - Supported and tested on Windows&reg;, Linux&reg;, and macOS.
-- Attributes in asynchronous metric instruments are currently ignored because of an issue in the opentelemetry-cpp layer.
 
 ### MathWorks Products (https://www.mathworks.com)
 

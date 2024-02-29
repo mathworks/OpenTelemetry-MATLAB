@@ -99,7 +99,7 @@ jobs:
                 path: OpenTelemetry-Matlab
             - name: Read version
               id: getversion
-              run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+              run: echo "version=$(cat VERSION.txt)" >> $GITHUB_OUTPUT
             - name: Download Artifacts
               uses: actions/download-artifact@v3
               with:

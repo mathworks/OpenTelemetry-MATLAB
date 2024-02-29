@@ -89,7 +89,7 @@ endif()
 set(CLIENT_PROJECT_NAME otel-matlab)
 
 # read version number
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION OTEL_MATLAB_VERSION_RAW)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt OTEL_MATLAB_VERSION_RAW)
 string(STRIP ${OTEL_MATLAB_VERSION_RAW} OTEL_MATLAB_VERSION)
 
 
@@ -130,7 +130,7 @@ else()
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-   set(OTEL_CPP_GIT_TAG "e1119ed")
+   set(OTEL_CPP_GIT_TAG "a799f4a")
 
    if(DEFINED OTEL_CPP_PREFIX)
        string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
@@ -416,7 +416,7 @@ set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcValidator.m)
-set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/VERSION)
+set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt)
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 

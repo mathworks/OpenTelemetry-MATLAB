@@ -88,7 +88,8 @@ classdef ttrace < matlab.unittest.TestCase
 
             versionidx = find(resourcekeys == "telemetry.sdk.version");
             verifyNotEmpty(testCase, versionidx);
-            verifyEqual(testCase, results.resourceSpans.resource.attributes(versionidx).value.stringValue, '1.2.0');
+            versionstr = strip(fileread(fullfile("..", "VERSION.txt")));
+            verifyEqual(testCase, results.resourceSpans.resource.attributes(versionidx).value.stringValue, versionstr);
 
             nameidx = find(resourcekeys == "telemetry.sdk.name");
             verifyNotEmpty(testCase, nameidx);
