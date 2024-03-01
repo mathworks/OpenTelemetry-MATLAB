@@ -6,7 +6,6 @@ MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), base
 ### Status
 - Tracing and metrics are fully supported. Logs will be in the future.
 - Supported and tested on Windows&reg;, Linux&reg;, and macOS.
-- Attributes in asynchronous metric instruments are currently ignored because of an issue in the opentelemetry-cpp layer.
 
 ### MathWorks Products (https://www.mathworks.com)
 
@@ -21,6 +20,13 @@ Requires MATLAB release R2022b or newer
 ## Installation 
 Installation instructions
 
+### Installing With Toolbox Package
+1. Under "Assets" of a release, download the toolbox package .mltbx file.
+2. Start MATLAB.
+3. In the Current Folder browser, navigate to the .mltbx file.
+4. Right click on the .mltbx file and select "Install".
+
+### Building From Source
 Before proceeding, ensure that the below products are installed:
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
 

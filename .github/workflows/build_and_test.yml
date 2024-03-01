@@ -1,10 +1,12 @@
-name: "OpenTelemetry-Matlab"
+name: "Build and Run Tests"
 on: 
     workflow_dispatch:
     push:
 jobs:
     build-and-run-tests-ubuntu:
-        runs-on: ubuntu-latest
+        # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
+        # Instead, run on ubuntu-20.04
+        runs-on: ubuntu-20.04
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
             SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
@@ -24,11 +26,6 @@ jobs:
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
-                 # The version of libstdc++ that is bundled with MATLAB is used when building MEX files.
-                 # This version of libstdc++ is incompatible with the system version of libstdc++.
-                 # As a workaround, set LD_PRELOAD to use the system version of libstdc++ with MATLAB.
-                 LD_PRELOAD: ${{ env.SYSTEM_LIBSTDCPP_PATH }}
-
                  # Add the installation directory to the MATLAB Search Path by
                  # setting the MATLABPATH environment variable.
                  MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}

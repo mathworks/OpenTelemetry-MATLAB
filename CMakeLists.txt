@@ -88,7 +88,12 @@ endif()
 
 set(CLIENT_PROJECT_NAME otel-matlab)
 
-project(${CLIENT_PROJECT_NAME} VERSION 0.1.0)
+# read version number
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt OTEL_MATLAB_VERSION_RAW)
+string(STRIP ${OTEL_MATLAB_VERSION_RAW} OTEL_MATLAB_VERSION)
+
+
+project(${CLIENT_PROJECT_NAME} VERSION ${OTEL_MATLAB_VERSION})
 
 # ######################################
 # libmexclass 
@@ -125,7 +130,7 @@ else()
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-   set(OTEL_CPP_GIT_TAG "e1119ed")
+   set(OTEL_CPP_GIT_TAG "a799f4a")
 
    if(DEFINED OTEL_CPP_PREFIX)
        string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
@@ -270,17 +275,16 @@ if(WITH_OTLP_GRPC)
 	set(OTLP_MACROS ${OTLP_MACROS} "-D WITH_OTLP_GRPC ")
     endif()
 endif()
-    
-# On Windows, suppress a compiler warning about deprecation of result_of
-if(WIN32)
-    set(CUSTOM_CXX_FLAGS -D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
-else()
-    set(CUSTOM_CXX_FLAGS "")
-endif()
 
 if(WIN32)
+    # On Windows, suppress a compiler warning about deprecation of result_of
+    set(CUSTOM_CXX_FLAGS -D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
+    # pass in version number
+    set(OTLP_MACROS ${OTLP_MACROS} /DOTEL_MATLAB_VERSION="${OTEL_MATLAB_VERSION}")
     set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
+    set(CUSTOM_CXX_FLAGS "")
+    set(OTLP_MACROS ${OTLP_MACROS} "-D OTEL_MATLAB_VERSION=\"${OTEL_MATLAB_VERSION}\"")
     set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
@@ -412,6 +416,7 @@ set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcValidator.m)
+set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt)
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
@@ -430,6 +435,10 @@ endif()
 if(WITH_OTLP_GRPC)
     install(FILES ${OTLP_GRPC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 endif()
+# Install license and version. The only reason these are needed is to work around a packaging bug where if 
+# all files are in packages (+xxx directories), matlab.addons.toolbox.packageToolbox refuses to add the 
+# toolbox path into MATLAB path. This issue is fixed in R2024a
+install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 
 # Install dependent runtime libraries
 set(LIBMEXCLASS_PROXY_INSTALLED_DIR +libmexclass/+proxy)

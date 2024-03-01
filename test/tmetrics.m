@@ -541,9 +541,6 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testAsynchronousInstrumentAttributes(testCase, create_async, datapoint_name)
             % test for attributes when observing metrics for an observable counter
-
-            testCase.assumeTrue(false, "Asynchronous metrics attributes incorrectly ignored due to issue in opentelemetry-cpp 1.14.0");
-
             countername = "bar";
             callback = @callbackWithAttributes;
             
@@ -604,8 +601,6 @@ classdef tmetrics < matlab.unittest.TestCase
         function testAsynchronousInstrumentMultipleCallbacks(testCase, create_async, datapoint_name)
             % Observable counter with more than one callbacks
 
-            testCase.assumeTrue(false, "Asynchronous metrics attributes incorrectly ignored due to issue in opentelemetry-cpp 1.14.0");
-            
             countername = "bar";
             
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
