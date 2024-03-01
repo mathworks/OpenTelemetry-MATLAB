@@ -1,9 +1,8 @@
-name: "Publish"
+name: "Publish mltbx"
 on: 
     workflow_dispatch:
-    push:
-      branches: 
-        - package
+    release:
+      types: published
 jobs:
     build-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
@@ -124,8 +123,12 @@ jobs:
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v2
+            - name: Compress Asset
+              run: zip otel-matlab-${{ github.event.release.tag_name }}.mltbx.zip otel-matlab.mltbx
+            - name: Upload Release Asset
+              uses: actions/upload-release-asset@v1
               with: 
-                name: otel-matlab.mltbx
-                path: otel-matlab.mltbx
+                upload_url: https://uploads.github.com/repos/mathworks/OpenTelemetry-Matlab/releases/${{ github.event.release.id }}/assets{?name,label}`
+                asset_path: ./otel-matlab-${{ github.event.release.tag_name }}.mltbx.zip
+                asset_name: otel-matlab-${{ github.event.release.tag_name }}.mltbx.zip
+                asset_content_type: application/zip
