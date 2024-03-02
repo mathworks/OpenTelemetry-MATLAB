@@ -8,6 +8,8 @@ jobs:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
         # Instead, run on ubuntu-20.04
         runs-on: ubuntu-20.04
+        permissions:
+          contents: write
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
