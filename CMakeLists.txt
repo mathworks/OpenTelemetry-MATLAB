@@ -124,14 +124,17 @@ FetchContent_MakeAvailable(
 
 # Determine OTEL_CPP_PREFIX
 if(DEFINED OTEL_CPP_INSTALLED_DIR)
-   # OTEL_CPP_INSTALLED_DIR should point to an installed location of OpenTelemetry-cpp 
+   # Set OTEL_CPP_INSTALLED_DIR to use a pre-installed OpenTelemetry-cpp
+   # It should point to the installed location
    string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_INSTALLED_DIR})
+elseif(DEFINED OTEL_CPP_PREFIX)
+   # Set OTEL_CPP_PREFIX to specify an install location of the automatically 
+   # downloaded and built OpenTelemetry-cpp, instead of using the default 
+   # location with the build directory. This can preserve the OpenTelemetry-cpp
+   # install even if the build directory is removed.
+     string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
 else()
-   if(DEFINED OTEL_CPP_PREFIX)
-       string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
-   else()
-       set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
-   endif()
+     set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
 endif()
 
 if(WIN32)
