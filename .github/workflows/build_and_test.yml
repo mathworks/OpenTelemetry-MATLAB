@@ -52,7 +52,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
