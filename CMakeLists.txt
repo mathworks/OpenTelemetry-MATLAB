@@ -122,21 +122,54 @@ FetchContent_MakeAvailable(
 # OpenTelemetry-cpp 
 # ###########################
 
+# Determine OTEL_CPP_PREFIX
 if(DEFINED OTEL_CPP_INSTALLED_DIR)
-   # OTEL_CPP_INSTALLED_DIR should point to an installed location of OpenTelemetry-cpp 
+   # Set OTEL_CPP_INSTALLED_DIR to use a pre-installed OpenTelemetry-cpp
+   # It should point to the installed location
    string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_INSTALLED_DIR})
+elseif(DEFINED OTEL_CPP_PREFIX)
+   # Set OTEL_CPP_PREFIX to specify an install location of the automatically 
+   # downloaded and built OpenTelemetry-cpp, instead of using the default 
+   # location with the build directory. This can preserve the OpenTelemetry-cpp
+   # install even if the build directory is removed.
+     string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
 else()
+     set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
+endif()
+
+if(WIN32)
+    set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+    set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()
+
+set(OTEL_CPP_LIBRARIES ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_otlp_recordable${CMAKE_STATIC_LIBRARY_SUFFIX}
+        ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto${OTEL_PROTO_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_resources${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_trace${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_version${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_logs${CMAKE_STATIC_LIBRARY_SUFFIX}
+	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_metrics${CMAKE_STATIC_LIBRARY_SUFFIX})
+if(WITH_OTLP_HTTP)
+    set(OTEL_CPP_LIBRARIES ${OTEL_CPP_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_client${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_metric${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_http_client_curl${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+if(WITH_OTLP_GRPC)
+    set(OTEL_CPP_LIBRARIES ${OTEL_CPP_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_client${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX})
+endif()
+
+if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    # No installed location supplied. Fetch it as an external project
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
    set(OTEL_CPP_GIT_TAG "a799f4a")
-
-   if(DEFINED OTEL_CPP_PREFIX)
-       string(REPLACE "\\" "/" OTEL_CPP_PREFIX ${OTEL_CPP_PREFIX})
-   else()
-       set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
-   endif()
 
    set(OTEL_CPP_CXX_STANDARD 14)
 
@@ -154,6 +187,7 @@ else()
        UPDATE_DISCONNECTED 1
        PATCH_COMMAND ${patch_command}
        CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR}
+       BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
        INSTALL_DIR ${OTEL_CPP_PREFIX}
        INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX}
    )
@@ -259,6 +293,10 @@ libmexclass_client_add_proxy_library(
     INCLUDE_DIRS ${OPENTELEMETRY_PROXY_INCLUDE_DIRS}
 )
 
+if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
+    add_dependencies(${OPENTELEMETRY_PROXY_LIBRARY_NAME} ${OTEL_CPP_PROJECT_NAME})
+endif()
+
 # Additional compiler flags for HTTP/gRPC exporters
 if(WITH_OTLP_HTTP)
     if(WIN32)
@@ -281,42 +319,23 @@ if(WIN32)
     set(CUSTOM_CXX_FLAGS -D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
     # pass in version number
     set(OTLP_MACROS ${OTLP_MACROS} /DOTEL_MATLAB_VERSION="${OTEL_MATLAB_VERSION}")
-    set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 else()
     set(CUSTOM_CXX_FLAGS "")
     set(OTLP_MACROS ${OTLP_MACROS} "-D OTEL_MATLAB_VERSION=\"${OTEL_MATLAB_VERSION}\"")
-    set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
 target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS} ${CUSTOM_CXX_FLAGS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
-set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
-	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_otlp_recordable${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto${OTEL_PROTO_LIBRARY_SUFFIX}
-	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_resources${CMAKE_STATIC_LIBRARY_SUFFIX}
-	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_trace${CMAKE_STATIC_LIBRARY_SUFFIX}
-	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_version${CMAKE_STATIC_LIBRARY_SUFFIX}
-	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_logs${CMAKE_STATIC_LIBRARY_SUFFIX}
-	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
-	${Protobuf_LIBRARIES} ${Matlab_MEX_LIBRARY})
+set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OTEL_CPP_LIBRARIES} ${Protobuf_LIBRARIES} ${Matlab_MEX_LIBRARY})
 if(WITH_OTLP_HTTP)
-    set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_LINK_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
-	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_client${CMAKE_STATIC_LIBRARY_SUFFIX}
-	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_metric${CMAKE_STATIC_LIBRARY_SUFFIX}
-	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_http_client_curl${CMAKE_STATIC_LIBRARY_SUFFIX}
-	    ${CURL_LIBRARIES})
+    set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OPENTELEMETRY_PROXY_LINK_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 if(WITH_OTLP_GRPC)
-    set(OTEL_CPP_LINK_LIBRARIES ${OTEL_CPP_LINK_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
-	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_client${CMAKE_STATIC_LIBRARY_SUFFIX}
-	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX}
-	    gRPC::grpc++
-	    absl::synchronization)
+    set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OPENTELEMETRY_PROXY_LINK_LIBRARIES} gRPC::grpc++ absl::synchronization)
 endif()
 
-target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTEL_CPP_LINK_LIBRARIES})
+target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_LIBRARIES})
 
 # On Linux, when linking with certain static libraries, need to force include entire archive to avoid the linker mistakenly leaving out symbols
 if(UNIX AND NOT APPLE AND NOT CYGWIN)

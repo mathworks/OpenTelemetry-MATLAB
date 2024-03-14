@@ -15,14 +15,16 @@ jobs:
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: sudo apt-get install ninja-build
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
               run: |
-                  cd opentelemetry-matlab
-                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
@@ -46,8 +48,8 @@ jobs:
               with:
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
               run: |
-                  cd opentelemetry-matlab
                   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
@@ -67,14 +69,16 @@ jobs:
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: brew install ninja
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
               run: |
-                  cd opentelemetry-matlab
-                  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
