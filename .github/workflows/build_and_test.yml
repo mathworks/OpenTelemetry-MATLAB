@@ -49,11 +49,11 @@ jobs:
               uses: matlab-actions/setup-matlab@v2
               with:
                 products: MATLAB_Compiler
-            - name: Enable Developer Command Prompt for Visual Studio
-              uses: ilammy/msvc-dev-cmd@v1.13.0
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
+              shell: cmd
               run: |
+                  call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
                   cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
