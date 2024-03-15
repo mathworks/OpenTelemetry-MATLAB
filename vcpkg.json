@@ -7,7 +7,23 @@
     "nlohmann-json"
   ],
   "features": {
-    "otlp-http": {"description": "Otlp HTTP Exporter", "dependencies": ["curl"]},
-    "otlp-grpc": {"description": "Otlp gRPC Exporter", "dependencies": ["grpc", "abseil", "c-ares", "re2", "openssl", "upb"]}
-  }
+    "otlp-http": {
+      "description": "Otlp HTTP Exporter",
+      "dependencies": [
+        "curl"
+      ]
+    },
+    "otlp-grpc": {
+      "description": "Otlp gRPC Exporter",
+      "dependencies": [
+        "grpc",
+        "abseil",
+        "c-ares",
+        "re2",
+        "openssl",
+        "upb"
+      ]
+    }
+  },
+  "builtin-baseline": "638b1588be3a265a9c7ad5b212cef72a1cad336a"
 }
