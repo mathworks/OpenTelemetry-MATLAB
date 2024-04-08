@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "OtelMatlabProxyFactory.h"
 
@@ -8,6 +8,7 @@
 //#include "opentelemetry-matlab/trace/ScopeProxy.h"
 #include "opentelemetry-matlab/trace/SpanContextProxy.h"
 #include "opentelemetry-matlab/trace/TraceContextPropagatorProxy.h"
+#include "opentelemetry-matlab/logs/LoggerProviderProxy.h"
 #include "opentelemetry-matlab/context/propagation/TextMapCarrierProxy.h"
 #include "opentelemetry-matlab/context/propagation/TextMapPropagatorProxy.h"
 #include "opentelemetry-matlab/context/propagation/CompositePropagatorProxy.h"
@@ -25,19 +26,25 @@
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
+#include "opentelemetry-matlab/sdk/logs/LoggerProviderProxy.h"
+#include "opentelemetry-matlab/sdk/logs/SimpleLogRecordProcessorProxy.h"
+#include "opentelemetry-matlab/sdk/logs/BatchLogRecordProcessorProxy.h"
 #ifdef WITH_OTLP_HTTP
     #include "opentelemetry-matlab/exporters/otlp/OtlpHttpSpanExporterProxy.h"
     #include "opentelemetry-matlab/exporters/otlp/OtlpHttpMetricExporterProxy.h"
+    #include "opentelemetry-matlab/exporters/otlp/OtlpHttpLogRecordExporterProxy.h"
 #endif
 #ifdef WITH_OTLP_GRPC
     #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcSpanExporterProxy.h"
     #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcMetricExporterProxy.h"
+    #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcLogRecordExporterProxy.h"
 #endif
 
 libmexclass::proxy::MakeResult
 OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_name,
                                const libmexclass::proxy::FunctionArguments& constructor_arguments) {
 
+    REGISTER_PROXY(libmexclass.opentelemetry.LoggerProviderProxy, libmexclass::opentelemetry::LoggerProviderProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.MeterProviderProxy, libmexclass::opentelemetry::MeterProviderProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TracerProviderProxy, libmexclass::opentelemetry::TracerProviderProxy);
     //REGISTER_PROXY(libmexclass.opentelemetry.TracerProxy, libmexclass::opentelemetry::TracerProxy);
@@ -65,13 +72,19 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.ViewProxy, libmexclass::opentelemetry::sdk::ViewProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.PeriodicExportingMetricReaderProxy, libmexclass::opentelemetry::sdk::PeriodicExportingMetricReaderProxy);
 
+    REGISTER_PROXY(libmexclass.opentelemetry.sdk.LoggerProviderProxy, libmexclass::opentelemetry::sdk::LoggerProviderProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.sdk.SimpleLogRecordProcessorProxy, libmexclass::opentelemetry::sdk::SimpleLogRecordProcessorProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.sdk.BatchLogRecordProcessorProxy, libmexclass::opentelemetry::sdk::BatchLogRecordProcessorProxy);
+
     #ifdef WITH_OTLP_HTTP
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpHttpSpanExporterProxy);
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpHttpMetricExporterProxy, libmexclass::opentelemetry::exporters::OtlpHttpMetricExporterProxy);
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpHttpLogRecordExporterProxy, libmexclass::opentelemetry::exporters::OtlpHttpLogRecordExporterProxy);
     #endif
     #ifdef WITH_OTLP_GRPC
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcSpanExporterProxy);
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcMetricExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcMetricExporterProxy);
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcLogRecordExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcLogRecordExporterProxy);
     #endif
     return nullptr;
 }

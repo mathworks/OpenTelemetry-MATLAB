@@ -2,11 +2,11 @@ classdef Context
 % Propagation mechanism used to carry context data across functions and
 % external interfaces.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties (Access={?opentelemetry.context.propagation.TextMapPropagator, ...
             ?opentelemetry.trace.Span, ?opentelemetry.trace.Tracer, ...
-            ?opentelemetry.baggage.Baggage})
+            ?opentelemetry.logs.Logger, ?opentelemetry.baggage.Baggage})
         Proxy   % Proxy object to interface C++ code
     end
 
