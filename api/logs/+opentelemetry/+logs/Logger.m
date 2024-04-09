@@ -55,11 +55,15 @@ classdef Logger < handle
                 trailingvalues
             end
             if isnumeric(severity) && isscalar(severity)
+                % severity number
                 if severity < 1 || severity > 24 || round(severity) ~= severity
                     severity = 0;   % invalid
                 end
             elseif (isstring(severity) && isscalar(severity)) || ...
                     (ischar(severity) && isrow(severity)) 
+                % severity text
+                % Support 24 valid severity levels: trace, trace2, trace3,
+                % trace4, debug, debug2, debug3, ...
                 severitylist = ["trace", "debug", "info", "warn", "error", "fatal"];
                 severitylist = reshape(severitylist + [""; "2"; "3"; "4"], 1, []);
                 d = dictionary(severitylist, 1:length(severitylist));
@@ -69,6 +73,7 @@ classdef Logger < handle
                     severity = 0;  % invalid
                 end
             else
+                % invalid severity
                 severity = 0;
             end
             try

@@ -95,6 +95,35 @@ classdef tlogs < matlab.unittest.TestCase
             end
         end
 
+        function testSeverity(testCase)
+            % testSeverity: different ways of setting severity
+            loggername = "foo";
+            logmessage = "bar";
+
+            lp = opentelemetry.sdk.logs.LoggerProvider();
+            lg = getLogger(lp, loggername);
+
+            % set severity using text, number, and text with trailing
+            % integer
+            logseverity = {"info" 7 "warn2"};
+            logseveritytext = ["info" "debug3" "warn2"];
+            nseverity = length(logseverity);
+
+            for i = 1:nseverity
+                emitLogRecord(lg, logseverity{i}, logmessage);
+            end
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, nseverity);
+            for i = 1:nseverity
+                resultsi = results{i};
+
+                % check severity is set correctly
+                verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.severityText), upper(logseveritytext(i)));
+            end
+        end
+
         function testImplicitContext(testCase)
             % testImplicitContext: Test current trace and span IDs are recorded
 
