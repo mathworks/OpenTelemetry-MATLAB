@@ -14,6 +14,7 @@ classdef tlogs < matlab.unittest.TestCase
         ExtractPid
         Sigint
         Sigterm
+        ForceFlushTimeout
     end
 
     methods (TestClassSetup)
@@ -22,6 +23,7 @@ classdef tlogs < matlab.unittest.TestCase
             utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
+            testCase.ForceFlushTimeout = seconds(2);
         end
     end
 
@@ -55,6 +57,7 @@ classdef tlogs < matlab.unittest.TestCase
             verifyEqual(testCase, lg.Schema, "");
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, 1);
             if ~isempty(results)
@@ -114,6 +117,7 @@ classdef tlogs < matlab.unittest.TestCase
             end
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, nseverity);
             for i = 1:nseverity
@@ -121,6 +125,54 @@ classdef tlogs < matlab.unittest.TestCase
 
                 % check severity is set correctly
                 verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.severityText), upper(logseveritytext(i)));
+            end
+        end
+
+        function testContent(testCase)
+            % testContent: Content of different data types
+            lp = opentelemetry.sdk.logs.LoggerProvider();
+            lg = getLogger(lp, "foo");
+
+            % scalar
+            scalarcontent = {"abcde" 'fghi' 1 int32(5) true};
+            scalarcontenttype = ["string" "string" "double" "int" "bool"] + "Value";
+            nscalar = length(scalarcontent);
+            % array
+            arraycontent = {["abcde" "fghij"] {'klmn'; 'opqr'} magic(3) int64(magic(4)) [true false true]};
+            arraycontenttype = ["string" "string" "double" "int" "bool"] + "Value";
+            narray = length(arraycontent);
+
+            content = [scalarcontent arraycontent];
+            ncontent = nscalar + narray;
+            for i = 1:ncontent
+                emitLogRecord(lg, "Debug", content{i});
+            end
+
+            % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, ncontent);
+            % check scalar results
+            for i = 1:nscalar
+                resultsi = results{i};
+
+                % compare in strings which works for all types
+                verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.body.(scalarcontenttype(i))), ...
+                    string(scalarcontent{i}));   
+            end
+            % check array results
+            for i = 1:narray
+                resultsi = results{nscalar+i};
+
+                % compare in strings which works for all types
+                verifyEqual(testCase, string({resultsi.resourceLogs.scopeLogs.logRecords.body.arrayValue.values.(arraycontenttype(i))}), ...
+                    string(reshape(arraycontent{i},1,[])));
+                % compare array size
+                verifyNumElements(testCase, resultsi.resourceLogs.scopeLogs.logRecords.attributes, 1);
+                verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.attributes.key), ...
+                    "Body.size");
+                verifyEqual(testCase, [resultsi.resourceLogs.scopeLogs.logRecords.attributes.value.arrayValue.values.doubleValue], ...
+                    size(arraycontent{i}));
             end
         end
 
@@ -142,6 +194,7 @@ classdef tlogs < matlab.unittest.TestCase
             endSpan(sp);
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             
             % check for two records: first a log and second a span
@@ -180,6 +233,7 @@ classdef tlogs < matlab.unittest.TestCase
             endSpan(sp);
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             log = results{1};
 
@@ -200,6 +254,7 @@ classdef tlogs < matlab.unittest.TestCase
             emitLogRecord(lg, "info", "bar", "Timestamp", timestamp);
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             verifyEqual(testCase, datetime(double(string(...
                 results{1}.resourceLogs.scopeLogs.logRecords.timeUnixNano))/1e9, ...
@@ -219,6 +274,7 @@ classdef tlogs < matlab.unittest.TestCase
             emitLogRecord(lg, "warn", "bar", Attributes=attributes);
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
 
             attrkeys = string({results{1}.resourceLogs.scopeLogs.logRecords.attributes.key});
@@ -331,6 +387,7 @@ classdef tlogs < matlab.unittest.TestCase
             end
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, nfuncs);
             for i = 1:nfuncs
@@ -362,6 +419,8 @@ classdef tlogs < matlab.unittest.TestCase
             emitLogRecord(lg, logseverity, logmessage);
 
             % perform test comparisons
+            opentelemetry.sdk.common.Cleanup.forceFlush(...
+                opentelemetry.logs.Provider.getLoggerProvider, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
 
             % check log record, and check its resource to identify the

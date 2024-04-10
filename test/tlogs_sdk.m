@@ -14,6 +14,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
         ExtractPid
         Sigint
         Sigterm
+        ForceFlushTimeout
     end
 
     methods (TestClassSetup)
@@ -22,6 +23,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
+            testCase.ForceFlushTimeout = seconds(2);
         end
     end
 
@@ -55,6 +57,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
 
             % verify if the json results has two exported instances after
             % emitting a single log record
+            forceFlush(p, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             result_count = numel(results);
             verifyEqual(testCase,result_count, 2);
@@ -84,10 +87,9 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             p = opentelemetry.sdk.logs.LoggerProvider(b);
             lg = p.getLogger(loggername);
             lg.emitLogRecord(logseverity, logcontent);
-            % flush the record
-            forceFlush(p, seconds(2));
 
             % verify log content and severity
+            forceFlush(p, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             results = results{1};
             verifyEqual(testCase, string(results.resourceLogs.scopeLogs.scope.name), loggername);
@@ -106,6 +108,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             emitLogRecord(lg, "debug", "qux");
 
             % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             results = results{1};
 
@@ -128,6 +131,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             emitLogRecord(lg, "info", logcontent);
 
             % shutdown the logger provider
+            forceFlush(lp, testCase.ForceFlushTimeout);
             verifyTrue(testCase, shutdown(lp));
 
             % emit another log record
@@ -149,6 +153,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             emitLogRecord(lg, "warn", logcontent);
 
             % shutdown the SDK logger provider through the Cleanup class
+            forceFlush(lp, testCase.ForceFlushTimeout);
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(lp));
 
             % emit another log record
@@ -173,6 +178,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             emitLogRecord(lg, "error", logcontent);
 
             % shutdown the API logger provider through the Cleanup class
+            opentelemetry.sdk.common.Cleanup.forceFlush(lp_api, testCase.ForceFlushTimeout);
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(lp_api));
 
             % emit another log record

@@ -12,8 +12,6 @@
 
 #include "MatlabDataArray.hpp"
 
-//#include <chrono>
-
 namespace logs_api = opentelemetry::logs;
 namespace trace_api = opentelemetry::trace;
 namespace context_api = opentelemetry::context;
@@ -24,8 +22,7 @@ namespace libmexclass::opentelemetry {
 void LoggerProxy::emitLogRecord(libmexclass::proxy::method::Context& context) {
     matlab::data::TypedArray<double> severity_mda = context.inputs[0];
     int severity = static_cast<int>(severity_mda[0]);
-    matlab::data::StringArray content_mda = context.inputs[1];
-    std::string content = static_cast<std::string>(content_mda[0]);
+    matlab::data::Array content_mda = context.inputs[1];
     matlab::data::TypedArray<uint64_t> contextid_mda = context.inputs[2];
     libmexclass::proxy::ID contextid = contextid_mda[0];
     libmexclass::proxy::ID nocontextid(-1);   // wrap around to intmax
@@ -35,6 +32,17 @@ void LoggerProxy::emitLogRecord(libmexclass::proxy::method::Context& context) {
     size_t nattrs = attrnames_mda.getNumberOfElements();
     matlab::data::CellArray attrvalues_mda = context.inputs[5];
     
+    // log content
+    ProcessedAttributes contentattrs;
+    processAttribute("Body", content_mda, contentattrs);  
+    common::AttributeValue log_content;
+    if (contentattrs.Attributes.empty()) {
+        log_content = "";   // invalid content
+    } else {
+        log_content = contentattrs.Attributes.front().second;
+    }
+    bool array_content = (contentattrs.Attributes.size() != 1);  // non-scalar content will need to add size as attribute
+
     nostd::unique_ptr<logs_api::LogRecord> rec = CppLogger->CreateLogRecord();
 
     // context
@@ -65,8 +73,11 @@ void LoggerProxy::emitLogRecord(libmexclass::proxy::method::Context& context) {
            {rec->SetAttribute(attr.first, attr.second);};
        std::for_each(attrs.Attributes.cbegin(), attrs.Attributes.cend(), record_attribute);
     }
+    // Add size attribute if content is nonscalar
+    if (array_content) {
+       rec->SetAttribute(contentattrs.Attributes.back().first, contentattrs.Attributes.back().second);
+    }
 
-    CppLogger->EmitLogRecord(std::move(rec), static_cast<logs_api::Severity>(severity), nostd::string_view{content});
-
+    CppLogger->EmitLogRecord(std::move(rec), static_cast<logs_api::Severity>(severity), log_content);
 }
 } // namespace libmexclass::opentelemetry

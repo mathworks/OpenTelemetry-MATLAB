@@ -76,11 +76,9 @@ classdef Logger < handle
                 % invalid severity
                 severity = 0;
             end
-            try
-                content = string(content);
-            catch
-                content = "";
-            end
+
+    	    % content
+    	    content = convertCharsToStrings(content);  % force char rows into strings
 
             % validate the trailing names and values
             optionnames = ["Context", "Timestamp", "Attributes"];
