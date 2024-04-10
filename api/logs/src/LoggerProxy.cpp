@@ -8,7 +8,7 @@
 #include "opentelemetry/logs/severity.h"
 #include "opentelemetry/logs/log_record.h"
 #include "opentelemetry/trace/context.h"
-#include "opentelemetry/context/Context.h"
+#include "opentelemetry/context/context.h"
 
 #include "MatlabDataArray.hpp"
 
