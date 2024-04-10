@@ -43,13 +43,13 @@ classdef tlogs_sdk < matlab.unittest.TestCase
         function testAddLogRecordProcessor(testCase)
             % testAddLogRecordProcessor: addLogRecordProcessor method
             loggername = "foo";
-            logcontent = "bar";
+            logbody = "bar";
             processor1 = opentelemetry.sdk.logs.SimpleLogRecordProcessor;
             processor2 = opentelemetry.sdk.logs.SimpleLogRecordProcessor;
             p = opentelemetry.sdk.logs.LoggerProvider(processor1);
             p.addLogRecordProcessor(processor2);
             lg = p.getLogger(loggername);
-            lg.emitLogRecord("debug", logcontent);
+            lg.emitLogRecord("debug", logbody);
 
             % verify if the provider has two log processors attached
             processor_count = numel(p.LogRecordProcessor);
@@ -68,7 +68,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % BatchRecordProcessor
             loggername = "foo";
             logseverity = "debug";
-            logcontent = "bar";
+            logbody = "bar";
             queuesize = 500;
             delay = seconds(2);
             batchsize = 50;
@@ -86,15 +86,15 @@ classdef tlogs_sdk < matlab.unittest.TestCase
 
             p = opentelemetry.sdk.logs.LoggerProvider(b);
             lg = p.getLogger(loggername);
-            lg.emitLogRecord(logseverity, logcontent);
+            lg.emitLogRecord(logseverity, logbody);
 
-            % verify log content and severity
+            % verify log body and severity
             forceFlush(p, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
             results = results{1};
             verifyEqual(testCase, string(results.resourceLogs.scopeLogs.scope.name), loggername);
             verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity));
-            verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.body.stringValue), logcontent);
+            verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.body.stringValue), logbody);
         end
 
         function testCustomResource(testCase)
@@ -127,8 +127,8 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             lg = getLogger(lp, "foo");
 
             % emit a log record 
-            logcontent = "bar";
-            emitLogRecord(lg, "info", logcontent);
+            logbody = "bar";
+            emitLogRecord(lg, "info", logbody);
 
             % shutdown the logger provider
             forceFlush(lp, testCase.ForceFlushTimeout);
@@ -140,7 +140,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % verify only the first log record was emitted
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, 1);
-            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logcontent);
+            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logbody);
         end
 
         function testCleanupSdk(testCase)
@@ -149,8 +149,8 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             lg = getLogger(lp, "foo");
 
             % emit a log record 
-            logcontent = "bar";
-            emitLogRecord(lg, "warn", logcontent);
+            logbody = "bar";
+            emitLogRecord(lg, "warn", logbody);
 
             % shutdown the SDK logger provider through the Cleanup class
             forceFlush(lp, testCase.ForceFlushTimeout);
@@ -162,7 +162,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % verify only the first log record was recorded
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, 1);
-            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logcontent);
+            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logbody);
         end
 
         function testCleanupApi(testCase)
@@ -174,8 +174,8 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             lg = getLogger(lp_api, "foo");
 
             % emit a log record 
-            logcontent = "bar";
-            emitLogRecord(lg, "error", logcontent);
+            logbody = "bar";
+            emitLogRecord(lg, "error", logbody);
 
             % shutdown the API logger provider through the Cleanup class
             opentelemetry.sdk.common.Cleanup.forceFlush(lp_api, testCase.ForceFlushTimeout);
@@ -187,7 +187,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % verify only the first log record was recorded
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, 1);
-            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logcontent);
+            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logbody);
         end
     end
 end

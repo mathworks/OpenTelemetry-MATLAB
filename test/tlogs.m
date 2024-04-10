@@ -63,7 +63,7 @@ classdef tlogs < matlab.unittest.TestCase
             if ~isempty(results)
                 results = results{1};
 
-                % check logger name, log content and severity, trace and span IDs 
+                % check logger name, log body and severity, trace and span IDs 
                 verifyEqual(testCase, string(results.resourceLogs.scopeLogs.scope.name), loggername);
                 verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity));
                 verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.body.stringValue), logmessage);
@@ -128,51 +128,51 @@ classdef tlogs < matlab.unittest.TestCase
             end
         end
 
-        function testContent(testCase)
-            % testContent: Content of different data types
+        function testBody(testCase)
+            % testBody: Body of different data types
             lp = opentelemetry.sdk.logs.LoggerProvider();
             lg = getLogger(lp, "foo");
 
             % scalar
-            scalarcontent = {"abcde" 'fghi' 1 int32(5) true};
-            scalarcontenttype = ["string" "string" "double" "int" "bool"] + "Value";
-            nscalar = length(scalarcontent);
+            scalarbody = {"abcde" 'fghi' 1 int32(5) true};
+            scalarbodytype = ["string" "string" "double" "int" "bool"] + "Value";
+            nscalar = length(scalarbody);
             % array
-            arraycontent = {["abcde" "fghij"] {'klmn'; 'opqr'} magic(3) int64(magic(4)) [true false true]};
-            arraycontenttype = ["string" "string" "double" "int" "bool"] + "Value";
-            narray = length(arraycontent);
+            arraybody = {["abcde" "fghij"] {'klmn'; 'opqr'} magic(3) int64(magic(4)) [true false true]};
+            arraybodytype = ["string" "string" "double" "int" "bool"] + "Value";
+            narray = length(arraybody);
 
-            content = [scalarcontent arraycontent];
-            ncontent = nscalar + narray;
-            for i = 1:ncontent
-                emitLogRecord(lg, "Debug", content{i});
+            body = [scalarbody arraybody];
+            nbody = nscalar + narray;
+            for i = 1:nbody
+                emitLogRecord(lg, "Debug", body{i});
             end
 
             % perform test comparisons
             forceFlush(lp, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
-            verifyNumElements(testCase, results, ncontent);
+            verifyNumElements(testCase, results, nbody);
             % check scalar results
             for i = 1:nscalar
                 resultsi = results{i};
 
                 % compare in strings which works for all types
-                verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.body.(scalarcontenttype(i))), ...
-                    string(scalarcontent{i}));   
+                verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.body.(scalarbodytype(i))), ...
+                    string(scalarbody{i}));   
             end
             % check array results
             for i = 1:narray
                 resultsi = results{nscalar+i};
 
                 % compare in strings which works for all types
-                verifyEqual(testCase, string({resultsi.resourceLogs.scopeLogs.logRecords.body.arrayValue.values.(arraycontenttype(i))}), ...
-                    string(reshape(arraycontent{i},1,[])));
+                verifyEqual(testCase, string({resultsi.resourceLogs.scopeLogs.logRecords.body.arrayValue.values.(arraybodytype(i))}), ...
+                    string(reshape(arraybody{i},1,[])));
                 % compare array size
                 verifyNumElements(testCase, resultsi.resourceLogs.scopeLogs.logRecords.attributes, 1);
                 verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.attributes.key), ...
                     "Body.size");
                 verifyEqual(testCase, [resultsi.resourceLogs.scopeLogs.logRecords.attributes.value.arrayValue.values.doubleValue], ...
-                    size(arraycontent{i}));
+                    size(arraybody{i}));
             end
         end
 
@@ -393,7 +393,7 @@ classdef tlogs < matlab.unittest.TestCase
             for i = 1:nfuncs
                 resultsi = results{i};
 
-                % check logger name, log content and severity, trace and span IDs 
+                % check logger name, log body and severity, trace and span IDs 
                 verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.scope.name), loggername);
                 verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity(i)));
                 verifyEqual(testCase, string(resultsi.resourceLogs.scopeLogs.logRecords.body.stringValue), logmessage);

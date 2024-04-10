@@ -25,15 +25,15 @@ classdef Logger < handle
     end
 
     methods
-        function emitLogRecord(obj, severity, content, trailingnames, trailingvalues)
+        function emitLogRecord(obj, severity, body, trailingnames, trailingvalues)
             % EMITLOGRECORD  Create and emit a log record
-            %    EMITLOGRECORD(LG, SEVERITY, CONTENT) emits a log record
-            %    with the specified severity and content. Severity is one
-    	    %    of "trace", "debug", "info", "warn", "error", and "fatal". It
-    	    %    can also be a scalar integer between 1 and 24. Content can be an
-    	    %    array of type double, int32, uint32, int64, logical, or string.
+            %    EMITLOGRECORD(LG, SEVERITY, BODY) emits a log record
+            %    with the specified severity and body. Severity can be one
+    	    %    of "trace", "debug", "info", "warn", "error", and "fatal",
+            %    or it can also be a scalar integer between 1 and 24. Body
+            %    can be any string, numeric, or logical scalar or array.
             %
-            %    EMITLOGRECORD(LG, SEVERITY, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    EMITLOGRECORD(LG, SEVERITY, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -48,7 +48,7 @@ classdef Logger < handle
             arguments
      	       obj
     	       severity
-               content
+               body
             end
             arguments (Repeating)
                 trailingnames
@@ -77,8 +77,8 @@ classdef Logger < handle
                 severity = 0;
             end
 
-    	    % content
-    	    content = convertCharsToStrings(content);  % force char rows into strings
+    	    % body
+    	    body = convertCharsToStrings(body);  % force char rows into strings
 
             % validate the trailing names and values
             optionnames = ["Context", "Timestamp", "Attributes"];
@@ -120,17 +120,16 @@ classdef Logger < handle
                     end
                 end
             end
-            obj.Proxy.emitLogRecord(severity, content, contextid, timestamp, ...
+            obj.Proxy.emitLogRecord(severity, body, contextid, timestamp, ...
                 attributekeys, attributevalues);
         end
 
-        function trace(obj, content, varargin)
+        function trace(obj, body, varargin)
             % TRACE  Create and emit a log record with "trace" severity
-            %    TRACE(LG, CONTENT) emits a log record with "trace" severity. 
-            %    Content can be an array of type double, int32, uint32, 
-            %    int64, logical, or string.
+            %    TRACE(LG, BODY) emits a log record with "trace" severity. 
+            %    Body can be any string, numeric, or logical scalar or array.
             %
-            %    TRACE(LG, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    TRACE(LG, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -143,16 +142,15 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.INFO, OPENTELEMETRY.LOGS.WARN,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "trace", content, varargin{:});
+            emitLogRecord(obj, "trace", body, varargin{:});
         end
 
-        function debug(obj, content, varargin)
+        function debug(obj, body, varargin)
             % DEBUG  Create and emit a log record with "debug" severity
-            %    DEBUG(LG, CONTENT) emits a log record with "debug" severity. 
-            %    Content can be an array of type double, int32, uint32, 
-            %    int64, logical, or string.
+            %    DEBUG(LG, BODY) emits a log record with "debug" severity. 
+            %    Body can be any string, numeric, or logical scalar or array.
             %
-            %    DEBUG(LG, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    DEBUG(LG, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -165,16 +163,15 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.INFO, OPENTELEMETRY.LOGS.WARN,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "debug", content, varargin{:});
+            emitLogRecord(obj, "debug", body, varargin{:});
         end
 
-        function info(obj, content, varargin)
+        function info(obj, body, varargin)
             % INFO  Create and emit a log record with "info" severity
-            %    INFO(LG, CONTENT) emits a log record with "info" severity. 
-            %    Content can be an array of type double, int32, uint32, 
-            %    int64, logical, or string.
+            %    INFO(LG, BODY) emits a log record with "info" severity. 
+            %    Body can be any string, numeric, or logical scalar or array.
             %
-            %    INFO(LG, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    INFO(LG, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -187,16 +184,15 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.WARN,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "info", content, varargin{:});
+            emitLogRecord(obj, "info", body, varargin{:});
         end
 
-        function warn(obj, content, varargin)
+        function warn(obj, body, varargin)
             % WARN  Create and emit a log record with "warn" severity
-            %    WARN(LG, CONTENT) emits a log record with "warn" severity. 
-            %    Content can be an array of type double, int32, uint32, 
-            %    int64, logical, or string.
+            %    WARN(LG, BODY) emits a log record with "warn" severity. 
+            %    Body can be any string, numeric, or logical scalar or array.
             %
-            %    WARN(LG, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    WARN(LG, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -209,16 +205,15 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.INFO,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "warn", content, varargin{:});
+            emitLogRecord(obj, "warn", body, varargin{:});
         end
 
-        function error(obj, content, varargin)
+        function error(obj, body, varargin)
             % ERROR  Create and emit a log record with "error" severity
-            %    ERROR(LG, CONTENT) emits a log record with "error" severity. 
-            %    Content can be an array of type double, int32, uint32, 
-            %    int64, logical, or string.
+            %    ERROR(LG, BODY) emits a log record with "error" severity. 
+            %    Body can be any string, numeric, or logical scalar or array.
             %
-            %    ERROR(LG, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    ERROR(LG, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -231,16 +226,15 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.INFO,
             %    OPENTELEMETRY.LOGS.WARN, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "error", content, varargin{:});
+            emitLogRecord(obj, "error", body, varargin{:});
         end
 
-        function fatal(obj, content, varargin)
+        function fatal(obj, body, varargin)
             % FATAL  Create and emit a log record with "fatal" severity
-            %    FATAL(LG, CONTENT) emits a log record with "fatal" severity. 
-            %    Content can be an array of type double, int32, uint32, 
-            %    int64, logical, or string.
+            %    FATAL(LG, BODY) emits a log record with "fatal" severity. 
+            %    Body can be any string, numeric, or logical scalar or array.
             %
-            %    FATAL(LG, CONTENT, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
+            %    FATAL(LG, BODY, NAME, PARAM1, VALUE1, PARAM2, VALUE2,
             %    ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
@@ -253,7 +247,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.INFO,
             %    OPENTELEMETRY.LOGS.WARN, OPENTELEMETRY.LOGS.ERROR,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "fatal", content, varargin{:});
+            emitLogRecord(obj, "fatal", body, varargin{:});
         end
     end
 
