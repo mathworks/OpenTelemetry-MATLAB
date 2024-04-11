@@ -354,6 +354,7 @@ target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETR
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
     set(OPENTELEMETRY_PROXY_LINK_OPTIONS -Wl,--whole-archive 
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_trace.a"
+	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_logs.a"
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_common.a"
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_otlp_recordable.a"
         ${ABSL_LIBRARIES}
