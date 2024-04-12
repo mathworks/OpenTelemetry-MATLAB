@@ -41,7 +41,9 @@ void LoggerProxy::emitLogRecord(libmexclass::proxy::method::Context& context) {
     } else {
         log_body = bodyattrs.Attributes.front().second;
     }
-    bool array_body = (bodyattrs.Attributes.size() != 1);  // non-scalar body will need to add size as attribute
+    // if body is nonscalar, bodyattrs.Attribute will contain an additional element 
+    // which is the array size
+    bool array_body = (bodyattrs.Attributes.size() > 1);  
 
     nostd::unique_ptr<logs_api::LogRecord> rec = CppLogger->CreateLogRecord();
 

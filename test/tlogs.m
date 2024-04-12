@@ -176,6 +176,26 @@ classdef tlogs < matlab.unittest.TestCase
             end
         end
 
+        function testBodyUnsupportedType(testCase)
+            % testBody: Body of an unsupported type
+            lp = opentelemetry.sdk.logs.LoggerProvider();
+            lg = getLogger(lp, "foo");
+
+            nbody = 2;
+            emitLogRecord(lg, "Warn", datetime("now"));   % datetime scalar
+            emitLogRecord(lg, "Warn", hours(1:4));        % duration array
+
+            % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, nbody);
+            % check results
+            for i = 1:nbody
+                % body should be an empty string
+                verifyEmpty(testCase, results{i}.resourceLogs.scopeLogs.logRecords.body.stringValue);   
+            end
+        end
+
         function testImplicitContext(testCase)
             % testImplicitContext: Test current trace and span IDs are recorded
 
