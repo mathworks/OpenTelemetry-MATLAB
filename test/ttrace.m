@@ -191,6 +191,15 @@ classdef ttrace < matlab.unittest.TestCase
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.traceId, results{2}.resourceSpans.scopeSpans.spans.traceId);
         end
 
+        function testMakeCurrentNoOutput(testCase)
+            % testMakeCurrentNoOutput: calling makeCurrent without an
+            % output should return a warning
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar");
+            verifyWarning(testCase, @()makeCurrent(sp), "opentelemetry:trace:Span:makeCurrent:NoOutputSpecified");
+        end
+
         function testSpanKind(testCase)
             % testSpanKind: specifying SpanKind
 

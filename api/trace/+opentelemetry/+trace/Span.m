@@ -68,6 +68,11 @@ classdef Span < handle
             %    See also OPENTELEMETRY.CONTEXT.CONTEXT,
             %    OPENTELEMETRY.GETCURRENTCONTEXT, OPENTELEMETRY.TRACE.SCOPE
 
+            % return a warning if no output specified
+            if nargout == 0
+                warning("opentelemetry:trace:Span:makeCurrent:NoOutputSpecified", ...
+                    "Calling makeCurrent without specifying an output has no effect.")
+            end
             id = obj.Proxy.makeCurrent();
             scopeproxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.ScopeProxy", "ID", id);
