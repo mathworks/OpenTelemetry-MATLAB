@@ -53,6 +53,7 @@ classdef Tracer < handle
                 trailingnames
                 trailingvalues
             end
+            import opentelemetry.common.processAttributes
             % validate the trailing names and values
             optionnames = ["Context", "SpanKind", "StartTime", "Attributes", "Links"];
             % define default values
@@ -88,16 +89,7 @@ classdef Tracer < handle
                         starttime = posixtime(valuei);
                     end 
                 elseif strcmp(namei, "Attributes")
-                    valuei = trailingvalues{i};
-                    if isa(valuei, "dictionary")
-                        attributekeys = keys(valuei);
-                        attributevalues = values(valuei,"cell");
-                        % collapse one level of cells, as this may be due to
-                        % a behavior of dictionary.values
-                        if all(cellfun(@iscell, attributevalues))
-                            attributevalues = [attributevalues{:}];
-                        end
-                    end
+                    [attributekeys, attributevalues] = processAttributes(trailingvalues{i}, true);
                 elseif strcmp(namei, "Links")
                     valuei = trailingvalues{i};
                     if isa(valuei, "opentelemetry.trace.Link")
@@ -106,13 +98,7 @@ classdef Tracer < handle
                         for li = 1:nlinks
                             links{1,li} = valuei(li).Target.Proxy.ID;
                             linkattrs = valuei(li).Attributes;
-                            linkattrkeys = keys(linkattrs);
-                            linkattrvalues = values(linkattrs,"cell");
-                            % collapse one level of cells, as this may be due to
-                            % a behavior of dictionary.values
-                            if ~isempty(linkattrvalues) && all(cellfun(@iscell, linkattrvalues))
-                                linkattrvalues = [linkattrvalues{:}];
-                            end
+                            [linkattrkeys, linkattrvalues] = processAttributes(linkattrs, true); 
                             links{2,li} = linkattrkeys;
                             links{3,li} = linkattrvalues;
                         end

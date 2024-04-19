@@ -22,21 +22,15 @@ classdef SynchronousInstrument < handle
         end
 
         function processValue(obj, value, varargin)
+            import opentelemetry.common.processAttributes
             % input value must be a numerical real scalar
             if isnumeric(value) && isscalar(value) && isreal(value)
                 if nargin == 2
                     obj.Proxy.processValue(value);
-                elseif isa(varargin{1}, "dictionary")
-                    attrkeys = keys(varargin{1});
-                    attrvals = values(varargin{1},"cell");
-                    if all(cellfun(@iscell, attrvals))
-                        attrvals = [attrvals{:}];
-                    end
-                    obj.Proxy.processValue(value, attrkeys, attrvals);
                 else
-                    attrkeys = [varargin{1:2:length(varargin)}]';
-                    attrvals = [varargin(2:2:length(varargin))]';
-                    obj.Proxy.processValue(value, attrkeys, attrvals);
+                    % attributes
+                    [attrkeys, attrvalues] = processAttributes(varargin);
+                    obj.Proxy.processValue(value, attrkeys, attrvalues);
                 end
             end
         end

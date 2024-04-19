@@ -54,6 +54,7 @@ classdef Logger < handle
                 trailingnames
                 trailingvalues
             end
+            import opentelemetry.common.processAttributes
             if isnumeric(severity) && isscalar(severity)
                 % severity number
                 if severity < 1 || severity > 24 || round(severity) ~= severity
@@ -108,16 +109,7 @@ classdef Logger < handle
                         timestamp = posixtime(valuei);
                     end
                 elseif strcmp(namei, "Attributes")
-                    valuei = trailingvalues{i};
-                    if isa(valuei, "dictionary")
-                        attributekeys = keys(valuei);
-                        attributevalues = values(valuei,"cell");
-                        % collapse one level of cells, as this may be due to
-                        % a behavior of dictionary.values
-                        if all(cellfun(@iscell, attributevalues))
-                            attributevalues = [attributevalues{:}];
-                        end
-                    end
+                    [attributekeys, attributevalues] = processAttributes(trailingvalues{i}, true);
                 end
             end
             obj.Proxy.emitLogRecord(severity, body, contextid, timestamp, ...

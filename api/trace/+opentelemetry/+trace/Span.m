@@ -1,7 +1,7 @@
 classdef Span < handle
 % A span that represents a unit of work within a trace.  
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties 
         Name  (1,1) string   % Name of span
@@ -84,11 +84,10 @@ classdef Span < handle
             %    name-value pairs.
             %
             %    See also ADDEVENT
-            attrs = obj.processAttributes(varargin);
-            
-            attrslen = length(attrs);
-            for i = 1:2:attrslen
-                obj.Proxy.setAttribute(attrs{i}, attrs{i+1});
+            [attrnames, attrvalues] = opentelemetry.common.processAttributes(varargin);
+
+            for i = 1:length(attrnames)
+                obj.Proxy.setAttribute(attrnames(i), attrvalues{i});
             end
         end
 
@@ -115,7 +114,12 @@ classdef Span < handle
             end
 
             eventname = opentelemetry.common.mustBeScalarString(eventname);
-            attrs = obj.processAttributes(varargin);
+            [attrnames, attrvalues] = opentelemetry.common.processAttributes(varargin);
+            attrs = cell(2,length(attrnames));
+            for i = 1:length(attrnames)
+                attrs{1,i} = attrnames(i);
+                attrs(2,i) = attrvalues(i);
+            end
             obj.Proxy.addEvent(eventname, eventtime, attrs{:});        
         end
 
@@ -180,80 +184,4 @@ classdef Span < handle
             context = opentelemetry.context.Context(contextproxy);
         end
     end
-
-    methods (Static, Access=private)
-        function attrs = processAttributes(attrsin)
-            import opentelemetry.trace.Span.processAttribute
-
-            if isscalar(attrsin) && isa(attrsin{1}, "dictionary")
-                % dictionary case
-      	       attrtbl = entries(attrsin{1});
-               nattr = height(attrtbl);
-               if ~iscell(attrtbl.(2))   % force attribute values to be cell array
-                   attrtbl.(2) = mat2cell(attrtbl.(2),ones(1, nattr));
-               end
-               validattrs = true(1,nattr);
-               attrs = cell(2,nattr);
-               for i = 1:nattr
-                  attrname = attrtbl{i,1};
-       	          attrvalue = attrtbl{i,2}{1};
-                  [validattrs(i), attrname, attrvalue] = processAttribute(attrname, attrvalue);
-                  attrs{1,i} = attrname;                      
-                  attrs{2,i} = attrvalue;
-               end
-               % remove the invalid attributes
-               attrs(:, ~validattrs) = [];
-               attrs = attrs(:);
-            else
-                % NV pairs
-                nin = length(attrsin);
-                if rem(nin,2) ~= 0
-                    % Mismatched name-value pairs. Ignore all attributes.
-                    attrs = cell(1,0);
-                    return
-                end
-                validattrs = true(1,nin);
-                attrs = cell(1,nin);
-                for i = 1:2:nin
-                    attrname = attrsin{i};
-                    attrvalue = attrsin{i+1};
-                    [validattrs(i), attrname, attrvalue] = processAttribute(attrname, attrvalue);
-                    validattrs(i+1) = validattrs(i);
-                    attrs{i} = attrname;
-                    attrs{i+1} = attrvalue;
-                end
-                % remove the invalid attributes
-                attrs(~validattrs) = [];
-            end
-        end
-
-        function [isvalid, attrname, attrval] = processAttribute(attrname, attrval)
-            % check for errors, and perform type conversion for an
-            % individual attribute
-            if ~(isStringScalar(attrname) || (ischar(attrname) && isrow(attrname)))
-                isvalid = false;
-                return
-            else
-                attrname = string(attrname);
-            end
-            if isfloat(attrval)
-                attrval = double(attrval);
-            elseif isinteger(attrval)
-                if isa(attrval, "int8") || isa(attrval, "int16")
-                    attrval = int32(attrval);
-                elseif isa(attrval, "uint8") || isa(attrval, "uint16")
-                    attrval = uint32(attrval);
-                elseif isa(attrval, "uint64")
-                    attrval = int64(attrval);
-                end
-            elseif ischar(attrval) && isrow(attrval)
-                attrval = string(attrval);
-            elseif ~(isstring(attrval) || islogical(attrval))
-                isvalid = false;
-                return
-            end
-            isvalid = true;
-        end
-    end
-
 end

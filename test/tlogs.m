@@ -286,11 +286,17 @@ classdef tlogs < matlab.unittest.TestCase
 
             lp = opentelemetry.sdk.logs.LoggerProvider();
             lg = getLogger(lp, "foo");
-            attributes = dictionary(["stringscalar", "doublescalar", "int32scalar", "uint32scalar", ...
-                "int64scalar", "logicalscalar", "doublearray", "int32array", "uint32array", ...
-                "int64array", "logicalarray", "stringarray"], {"foo", 10, int32(10), uint32(20), ...
-                int64(35), false, [2 3; 4 5], int32(1:6), uint32((15:18).'), int64(reshape(1:4,2,1,2)), ...
-                [true false true], ["foo", "bar", "quux", "quz"]});
+            attributes = dictionary(["stringscalar", "charrow", "singlescalar", ...
+                "doublescalar", "int8scalar", "uint16scalar", "int32scalar", "uint32scalar", ...
+                "int64scalar", "uint64scalar", "logicalscalar", "singlearray", ...
+                "doublearray", "int8array", "uint16array", "int32array", "uint32array", ...
+                "int64array", "uint64array", "logicalarray", "stringarray", ...
+                "cellstr", "duration"], {"foo", 'bar', single(5), 10, int8(1), ...
+                uint16(10), int32(10), uint32(20), int64(35), uint64(100), false, ...
+                single([1 2; 3 4]), [2 3; 4 5], int8(-2:3), uint16(1:5), ...
+                int32(1:6), uint32((15:18).'), int64(reshape(1:4,2,1,2)), ...
+                uint64([100 200; 300 400]), [true false true], ["foo", "bar", "quux", "quz"], ...
+                {'foo', 'bar', 'quux', 'quz'}, hours(2)});
             emitLogRecord(lg, "warn", "bar", Attributes=attributes);
 
             % perform test comparisons
@@ -300,74 +306,66 @@ classdef tlogs < matlab.unittest.TestCase
             attrkeys = string({results{1}.resourceLogs.scopeLogs.logRecords.attributes.key});
 
             % scalars
-            stringscidx = find(attrkeys == "stringscalar");
-            verifyNotEmpty(testCase, stringscidx);
-            verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.attributes(stringscidx).value.stringValue), attributes{"stringscalar"});
+            % string and char
+            textscalars = ["stringscalar" "charrow"];
+            for i = 1:length(textscalars)
+                stringscidx = find(attrkeys == textscalars(i));
+                verifyNotEmpty(testCase, stringscidx);
+                verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.attributes(stringscidx).value.stringValue), ...
+                    string(attributes{textscalars(i)}));
+            end
 
-            doublescidx = find(attrkeys == "doublescalar");
-            verifyNotEmpty(testCase, doublescidx);
-            verifyEqual(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(doublescidx).value.doubleValue, ...
-                attributes{"doublescalar"});
+            % floating point scalars
+            floatscalars = ["single" "double"] + "scalar";
+            for i = 1:length(floatscalars)
+                floatscidx = find(attrkeys == floatscalars(i));
+                verifyNotEmpty(testCase, floatscidx);
+                verifyEqual(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(floatscidx).value.doubleValue, ...
+                    double(attributes{floatscalars(i)}));
+            end
 
-            i32scidx = find(attrkeys == "int32scalar");
-            verifyNotEmpty(testCase, i32scidx);
-            verifyEqual(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(i32scidx).value.intValue, ...
-                char(string(attributes{"int32scalar"})));
+            % integer scalars
+            intscalars = ["int8" "uint16" "int32" "uint32" "int64" "uint64"] + "scalar";
+            for i = 1:length(intscalars)
+                intscidx = find(attrkeys == intscalars(i));
+                verifyNotEmpty(testCase, intscidx);
+                verifyEqual(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(intscidx).value.intValue, ...
+                    char(string(attributes{intscalars(i)})));
+            end
 
-            u32scidx = find(attrkeys == "uint32scalar");
-            verifyNotEmpty(testCase, u32scidx);
-            verifyEqual(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(u32scidx).value.intValue, ...
-                char(string(attributes{"uint32scalar"})));
-
-            i64scidx = find(attrkeys == "int64scalar");
-            verifyNotEmpty(testCase, i64scidx);
-            verifyEqual(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(i64scidx).value.intValue, ...
-                char(string(attributes{"int64scalar"})));
-
+            % logical scalar
             logicalscidx = find(attrkeys == "logicalscalar");
             verifyNotEmpty(testCase, logicalscidx);
             verifyFalse(testCase, results{1}.resourceLogs.scopeLogs.logRecords.attributes(logicalscidx).value.boolValue);
 
             % arrays
-            doublearidx = find(attrkeys == "doublearray");
-            verifyNotEmpty(testCase, doublearidx);
-            verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(doublearidx).value.arrayValue.values.doubleValue], ...
-                reshape(attributes{"doublearray"}, 1, []));
+            % floating point arrays
+            floatarrays = ["single" "double"] + "array";
+            for i = 1:length(floatarrays)
+                floataridx = find(attrkeys == floatarrays(i));
+                verifyNotEmpty(testCase, floataridx);
+                verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(floataridx).value.arrayValue.values.doubleValue], ...
+                    double(reshape(attributes{floatarrays(i)}, 1, [])));
 
-            doubleszidx = find(attrkeys == "doublearray.size");
-            verifyNotEmpty(testCase, doubleszidx);
-            verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(doubleszidx).value.arrayValue.values.doubleValue], ...
-                size(attributes{"doublearray"}));
+                floatszidx = find(attrkeys == floatarrays(i) + ".size");
+                verifyNotEmpty(testCase, floatszidx);
+                verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(floatszidx).value.arrayValue.values.doubleValue], ...
+                    size(attributes{floatarrays(i)}));
+            end
 
-            i32aridx = find(attrkeys == "int32array");
-            verifyNotEmpty(testCase, i32aridx);
-            verifyEqual(testCase, double(string({results{1}.resourceLogs.scopeLogs.logRecords.attributes(i32aridx).value.arrayValue.values.intValue})), ...
-                double(reshape(attributes{"int32array"},1,[])));
+            % integer arrays
+            intarrays = ["int8" "uint16" "int32" "uint32" "int64" "uint64"] + "array";
+            for i = 1:length(intarrays)
+                intaridx = find(attrkeys == intarrays(i));
+                verifyNotEmpty(testCase, intaridx);
+                verifyEqual(testCase, double(string({results{1}.resourceLogs.scopeLogs.logRecords.attributes(intaridx).value.arrayValue.values.intValue})), ...
+                    double(reshape(attributes{intarrays(i)},1,[])));
 
-            i32szidx = find(attrkeys == "int32array.size");
-            verifyNotEmpty(testCase, i32szidx);
-            verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(i32szidx).value.arrayValue.values.doubleValue], ...
-                size(attributes{"int32array"}));
-
-            u32aridx = find(attrkeys == "uint32array");
-            verifyNotEmpty(testCase, u32aridx);
-            verifyEqual(testCase, double(string({results{1}.resourceLogs.scopeLogs.logRecords.attributes(u32aridx).value.arrayValue.values.intValue})), ...
-                double(reshape(attributes{"uint32array"},1,[])));
-
-            u32szidx = find(attrkeys == "uint32array.size");
-            verifyNotEmpty(testCase, u32szidx);
-            verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(u32szidx).value.arrayValue.values.doubleValue], ...
-                size(attributes{"uint32array"}));
-
-            i64aridx = find(attrkeys == "int64array");
-            verifyNotEmpty(testCase, i64aridx);
-            verifyEqual(testCase, double(string({results{1}.resourceLogs.scopeLogs.logRecords.attributes(i64aridx).value.arrayValue.values.intValue})), ...
-                double(reshape(attributes{"int64array"},1,[])));
-
-            i64szidx = find(attrkeys == "int64array.size");
-            verifyNotEmpty(testCase, i64szidx);
-            verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(i64szidx).value.arrayValue.values.doubleValue], ...
-                size(attributes{"int64array"}));
+                intszidx = find(attrkeys == intarrays(i) + ".size");
+                verifyNotEmpty(testCase, intszidx);
+                verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(intszidx).value.arrayValue.values.doubleValue], ...
+                    size(attributes{intarrays(i)}));
+            end           
 
             logicalaridx = find(attrkeys == "logicalarray");
             verifyNotEmpty(testCase, logicalaridx);
@@ -379,15 +377,23 @@ classdef tlogs < matlab.unittest.TestCase
             verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(logicalszidx).value.arrayValue.values.doubleValue], ...
                 size(attributes{"logicalarray"}));
 
-            stringaridx = find(attrkeys == "stringarray");
-            verifyNotEmpty(testCase, stringaridx);
-            verifyEqual(testCase, string({results{1}.resourceLogs.scopeLogs.logRecords.attributes(stringaridx).value.arrayValue.values.stringValue}), ...
-                attributes{"stringarray"});
+            % text arrays
+            textarrays = ["stringarray" "cellstr"];
+            for i = 1:length(textarrays)
+                stringaridx = find(attrkeys == textarrays(i));
+                verifyNotEmpty(testCase, stringaridx);
+                verifyEqual(testCase, string({results{1}.resourceLogs.scopeLogs.logRecords.attributes(stringaridx).value.arrayValue.values.stringValue}), ...
+                    string(attributes{textarrays(i)}));
 
-            stringszidx = find(attrkeys == "stringarray.size");
-            verifyNotEmpty(testCase, stringszidx);
-            verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(stringszidx).value.arrayValue.values.doubleValue], ...
-                size(attributes{"stringarray"}));
+                stringszidx = find(attrkeys == textarrays(i) + ".size");
+                verifyNotEmpty(testCase, stringszidx);
+                verifyEqual(testCase, [results{1}.resourceLogs.scopeLogs.logRecords.attributes(stringszidx).value.arrayValue.values.doubleValue], ...
+                    size(attributes{textarrays(i)}));
+            end
+
+            % duration, not supported
+            durationidx = find(attrkeys == "duration");
+            verifyEmpty(testCase, durationidx);
         end
 
         function testSeverityFunctions(testCase)
