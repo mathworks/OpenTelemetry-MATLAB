@@ -7,7 +7,7 @@ classdef OtlpHttpLogRecordExporter < opentelemetry.sdk.logs.LogRecordExporter
 
     properties
         Endpoint (1,1) string = "http://localhost:4318/v1/logs" % Export destination
-        Format (1,1) string = "JSON"             % Data format, JSON or binary
+        Format (1,1) string = "binary"             % Data format, JSON or binary
         JsonBytesMapping (1,1) string = "hexId"  % What to convert JSON bytes to
         UseJsonName (1,1) logical = false        % Whether to use JSON name of protobuf field to set the key of JSON      
         Timeout (1,1) duration = seconds(10)     % Maximum time above which exports will abort
