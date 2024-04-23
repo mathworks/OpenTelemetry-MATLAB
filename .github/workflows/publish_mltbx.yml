@@ -127,7 +127,7 @@ jobs:
             - name: Run commands
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
-                OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
+                OTEL_MATLAB_TOOLBOX_FOLDER: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
                 OTEL_MATLAB_TOOLBOX_VERSION: ${{ steps.getversion.outputs.version }}
               uses: matlab-actions/run-command@v1
