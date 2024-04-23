@@ -28,7 +28,7 @@ jobs:
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
-              run: tar -czf otel-matlab-ubuntu.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL}}
+              run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
@@ -58,7 +58,7 @@ jobs:
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
-              run: tar -czf otel-matlab-windows.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
@@ -86,7 +86,7 @@ jobs:
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
-              run: tar -czf otel-matlab-macos.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              run: tar -czf otel-matlab-macos.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
@@ -127,7 +127,7 @@ jobs:
             - name: Run commands
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
-                OTEL_MATLAB_TOOLBOX_FOLDER: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
                 OTEL_MATLAB_TOOLBOX_VERSION: ${{ steps.getversion.outputs.version }}
               uses: matlab-actions/run-command@v1
