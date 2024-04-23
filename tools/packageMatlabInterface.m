@@ -29,7 +29,7 @@ opts.AuthorEmail = "";
 opts.SupportedPlatforms.Win64 = true;
 opts.SupportedPlatforms.Maci64 = true;
 opts.SupportedPlatforms.Glnxa64 = true;
-opts.SupportedPlatforms.MatlabOnline = false;
+opts.SupportedPlatforms.MatlabOnline = true;
 
 opts.MinimumMatlabRelease = "R2022a";
 
