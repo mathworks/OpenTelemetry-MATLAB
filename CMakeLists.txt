@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.9.0)
 
 cmake_policy(SET CMP0074 NEW)
 
@@ -37,7 +37,7 @@ else()
 
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
    set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
-   set(VCPKG_GIT_TAG "9edb1b8")
+   set(VCPKG_GIT_TAG "fba75d0")
    FetchContent_Declare(
        ${VCPKG_FETCH_CONTENT_NAME}
        GIT_REPOSITORY ${VCPKG_GIT_REPOSITORY}
@@ -155,12 +155,14 @@ if(WITH_OTLP_HTTP)
     set(OTEL_CPP_LIBRARIES ${OTEL_CPP_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_client${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_metric${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_http_log${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_http_client_curl${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 if(WITH_OTLP_GRPC)
     set(OTEL_CPP_LIBRARIES ${OTEL_CPP_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_client${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_log${CMAKE_STATIC_LIBRARY_SUFFIX}
             ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX})
 endif()
 
@@ -169,7 +171,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-   set(OTEL_CPP_GIT_TAG "a799f4a")
+   set(OTEL_CPP_GIT_TAG "054b0dc")
 
    set(OTEL_CPP_CXX_STANDARD 14)
 
@@ -225,24 +227,28 @@ endif()
 
 set(TRACE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/include)
 set(METRICS_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/metrics/include)
+set(LOGS_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/logs/include)
 set(CONTEXT_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/context/include) 
 set(BAGGAGE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/include) 
 set(COMMON_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/common/include) 
 set(TRACE_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/include)
 set(METRICS_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/metrics/include)
+set(LOGS_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/logs/include)
 set(COMMON_SDK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/common/include)
 set(OTLP_EXPORTER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/include)
-set(OPENTELEMETRY_PROXY_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${TRACE_API_INCLUDE_DIR} ${METRICS_API_INCLUDE_DIR} ${CONTEXT_API_INCLUDE_DIR} ${BAGGAGE_API_INCLUDE_DIR} ${COMMON_API_INCLUDE_DIR} ${TRACE_SDK_INCLUDE_DIR} ${METRICS_SDK_INCLUDE_DIR} ${COMMON_SDK_INCLUDE_DIR} ${OTLP_EXPORTER_INCLUDE_DIR} ${OTEL_CPP_PREFIX}/include ${Matlab_INCLUDE_DIRS})
+set(OPENTELEMETRY_PROXY_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${TRACE_API_INCLUDE_DIR} ${METRICS_API_INCLUDE_DIR} ${LOGS_API_INCLUDE_DIR} ${CONTEXT_API_INCLUDE_DIR} ${BAGGAGE_API_INCLUDE_DIR} ${COMMON_API_INCLUDE_DIR} ${TRACE_SDK_INCLUDE_DIR} ${METRICS_SDK_INCLUDE_DIR} ${LOGS_SDK_INCLUDE_DIR} ${COMMON_SDK_INCLUDE_DIR} ${OTLP_EXPORTER_INCLUDE_DIR} ${OTEL_CPP_PREFIX}/include ${Matlab_INCLUDE_DIRS})
 
 set(OPENTELEMETRY_PROXY_FACTORY_CLASS_NAME OtelMatlabProxyFactory)
 set(OPENTELEMETRY_PROXY_FACTORY_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(TRACE_API_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/src)
 set(METRICS_API_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/metrics/src)
+set(LOGS_API_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/logs/src)
 set(CONTEXT_API_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/context/src)
 set(BAGGAGE_API_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/src)
 set(COMMON_API_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/common/src)
 set(TRACE_SDK_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/src)
 set(METRICS_SDK_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/metrics/src)
+set(LOGS_SDK_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/logs/src)
 set(COMMON_SDK_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/common/src)
 set(OTLP_EXPORTER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/src)
 set(OPENTELEMETRY_PROXY_SOURCES
@@ -261,6 +267,8 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${METRICS_API_SOURCE_DIR}/MeasurementFetcher.cpp
     ${METRICS_API_SOURCE_DIR}/AsynchronousInstrumentProxy.cpp
     ${METRICS_API_SOURCE_DIR}/AsynchronousInstrumentProxyFactory.cpp
+    ${LOGS_API_SOURCE_DIR}/LoggerProviderProxy.cpp
+    ${LOGS_API_SOURCE_DIR}/LoggerProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapPropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/CompositePropagatorProxy.cpp
     ${CONTEXT_API_SOURCE_DIR}/TextMapCarrierProxy.cpp
@@ -273,18 +281,23 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${METRICS_SDK_SOURCE_DIR}/MeterProviderProxy.cpp
     ${METRICS_SDK_SOURCE_DIR}/ViewProxy.cpp
     ${METRICS_SDK_SOURCE_DIR}/PeriodicExportingMetricReaderProxy.cpp
+    ${LOGS_SDK_SOURCE_DIR}/LoggerProviderProxy.cpp
+    ${LOGS_SDK_SOURCE_DIR}/SimpleLogRecordProcessorProxy.cpp
+    ${LOGS_SDK_SOURCE_DIR}/BatchLogRecordProcessorProxy.cpp
     ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
 if(WITH_OTLP_HTTP)
     set(OPENTELEMETRY_PROXY_SOURCES 
     ${OPENTELEMETRY_PROXY_SOURCES} 
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpSpanExporterProxy.cpp
-    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpMetricExporterProxy.cpp)
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpMetricExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpHttpLogRecordExporterProxy.cpp)
 endif()
 if(WITH_OTLP_GRPC)
     set(OPENTELEMETRY_PROXY_SOURCES 
     ${OPENTELEMETRY_PROXY_SOURCES}
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp
-    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp)
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcLogRecordExporterProxy.cpp)
 endif()
 
 libmexclass_client_add_proxy_library(
@@ -341,6 +354,7 @@ target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETR
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
     set(OPENTELEMETRY_PROXY_LINK_OPTIONS -Wl,--whole-archive 
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_trace.a"
+	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_logs.a"
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_common.a"
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_otlp_recordable.a"
         ${ABSL_LIBRARIES}
@@ -417,23 +431,28 @@ libmexclass_client_install(
 # Install M files
 set(TRACE_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/+opentelemetry)
 set(METRICS_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/metrics/+opentelemetry)
+set(LOGS_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/logs/+opentelemetry)
 set(CONTEXT_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/context/+opentelemetry)
 set(BAGGAGE_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/baggage/+opentelemetry)
 set(COMMON_API_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/api/common/+opentelemetry)
 set(TRACE_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/trace/+opentelemetry)
 set(METRICS_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/metrics/+opentelemetry)
+set(LOGS_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/logs/+opentelemetry)
 set(COMMON_SDK_MATLAB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sdk/common/+opentelemetry)
 set(EXPORTER_MATLAB_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultSpanExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultMetricExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/defaultLogRecordExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpValidator.m)
 set(OTLP_HTTP_EXPORTER_MATLAB_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpSpanExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpMetricExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpLogRecordExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpHttpValidator.m)
 set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcSpanExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcLogRecordExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcValidator.m)
 set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt)
 
@@ -441,11 +460,13 @@ set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
 install(DIRECTORY ${TRACE_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${METRICS_API_MATLAB_SOURCES} DESTINATION .)
+install(DIRECTORY ${LOGS_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${CONTEXT_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${BAGGAGE_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${COMMON_API_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${TRACE_SDK_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${METRICS_SDK_MATLAB_SOURCES} DESTINATION .)
+install(DIRECTORY ${LOGS_SDK_MATLAB_SOURCES} DESTINATION .)
 install(DIRECTORY ${COMMON_SDK_MATLAB_SOURCES} DESTINATION .)
 install(FILES ${EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 if(WITH_OTLP_HTTP)

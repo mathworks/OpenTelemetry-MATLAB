@@ -24,11 +24,11 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
-              run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
+              run: tar -czf otel-matlab-ubuntu.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL}}
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
@@ -54,11 +54,11 @@ jobs:
               shell: cmd
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
-              run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
+              run: tar -czf otel-matlab-windows.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
@@ -82,11 +82,11 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
-              run: tar -czf otel-matlab-macos.tar.gz otel_matlab_install
+              run: tar -czf otel-matlab-macos.tar.gz ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
             - name: Upload artifacts
               uses: actions/upload-artifact@v2
               with: 
@@ -133,14 +133,12 @@ jobs:
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface
-            - name: Compress Asset
-              run: zip otel-matlab-${{ github.event.release.tag_name }}.mltbx.zip otel-matlab.mltbx
             - name: Upload Release Asset
               uses: actions/upload-release-asset@v1
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with: 
                 upload_url: ${{ github.event.release.upload_url }}
-                asset_path: ./otel-matlab-${{ github.event.release.tag_name }}.mltbx.zip
-                asset_name: otel-matlab-${{ github.event.release.tag_name }}.mltbx.zip
-                asset_content_type: application/zip
+                asset_path: ./otel-matlab.mltbx
+                asset_name: otel-matlab.mltbx
+                asset_content_type: application/octet-stream

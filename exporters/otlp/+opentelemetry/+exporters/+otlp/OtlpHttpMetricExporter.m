@@ -3,11 +3,11 @@ classdef OtlpHttpMetricExporter < opentelemetry.sdk.metrics.MetricExporter
 % HTTP. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         Endpoint (1,1) string = "http://localhost:4318/v1/metrics"  % Export destination
-        Format (1,1) string = "JSON"                % Data format, JSON or binary
+        Format (1,1) string = "binary"                % Data format, JSON or binary
         JsonBytesMapping (1,1) string = "hexId"     % What to convert JSON bytes to
         UseJsonName (1,1) logical = false           % Whether to use JSON name of protobuf field to set the key of JSON 
         Timeout (1,1) duration = seconds(10)        % Maximum time above which exports will abort

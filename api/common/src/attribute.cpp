@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 
 #include "opentelemetry-matlab/common/attribute.h"
@@ -34,10 +34,12 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
        } else if (valtype == matlab::data::ArrayType::LOGICAL) {
           matlab::data::TypedArray<bool> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, attrvalue_mda[0]));
-       } else {   // string
+       } else if (valtype == matlab::data::ArrayType::MATLAB_STRING) {   // string
           matlab::data::StringArray attrvalue_mda = attrvalue;
           attrs.StringBuffer.push_back(static_cast<std::string>(*(attrvalue_mda.begin())));
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, attrs.StringBuffer.back()));
+       } else {   // ignore all other types
+	   return;
        }
     } else {  // array case
        if (valtype == matlab::data::ArrayType::DOUBLE) {
@@ -60,7 +62,7 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
           matlab::data::TypedArray<bool> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
 	     nostd::span<const bool>{&(*attrvalue_mda.cbegin()), &(*attrvalue_mda.cend())})); 
-       } else {   // string
+       } else if (valtype == matlab::data::ArrayType::MATLAB_STRING) {   // string
           matlab::data::StringArray attrvalue_mda = attrvalue;
 	  std::vector<nostd::string_view> strarray_attr;
 	  strarray_attr.reserve(nelements);
@@ -72,6 +74,8 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
 	  attrs.StringViewBuffer.push_back(strarray_attr);
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
 	     nostd::span<const nostd::string_view>{&(*attrs.StringViewBuffer.back().cbegin()), &(*attrs.StringViewBuffer.back().cend())}));
+       } else {   // ignore all other types
+	   return;
        }
        // Add a size attribute to preserve the shape
        std::string sizeattr{attrname + ".size"};

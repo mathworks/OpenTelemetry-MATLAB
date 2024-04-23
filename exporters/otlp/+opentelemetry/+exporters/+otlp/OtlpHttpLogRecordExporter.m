@@ -1,12 +1,12 @@
-classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
-% OtlpHttpSpanExporter exports spans in OpenTelemetry Protocol format via 
+classdef OtlpHttpLogRecordExporter < opentelemetry.sdk.logs.LogRecordExporter
+% OtlpHttpLogRecordExporter exports log records in OpenTelemetry Protocol format via 
 % HTTP. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
-% Copyright 2023-2024 The MathWorks, Inc.
+% Copyright 2024 The MathWorks, Inc.
 
     properties
-        Endpoint (1,1) string = "http://localhost:4318/v1/traces" % Export destination
+        Endpoint (1,1) string = "http://localhost:4318/v1/logs" % Export destination
         Format (1,1) string = "binary"             % Data format, JSON or binary
         JsonBytesMapping (1,1) string = "hexId"  % What to convert JSON bytes to
         UseJsonName (1,1) logical = false        % Whether to use JSON name of protobuf field to set the key of JSON      
@@ -19,13 +19,13 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
     end
 
     methods
-        function obj = OtlpHttpSpanExporter(optionnames, optionvalues)
-            % OtlpHttpSpanExporter exports spans in OpenTelemetry Protocol format via HTTP.
-            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER
+        function obj = OtlpHttpLogRecordExporter(optionnames, optionvalues)
+            % OtlpHttpLogRecordExporter exports log records in OpenTelemetry Protocol format via HTTP.
+            %    EXP = OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPLOGRECORDEXPORTER
             %    creates an exporter that uses default configurations.
             %
             %    EXP =
-            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER(PARAM1,
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPLOGRECORDEXPORTER(PARAM1,
             %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
             %    name/value pairs. Parameters are:
             %       "Endpoint"          - Endpoint to export to
@@ -41,14 +41,14 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
             %                             will abort
             %       "HTTPHeaders"       - Additional HTTP Headers
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCLOGRECORDEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues
             end
 
-            obj = obj@opentelemetry.sdk.trace.SpanExporter(...
-                "libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy");
+            obj = obj@opentelemetry.sdk.logs.LogRecordExporter(...
+                "libmexclass.opentelemetry.exporters.OtlpHttpLogRecordExporterProxy");
 
             validnames = ["Endpoint", "Format", "JsonBytesMapping", ...
                 "UseJsonName", "Timeout", "HttpHeaders"];
