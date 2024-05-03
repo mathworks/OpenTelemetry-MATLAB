@@ -2,6 +2,8 @@ name: "Build and Run Tests"
 on: 
     workflow_dispatch:
     push:
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}  # necessary for mcc in building context propagation example      
 jobs:
     build-and-run-tests-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
