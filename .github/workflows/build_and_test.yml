@@ -65,7 +65,10 @@ jobs:
               with:
                  select-by-folder: opentelemetry-matlab/test
     build-and-run-tests-macos:
-        runs-on: macos-latest
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [macos-13, macos-14]   # runs on Mac with both Intel (macos-13) and Apple Silicon (macos-14) processors
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
