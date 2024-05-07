@@ -191,7 +191,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
        CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR}
        BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
        INSTALL_DIR ${OTEL_CPP_PREFIX}
-       INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX}
+       INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
    )
 endif()
 
@@ -369,29 +369,30 @@ target_compile_features(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE cxx_std_17)
 
 if(WIN32)
     # runtime dependent libraries
-    set(DEPENDS_BINDIR $<$<CONFIG:Debug>:debug/bin>$<$<CONFIG:Release>:bin>)
-    FILE(GLOB PROTOBUF_RUNTIME ${PROTOBUF_INCLUDE_DIRS}/../bin/*.dll)
-    FILE(GLOB ZLIB_RUNTIME ${ZLIB_INCLUDE_DIRS}/../bin/*.dll)
-
-    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${PROTOBUF_RUNTIME}
-        ${ZLIB_RUNTIME})
+    # The TARGET_FILE generator command is somehow returning the .lib file instead of .dll for Protobuf and Zlib. 
+    # As a result, we have to hardcode those library names instead.
+    set(PROTOBUF_DLL $<$<CONFIG:Debug>:libprotobufd.dll>$<$<CONFIG:Release>:libprotobuf.dll>)
+    set(ZLIB_DLL $<$<CONFIG:Debug>:zlibd1.dll>$<$<CONFIG:Release>:zlib1.dll>)
+    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES $<TARGET_FILE_DIR:protobuf::libprotobuf>/../bin/${PROTOBUF_DLL}
+	    $<TARGET_FILE_DIR:ZLIB::ZLIB>/../bin/${ZLIB_DLL})
 
     if(WITH_OTLP_HTTP)
-        FILE(GLOB CURL_RUNTIME ${CURL_INCLUDE_DIRS}/../bin/*.dll)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-	    ${CURL_RUNTIME})
+            $<TARGET_FILE:CURL::libcurl>)
     endif()
 
     if(WITH_OTLP_GRPC)
-        FILE(GLOB ABSEIL_RUNTIME ${ABSL_INCLUDE_DIRS}/../bin/*.dll)
-        FILE(GLOB C_ARES_RUNTIME ${C-ARES_INCLUDE_DIR}/../bin/*.dll)
-        FILE(GLOB OPENSSL_RUNTIME ${OPENSSL_INCLUDE_DIR}/../bin/*.dll)
-        FILE(GLOB RE2_RUNTIME ${RE2_INCLUDE_DIR}/../bin/*.dll)
+	# The TARGET_FILE generator command fails to return the DLL libraries for Abseil and OpenSSL.
+        # As a result, we have to hardcode those library names instead.
+	set(ABSL_DLL abseil_dll.dll)
+	set(OPENSSL_DLL libssl-3-x64.dll)
+	set(OPENSSL_CRYPTO_DLL libcrypto-3-x64.dll)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-            ${ABSEIL_RUNTIME}
-            ${C_ARES_RUNTIME}
-            ${OPENSSL_RUNTIME}
-            ${RE2_RUNTIME})
+            $<TARGET_FILE_DIR:c-ares::cares>/../bin/${ABSL_DLL}
+	    $<TARGET_FILE:c-ares::cares>
+	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_DLL}
+	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL}
+	    $<TARGET_FILE:re2::re2>)
     endif()
 elseif(UNIX AND NOT CYGWIN)
     if(WITH_OTLP_GRPC)
