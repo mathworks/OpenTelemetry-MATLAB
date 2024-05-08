@@ -1,3 +1,5 @@
+# Set this option to ON if running in GitHub Actions workflows
+option(USE_BATCH_FOR_MCC "Running on GitHub Actions workflows requires calling mcc using matlab-batch due to licensing constraints." OFF)
 
 # C++ target
 set(CONTEXTPROP_EXAMPLE_CPP_TARGET contextprop_example_client)
@@ -38,9 +40,16 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LIBMEXCLASS_PROXY_INSTAL
 	DEPENDS ${OPENTELEMETRY_MEX_GATEWAY_NAME}) 
 
 # Call mcc to create .ctf file for deployment with MATLAB Production Server
+if(USE_BATCH_FOR_MCC)
+    set(MCC_START "matlab-batch \"mcc")
+    set(MCC_END "\"")
+else()
+    set(MCC_START ${Matlab_MCC_COMPILER})
+    set(MCC_END "")
+endif()
 add_custom_target(${CONTEXTPROP_EXAMPLE_MATLAB_TARGET} ALL 
-	matlab-batch \"mcc -W CTF:${CONTEXTPROP_EXAMPLE_DEPLOYNAME}${ARCHIVE_ROUTES} -U ${CONTEXTPROP_EXAMPLE_MATLAB_SOURCE} 
+	${MCC_START} -W CTF:${CONTEXTPROP_EXAMPLE_DEPLOYNAME}${ARCHIVE_ROUTES} -U ${CONTEXTPROP_EXAMPLE_MATLAB_SOURCE} 
 	    -a ${CMAKE_SOURCE_DIR}/api/trace -a ${CMAKE_SOURCE_DIR}/api/context -a ${CMAKE_SOURCE_DIR}/api/common -a ${CMAKE_SOURCE_DIR}/sdk/trace 
 	    -a ${CMAKE_SOURCE_DIR}/sdk/common -a ${CMAKE_SOURCE_DIR}/exporters/otlp -a ${${LIBMEXCLASS_FETCH_CONTENT_NAME}_SOURCE_DIR}/libmexclass/matlab 
-	    -a ${CMAKE_CURRENT_BINARY_DIR}/${LIBMEXCLASS_PROXY_INSTALLED_DIR}\" 
+	    -a ${CMAKE_CURRENT_BINARY_DIR}/${LIBMEXCLASS_PROXY_INSTALLED_DIR}${MCC_END}
 	DEPENDS ${CONTEXTPROP_EXAMPLE_MATLAB_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/${LIBMEXCLASS_PROXY_INSTALLED_DIR})  
