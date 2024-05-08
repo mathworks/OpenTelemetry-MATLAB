@@ -41,7 +41,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LIBMEXCLASS_PROXY_INSTAL
 
 # Call mcc to create .ctf file for deployment with MATLAB Production Server
 if(USE_BATCH_FOR_MCC)
-    set(MCC_START "matlab-batch \"mcc")
+    set(MCC_START matlab-batch \"mcc)
     set(MCC_END "\"")
 else()
     set(MCC_START ${Matlab_MCC_COMPILER})
