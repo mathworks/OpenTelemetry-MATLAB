@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/trace/SpanProxy.h"
 #include "opentelemetry-matlab/trace/ScopeProxy.h"
@@ -34,9 +34,9 @@ libmexclass::proxy::MakeResult SpanProxy::make(const libmexclass::proxy::Functio
 }
 
 void SpanProxy::endSpan(libmexclass::proxy::method::Context& context) {
-    matlab::data::TypedArray<double> endtime_mda = context.inputs[0];
-    double endtime = endtime_mda[0];    // number of seconds since 1/1/1970 (i.e. POSIX time)
-    if (endtime==endtime) {  // not NaN. NaN means not specified
+    if (context.inputs.getNumberOfElements() > 0) {
+       matlab::data::TypedArray<double> endtime_mda = context.inputs[0];
+       double endtime = endtime_mda[0];    // number of seconds since 1/1/1970 (i.e. POSIX time)
        trace_api::EndSpanOptions options;
        // conversion between system_time and steady_time
        common::SystemTimestamp end_system_time{std::chrono::duration<double>(endtime)};
@@ -87,7 +87,7 @@ void SpanProxy::addEvent(libmexclass::proxy::method::Context& context) {
     std::string eventname = static_cast<std::string>(eventname_mda[0]);
     matlab::data::TypedArray<double> eventtime_mda = context.inputs[1];
     common::SystemTimestamp eventtime{std::chrono::duration<double>{eventtime_mda[0]}};
-    size_t nin = context.inputs.getNumberOfElements();
+    const size_t nin = context.inputs.getNumberOfElements();
     // attributes
     ProcessedAttributes eventattrs;
     for (size_t i = 2, count = 0; i < nin; i += 2, ++count) {
@@ -106,17 +106,17 @@ void SpanProxy::addEvent(libmexclass::proxy::method::Context& context) {
 
 void SpanProxy::setStatus(libmexclass::proxy::method::Context& context) {
     matlab::data::StringArray status_mda = context.inputs[0];
-    std::string status = static_cast<std::string>(status_mda[0]);
+    matlab::data::MATLABString status = status_mda[0];
     matlab::data::StringArray descr_mda = context.inputs[1];
     std::string descr = static_cast<std::string>(descr_mda[0]);
 
     trace_api::StatusCode code;
-    if (status.compare("Unset")==0) {
+    if (status->compare(u"Unset")==0) {
        code = trace_api::StatusCode::kUnset;
-    } else if (status.compare("Ok")==0) {
+    } else if (status->compare(u"Ok")==0) {
        code = trace_api::StatusCode::kOk;
     } else {
-       assert(status.compare("Error")==0);
+       assert(status->compare(u"Error")==0);
        code = trace_api::StatusCode::kError;
     } 
     CppSpan->SetStatus(code, descr);
