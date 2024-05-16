@@ -18,8 +18,10 @@ classdef traceTest < matlab.perftest.TestCase
     
     methods (TestClassSetup)
         function setupOnce(testCase)
-            testdir = fileparts(mfilename("fullpath"));
-            addpath(fullfile(testdir, "..", "utils"));  % add directory where common setup and teardown code lives
+            % add directory where common setup and teardown code lives
+            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "..", "utils");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            
             commonSetupOnce(testCase);
 
             % create a global tracer provider
