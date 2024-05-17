@@ -51,37 +51,34 @@ classdef metricsTest < matlab.perftest.TestCase
     end
 
     methods (Test)
-        function testCounter(testCase)
-            % create and increment a counter
+        function testCreateCounter(testCase)
+            % create a counter
             mt = opentelemetry.metrics.getMeter("foo");
 
             testCase.startMeasuring();
             c = createCounter(mt, "bar");
-            add(c, 5);
             testCase.stopMeasuring();
         end
 
-        function testUpDownCounter(testCase)
-            % create and increment an up-down-counter
+        function testCreateUpDownCounter(testCase)
+            % create an up-down-counter
             mt = opentelemetry.metrics.getMeter("foo");
 
             testCase.startMeasuring();
             c = createUpDownCounter(mt, "bar");
-            add(c, -5);
             testCase.stopMeasuring();
         end
 
-        function testHistogram(testCase)
-            % create a histogram and record a value
+        function testCreateHistogram(testCase)
+            % create a histogram
             mt = opentelemetry.metrics.getMeter("foo");
 
             testCase.startMeasuring();
             h = createHistogram(mt, "bar");
-            record(h, 111);
             testCase.stopMeasuring();
         end
 
-        function testObservableCounter(testCase)
+        function testCreateObservableCounter(testCase)
             % create an observable counter
             mt = opentelemetry.metrics.getMeter("foo");
 
@@ -90,7 +87,7 @@ classdef metricsTest < matlab.perftest.TestCase
             testCase.stopMeasuring();
         end
 
-        function testObservableUpDownCounter(testCase)
+        function testCreateObservableUpDownCounter(testCase)
             % create an observable up-down-counter
             mt = opentelemetry.metrics.getMeter("foo");
 
@@ -99,12 +96,51 @@ classdef metricsTest < matlab.perftest.TestCase
             testCase.stopMeasuring();
         end
 
-        function testObservableGauge(testCase)
+        function testCreateObservableGauge(testCase)
             % create an observable gauge
             mt = opentelemetry.metrics.getMeter("foo");
 
             testCase.startMeasuring();
             g = createObservableGauge(mt, @callbackNoAttributes, "bar");
+            testCase.stopMeasuring();
+        end
+
+        function testCounterAdd(testCase)
+            % increment a counter
+            mt = opentelemetry.metrics.getMeter("foo");
+            c = createCounter(mt, "bar");
+
+            testCase.startMeasuring();     
+            % run through a loop since the time for 1 iteration is too short
+            for i = 1:10
+                add(c, 5);
+            end
+            testCase.stopMeasuring();
+        end
+
+        function testUpDownCounterAdd(testCase)
+            % Increment an up-down-counter
+            mt = opentelemetry.metrics.getMeter("foo");
+            c = createUpDownCounter(mt, "bar");
+
+            testCase.startMeasuring();
+            % run through a loop since the time for 1 iteration is too short
+            for i = 1:10
+                add(c, -5);
+            end
+            testCase.stopMeasuring();
+        end
+
+        function testHistogramRecord(testCase)
+            % record a histogram value
+            mt = opentelemetry.metrics.getMeter("foo");
+            h = createHistogram(mt, "bar");
+
+            testCase.startMeasuring();
+            % run through a loop since the time for 1 iteration is too short
+            for i = 1:10
+                record(h, 111);
+            end
             testCase.stopMeasuring();
         end
 
