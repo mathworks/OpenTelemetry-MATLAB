@@ -52,12 +52,9 @@ classdef logsTest < matlab.perftest.TestCase
             % create and emit a log record
             lg = opentelemetry.logs.getLogger("foo");
 
-            testCase.startMeasuring();
-            % run through a loop since the time for 1 iteration is too short
-            for i = 1:10
+            while(testCase.keepMeasuring)
                 emitLogRecord(lg, "info", "bar");
             end
-            testCase.stopMeasuring();
         end
 
         function testAttributes(testCase)

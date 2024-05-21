@@ -110,12 +110,9 @@ classdef metricsTest < matlab.perftest.TestCase
             mt = opentelemetry.metrics.getMeter("foo");
             c = createCounter(mt, "bar");
 
-            testCase.startMeasuring();     
-            % run through a loop since the time for 1 iteration is too short
-            for i = 1:10
+            while(testCase.keepMeasuring)
                 add(c, 5);
             end
-            testCase.stopMeasuring();
         end
 
         function testUpDownCounterAdd(testCase)
@@ -123,12 +120,9 @@ classdef metricsTest < matlab.perftest.TestCase
             mt = opentelemetry.metrics.getMeter("foo");
             c = createUpDownCounter(mt, "bar");
 
-            testCase.startMeasuring();
-            % run through a loop since the time for 1 iteration is too short
-            for i = 1:10
+            while(testCase.keepMeasuring)
                 add(c, -5);
             end
-            testCase.stopMeasuring();
         end
 
         function testHistogramRecord(testCase)
@@ -136,12 +130,9 @@ classdef metricsTest < matlab.perftest.TestCase
             mt = opentelemetry.metrics.getMeter("foo");
             h = createHistogram(mt, "bar");
 
-            testCase.startMeasuring();
-            % run through a loop since the time for 1 iteration is too short
-            for i = 1:10
+            while(testCase.keepMeasuring)
                 record(h, 111);
             end
-            testCase.stopMeasuring();
         end
 
         function testCounterAttributes(testCase)
