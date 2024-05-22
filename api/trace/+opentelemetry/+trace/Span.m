@@ -45,16 +45,15 @@ classdef Span < handle
             %
             %    See also OPENTELEMETRY.TRACE.TRACER.STARTSPAN
             if nargin < 2
-                endposixtime = NaN;
+                obj.Proxy.endSpan();
             else
                 if ~(isdatetime(endtime) && isscalar(endtime) && ~isnat(endtime))
                     % invalid end time, ignore
-                    endposixtime = NaN;
+                    obj.Proxy.endSpan();
                 else
-                    endposixtime = posixtime(endtime);
+                    obj.Proxy.endSpan(posixtime(endtime));
                 end
             end
-            obj.Proxy.endSpan(endposixtime);
             obj.Ended = true;
         end
 

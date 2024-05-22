@@ -65,8 +65,10 @@ classdef Logger < handle
                 % severity text
                 % Support 24 valid severity levels: trace, trace2, trace3,
                 % trace4, debug, debug2, debug3, ...
-                severitylist = ["trace", "debug", "info", "warn", "error", "fatal"];
-                severitylist = reshape(severitylist + [""; "2"; "3"; "4"], 1, []);
+                severitylist = ["trace" "trace2" "trace3" "trace4" "debug" ...
+                    "debug2" "debug3" "debug4" "info" "info2" "info3" "info4" ...
+                    "warn" "warn2" "warn3" "warn4" "error" "error2" "error3" ...
+                    "error4" "fatal" "fatal2" "fatal3" "fatal4"];
                 d = dictionary(severitylist, 1:length(severitylist));
                 try
                     severity = d(lower(severity));
@@ -81,39 +83,59 @@ classdef Logger < handle
     	    % body
     	    body = convertCharsToStrings(body);  % force char rows into strings
 
-            % validate the trailing names and values
-            optionnames = ["Context", "Timestamp", "Attributes"];
-            
-            % define default values
-            contextid = intmax("uint64");   % default value which means no context supplied
-            timestamp = NaN;
-            attributekeys = string.empty();
-            attributevalues = {};
+            if nargin <= 3
+                obj.Proxy.emitLogRecord(severity, body);
+            else
+                % validate the trailing names and values
+                optionnames = ["Context", "Timestamp", "Attributes"];
 
-            % Loop through Name-Value pairs
-            for i = 1:length(trailingnames)
-                try
-                    namei = validatestring(trailingnames{i}, optionnames);
-                catch
-                    % invalid option, ignore
-                    continue
+                % define default values
+                contextid = intmax("uint64");   % default value which means no context supplied
+                timestamp = NaN;
+                attributekeys = string.empty();
+                attributevalues = {};
+
+                % variables to keep track of which proxy function to call
+                specifyoptions = false;
+                specifyattributes = false;
+
+                % Loop through Name-Value pairs
+                for i = 1:length(trailingnames)
+                    try
+                        namei = validatestring(trailingnames{i}, optionnames);
+                    catch
+                        % invalid option, ignore
+                        continue
+                    end
+                    if strcmp(namei, "Context")
+                        context = trailingvalues{i};
+                        if isa(context, "opentelemetry.context.Context")
+                            contextid = context.Proxy.ID;
+                            specifyoptions = true;
+                        end
+                    elseif strcmp(namei, "Timestamp")
+                        valuei = trailingvalues{i};
+                        if isdatetime(valuei) && isscalar(valuei) && ~isnat(valuei)
+                            timestamp = posixtime(valuei);
+                            specifyoptions = true;
+                        end
+                    elseif strcmp(namei, "Attributes")
+                        [attributekeys, attributevalues] = processAttributes(trailingvalues{i}, true);
+                        specifyattributes = true;
+                    end
                 end
-                if strcmp(namei, "Context")                    
-                    context = trailingvalues{i};
-                    if isa(context, "opentelemetry.context.Context")
-                        contextid = context.Proxy.ID;
-                    end
-                elseif strcmp(namei, "Timestamp")
-                    valuei = trailingvalues{i};
-                    if isdatetime(valuei) && isscalar(valuei) && ~isnat(valuei)
-                        timestamp = posixtime(valuei);
-                    end
-                elseif strcmp(namei, "Attributes")
-                    [attributekeys, attributevalues] = processAttributes(trailingvalues{i}, true);
+
+                if ~specifyoptions && ~specifyattributes
+                    obj.Proxy.emitLogRecord(severity, body);
+                elseif specifyoptions && ~specifyattributes
+                    obj.Proxy.emitLogRecord(severity, body, contextid, timestamp);
+                elseif ~specifyoptions && specifyattributes
+                    obj.Proxy.emitLogRecord(severity, body, attributekeys, attributevalues);
+                else  % specifyoptions && specifyattributes
+                    obj.Proxy.emitLogRecord(severity, body, contextid, timestamp, ...
+                        attributekeys, attributevalues);
                 end
             end
-            obj.Proxy.emitLogRecord(severity, body, contextid, timestamp, ...
-                attributekeys, attributevalues);
         end
 
         function trace(obj, body, varargin)
@@ -134,7 +156,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.INFO, OPENTELEMETRY.LOGS.WARN,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "trace", body, varargin{:});
+            emitLogRecord(obj, 1, body, varargin{:});
         end
 
         function debug(obj, body, varargin)
@@ -155,7 +177,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.INFO, OPENTELEMETRY.LOGS.WARN,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "debug", body, varargin{:});
+            emitLogRecord(obj, 5, body, varargin{:});
         end
 
         function info(obj, body, varargin)
@@ -176,7 +198,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.WARN,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "info", body, varargin{:});
+            emitLogRecord(obj, 9, body, varargin{:});
         end
 
         function warn(obj, body, varargin)
@@ -197,7 +219,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.INFO,
             %    OPENTELEMETRY.LOGS.ERROR, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "warn", body, varargin{:});
+            emitLogRecord(obj, 13, body, varargin{:});
         end
 
         function error(obj, body, varargin)
@@ -218,7 +240,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.INFO,
             %    OPENTELEMETRY.LOGS.WARN, OPENTELEMETRY.LOGS.FATAL,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "error", body, varargin{:});
+            emitLogRecord(obj, 17, body, varargin{:});
         end
 
         function fatal(obj, body, varargin)
@@ -239,7 +261,7 @@ classdef Logger < handle
             %    OPENTELEMETRY.LOGS.DEBUG, OPENTELEMETRY.LOGS.INFO,
             %    OPENTELEMETRY.LOGS.WARN, OPENTELEMETRY.LOGS.ERROR,
             %    OPENTELEMETRY.LOGS.EMITLOGRECORD
-            emitLogRecord(obj, "fatal", body, varargin{:});
+            emitLogRecord(obj, 21, body, varargin{:});
         end
     end
 

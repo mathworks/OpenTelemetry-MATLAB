@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
 
@@ -14,10 +14,19 @@ namespace libmexclass::opentelemetry {
 class TracerProxy : public libmexclass::proxy::Proxy {
   public:
     TracerProxy(nostd::shared_ptr<trace_api::Tracer> tr) : CppTracer(tr) {
-        REGISTER_METHOD(TracerProxy, startSpan);
+        REGISTER_METHOD(TracerProxy, startSpanWithNameOnly);
+        REGISTER_METHOD(TracerProxy, startSpanWithNameAndOptions);
+        REGISTER_METHOD(TracerProxy, startSpanWithNameAndAttributes);
+        REGISTER_METHOD(TracerProxy, startSpanWithNameOptionsAttributes);
     }
 
-    void startSpan(libmexclass::proxy::method::Context& context);
+    void startSpanWithNameOnly(libmexclass::proxy::method::Context& context);
+
+    void startSpanWithNameAndOptions(libmexclass::proxy::method::Context& context);
+
+    void startSpanWithNameAndAttributes(libmexclass::proxy::method::Context& context);
+
+    void startSpanWithNameOptionsAttributes(libmexclass::proxy::method::Context& context);
 
   private:
 
