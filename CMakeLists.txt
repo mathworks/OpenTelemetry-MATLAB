@@ -93,7 +93,7 @@ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt OTEL_MATLAB_VERSION_RAW)
 string(STRIP ${OTEL_MATLAB_VERSION_RAW} OTEL_MATLAB_VERSION)
 
 
-project(${CLIENT_PROJECT_NAME} VERSION ${OTEL_MATLAB_VERSION})
+project(${CLIENT_PROJECT_NAME} VERSION ${OTEL_MATLAB_VERSION} LANGUAGES CXX)
 
 # ######################################
 # libmexclass 
@@ -312,32 +312,19 @@ endif()
 
 # Additional compiler flags for HTTP/gRPC exporters
 if(WITH_OTLP_HTTP)
-    if(WIN32)
-	set(OTLP_MACROS /DWITH_OTLP_HTTP)
-    else()
-	set(OTLP_MACROS "-D WITH_OTLP_HTTP ")
-    endif()
+    target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE WITH_OTLP_HTTP)
 endif()
 
 if(WITH_OTLP_GRPC)
-    if(WIN32)
-	set(OTLP_MACROS ${OTLP_MACROS} /DWITH_OTLP_GRPC)
-    else()
-	set(OTLP_MACROS ${OTLP_MACROS} "-D WITH_OTLP_GRPC ")
-    endif()
+    target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE WITH_OTLP_GRPC)
 endif()
 
+# pass in version number
+target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE OTEL_MATLAB_VERSION="${OTEL_MATLAB_VERSION}")
 if(WIN32)
     # On Windows, suppress a compiler warning about deprecation of result_of
-    set(CUSTOM_CXX_FLAGS -D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
-    # pass in version number
-    set(OTLP_MACROS ${OTLP_MACROS} /DOTEL_MATLAB_VERSION="${OTEL_MATLAB_VERSION}")
-else()
-    set(CUSTOM_CXX_FLAGS "")
-    set(OTLP_MACROS ${OTLP_MACROS} "-D OTEL_MATLAB_VERSION=\"${OTEL_MATLAB_VERSION}\"")
+    target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PUBLIC _SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING)
 endif()
-
-target_compile_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OTLP_MACROS} ${CUSTOM_CXX_FLAGS})
 
 # link against OpenTelemetry-cpp libraries and their dependencies
 set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OTEL_CPP_LIBRARIES} ${Protobuf_LIBRARIES} ${Matlab_MEX_LIBRARY})
