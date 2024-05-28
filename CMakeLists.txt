@@ -25,14 +25,23 @@ else()
        set(VCPKG_PREFIX ${CMAKE_BINARY_DIR}/vcpkg)
    endif()
 
-   # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
-   # use libcurl as a shared library and load the MATLAB version at runtime
+   # Define custom triplets for vcpkg
    if(APPLE)
+       # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
+       # use libcurl as a shared library and load the MATLAB version at runtime
        # run uname -m to determine whether arm64 or x86_64
        exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
        set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
        set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
        set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
+       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+   elseif(WIN32)
+       # On Windows, there is a conflict between abseil_dll.dll and the version used by Simulink. 
+       # The shared library doesn't seem ABI stable and different versions cannot be used interchangeably. 
+       # To sidestep the problem, use static library.
+       set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
+       set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
+       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
    endif()
 
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
@@ -188,7 +197,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
        PREFIX ${OTEL_CPP_PREFIX}
        UPDATE_DISCONNECTED 1
        PATCH_COMMAND ${patch_command}
-       CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR}
+       CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
        BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
        INSTALL_DIR ${OTEL_CPP_PREFIX}
        INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
@@ -382,13 +391,11 @@ if(WIN32)
     endif()
 
     if(WITH_OTLP_GRPC)
-	# The TARGET_FILE generator command fails to return the DLL libraries for Abseil and OpenSSL.
+	# The TARGET_FILE generator command fails to return the DLL libraries for OpenSSL.
         # As a result, we have to hardcode those library names instead.
-	set(ABSL_DLL abseil_dll.dll)
 	set(OPENSSL_DLL libssl-3-x64.dll)
 	set(OPENSSL_CRYPTO_DLL libcrypto-3-x64.dll)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-            $<TARGET_FILE_DIR:c-ares::cares>/../bin/${ABSL_DLL}
 	    $<TARGET_FILE:c-ares::cares>
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_DLL}
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL}
