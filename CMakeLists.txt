@@ -293,7 +293,8 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${LOGS_SDK_SOURCE_DIR}/LoggerProviderProxy.cpp
     ${LOGS_SDK_SOURCE_DIR}/SimpleLogRecordProcessorProxy.cpp
     ${LOGS_SDK_SOURCE_DIR}/BatchLogRecordProcessorProxy.cpp
-    ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
+    ${COMMON_SDK_SOURCE_DIR}/resource.cpp
+    ${COMMON_SDK_SOURCE_DIR}/InternalLogHandlerProxy.cpp)
 if(WITH_OTLP_HTTP)
     set(OPENTELEMETRY_PROXY_SOURCES 
     ${OPENTELEMETRY_PROXY_SOURCES} 

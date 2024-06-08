@@ -167,6 +167,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             % shutdown the tracer provider
             verifyTrue(testCase, shutdown(tp));
 
+            % suppress internal error logs about span export failure
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+
             % start and end another span
             sp1 = startSpan(tr, "quux");
             endSpan(sp1);
@@ -189,6 +192,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
             % shutdown the SDK tracer provider through the Cleanup class
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(tp));
+
+            % suppress internal error logs about span export failure
+            nologs = SuppressInternalLogs; %#ok<NASGU>
 
             % start and end another span
             sp1 = startSpan(tr, "quux");
@@ -216,6 +222,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             % shutdown the API tracer provider through the Cleanup class
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(tp_api));
 
+            % suppress internal error logs about span export failure
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+            
             % start and end another span
             sp1 = startSpan(tr, "quux");
             endSpan(sp1);

@@ -29,6 +29,7 @@
 #include "opentelemetry-matlab/sdk/logs/LoggerProviderProxy.h"
 #include "opentelemetry-matlab/sdk/logs/SimpleLogRecordProcessorProxy.h"
 #include "opentelemetry-matlab/sdk/logs/BatchLogRecordProcessorProxy.h"
+#include "opentelemetry-matlab/sdk/common/InternalLogHandlerProxy.h"
 #ifdef WITH_OTLP_HTTP
     #include "opentelemetry-matlab/exporters/otlp/OtlpHttpSpanExporterProxy.h"
     #include "opentelemetry-matlab/exporters/otlp/OtlpHttpMetricExporterProxy.h"
@@ -75,6 +76,7 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.LoggerProviderProxy, libmexclass::opentelemetry::sdk::LoggerProviderProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.SimpleLogRecordProcessorProxy, libmexclass::opentelemetry::sdk::SimpleLogRecordProcessorProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.sdk.BatchLogRecordProcessorProxy, libmexclass::opentelemetry::sdk::BatchLogRecordProcessorProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.sdk.InternalLogHandlerProxy, libmexclass::opentelemetry::sdk::InternalLogHandlerProxy);
 
     #ifdef WITH_OTLP_HTTP
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpHttpSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpHttpSpanExporterProxy);

@@ -184,6 +184,9 @@ classdef tmetrics < matlab.unittest.TestCase
             mt = p.getMeter("foo");
             ct = mt.createCounter("bar");
 
+            % suppress internal warnings about invalid metric values
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+            
             % add negative value to counter
             ct.add(-1);
             % add add complex value
@@ -471,6 +474,10 @@ classdef tmetrics < matlab.unittest.TestCase
 
         function testGetSetMeterProvider(testCase)
             % testGetSetMeterProvider: setting and getting global instance of MeterProvider
+                        
+            % suppress internal warning logs about repeated shutdown
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             setMeterProvider(mp);
 
