@@ -34,14 +34,14 @@ else()
        set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
        set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
        set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
-       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+       set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
    elseif(WIN32)
        # On Windows, there is a conflict between abseil_dll.dll and the version used by Simulink. 
        # The shared library doesn't seem ABI stable and different versions cannot be used interchangeably. 
        # To sidestep the problem, use static library.
        set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
        set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
-       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+       set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
    endif()
 
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
