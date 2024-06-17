@@ -61,9 +61,8 @@ jobs:
                 
             # Works around https://github.com/actions/runner-images/issues/10055
             - name: Remove conflicting libraries
-              shell: bash -l {0}
               run: |
-                  find "C:/hostedtoolcache/windows/Java_Temurin-Hotspot_jdk" -name "msvcp140.dll" -exec rm {} \;
+                  Get-ChildItem -Path "C:\hostedtoolcache\windows" -File -Include msvcp*.dll,concrt*.dll,vccorlib*.dll,vcruntime*.dll -Recurse | Remove-Item -Force -Verbose
             - name: Run tests
               env:
                  # Add the installation directory to the MATLAB Search Path by
