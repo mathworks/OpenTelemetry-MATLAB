@@ -1,18 +1,22 @@
-function async_metrics_example
+function async_metrics_example(iterations)
 % This example creates 3 asynchronous metric instruments including an 
 % observable counter, an observable updowncounter, and an observable gauge. 
 
 % Copyright 2024 The MathWorks, Inc.
+
+if nargin < 1
+    iterations = 20;    % default to 20 iterations
+end
 
 % initialize meter provider
 initMetrics;
 
 % create meter and instruments
 m = opentelemetry.metrics.getMeter("async_metrics_example");
-c = createObservableCounter(m, @counter_callback, "observable_counter"); %#ok<*NASGU>
-u = createObservableUpDownCounter(m, @updowncounter_callback, "observable_updowncounter");
-g = createObservableGauge(m, @gauge_callback, "observable_gauge"); 
-iterations = 20;    % number of iterations
+callbacks = async_metrics_example_callbacks;
+c = createObservableCounter(m, @()counterCallback(callbacks), "observable_counter"); %#ok<*NASGU>
+u = createObservableUpDownCounter(m, @()updowncounterCallback(callbacks), "observable_updowncounter");
+g = createObservableGauge(m, @()gaugeCallback(callbacks), "observable_gauge"); 
 pause(iterations*5);
 
 % clean up
@@ -31,34 +35,7 @@ setMeterProvider(mp);
 end
 
 function cleanupMetrics
+% clean up meter provider
 mp = opentelemetry.metrics.Provider.getMeterProvider();
 opentelemetry.sdk.common.Cleanup.shutdown(mp);   % shutdown
-end
-
-function result = counter_callback()
-persistent value
-if isempty(value)
-    value = 0;
-else
-    value = value + randi(10);  % increment between 1 to 10
-end
-result = opentelemetry.metrics.ObservableResult;
-result = result.observe(value);
-end
-
-function result = updowncounter_callback()
-persistent value
-if isempty(value)
-    value = 0;
-else
-    value = value + randi([-5 5]);  % increment between -5 to 5
-end
-result = opentelemetry.metrics.ObservableResult;
-result = result.observe(value);
-end
-
-function result = gauge_callback()
-s = second(datetime("now"));    % get the current second of the minute
-result = opentelemetry.metrics.ObservableResult;
-result = result.observe(s);
 end

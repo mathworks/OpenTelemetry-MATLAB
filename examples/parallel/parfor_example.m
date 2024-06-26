@@ -1,7 +1,7 @@
-function a = parfor_example
+function a = parfor_example(niter, nworkers)
 % This example creates a trace through a parfor loop, by creating a span in
 % each iteration and propagating context.
-%
+
 % Copyright 2024 The MathWorks, Inc.
 
 % initialize tracing
@@ -12,16 +12,20 @@ tr = opentelemetry.trace.getTracer("parfor_example");
 sp = startSpan(tr, "main function"); 
 scope = makeCurrent(sp); %#ok<*NASGU>
 
-n = 80;
+if nargin < 2
+    nworkers = 4;    % maximum number of workers
+    if nargin < 1
+        niter = 80;  % iterations of work
+    end
+end
 A = 500;
-a = zeros(1,n);  % initialize the output
-nworkers = 4;    % maximum number of workers
+a = zeros(1,niter);  % initialize the output
 
 % propagate the current context by extracting and passing it in headers
 carrier = opentelemetry.context.propagation.injectContext(); 
 headers = carrier.Headers;
 
-parfor (i = 1:n, nworkers)
+parfor (i = 1:niter, nworkers)
     % parfor block needs its own initialization 
     runOnce(@initTracer);
 

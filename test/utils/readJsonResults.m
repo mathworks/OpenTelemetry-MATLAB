@@ -1,9 +1,10 @@
 function jsonresults = readJsonResults(testCase)
-% Read Json results exported by OpenTelemetry Collector
-%
-% Copyright 2023 The MathWorks, Inc.
+% Read JSON results exported by OpenTelemetry Collector
 
-terminateCollector(testCase);
+% Copyright 2023-2024 The MathWorks, Inc.
+
+% terminate the collector
+terminateProcess(testCase, testCase.OtelcolName);
 
 assert(exist(testCase.JsonFile, "file"));
 

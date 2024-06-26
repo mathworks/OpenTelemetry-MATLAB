@@ -1,10 +1,9 @@
-function terminateCollector(testCase)
-% Terminate OpenTelemetry Collector before reading results or as part of
-% cleanup
-%
-% Copyright 2023 The MathWorks, Inc.
+function terminateProcess(testCase, process)
+% Terminate a process started in a test
 
-system(testCase.ListPid(testCase.OtelcolName) + " > " + testCase.PidFile);
+% Copyright 2023-2024 The MathWorks, Inc.
+
+system(testCase.ListPid(process) + " > " + testCase.PidFile);
 tbl = testCase.ReadPidList(testCase.PidFile);
 pid = testCase.ExtractPid(tbl);
 retry = 0;
@@ -13,7 +12,7 @@ retry = 0;
 while ~isempty(pid) && retry < 4
     system(testCase.Sigint(pid));
     pause(2);  % give a little time for the collector to shut down
-    system(testCase.ListPid(testCase.OtelcolName) + " > " + testCase.PidFile);
+    system(testCase.ListPid(process) + " > " + testCase.PidFile);
     tbl = testCase.ReadPidList(testCase.PidFile);
     pid = testCase.ExtractPid(tbl);
     retry = retry + 1;
