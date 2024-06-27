@@ -260,8 +260,8 @@ classdef texamples < matlab.unittest.TestCase
             server = fullfile(serverfolder, "webread_example_server");
 
             % start the C++ server
-            %system(server + '&');
             testCase.applyFixture(CppServerFixture(server, testCase));
+            pause(3);       % wait a little for server to start up
 
             % run the example
             webread_example();

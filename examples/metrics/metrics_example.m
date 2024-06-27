@@ -18,6 +18,8 @@ c = createCounter(m, "counter");
 u = createUpDownCounter(m, "updowncounter");
 h = createHistogram(m, "histogram");
 
+% wait a little before starting
+pause(2);
 for i = 1:iterations
     c.add(randi(10));
     u.add(randi([-10 10]));

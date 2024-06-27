@@ -3,8 +3,8 @@ function commonTeardown(testCase)
 
 % Copyright 2023-2024 The MathWorks, Inc.
 
-% Terminate Collector if it is still running
-terminateProcess(testCase, testCase.OtelcolName);
+% Terminate Collector if it is still running. Use interrupt signal.
+terminateProcess(testCase, testCase.OtelcolName, testCase.Sigint);
 
 % Close command window if opened
 closeWindow(testCase);

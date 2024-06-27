@@ -3,8 +3,8 @@ function jsonresults = readJsonResults(testCase)
 
 % Copyright 2023-2024 The MathWorks, Inc.
 
-% terminate the collector
-terminateProcess(testCase, testCase.OtelcolName);
+% terminate the collector, using interrupt signal
+terminateProcess(testCase, testCase.OtelcolName, testCase.Sigint);
 
 assert(exist(testCase.JsonFile, "file"));
 
