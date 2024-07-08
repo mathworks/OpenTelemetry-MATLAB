@@ -25,28 +25,6 @@ else()
        set(VCPKG_PREFIX ${CMAKE_BINARY_DIR}/vcpkg)
    endif()
 
-   # Define custom triplets for vcpkg
-   if(APPLE)
-       # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
-       # use libcurl as a shared library and load the MATLAB version at runtime
-       # run uname -m to determine whether arm64 or x86_64
-       exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
-       set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
-       set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
-       set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
-       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
-   elseif(WIN32)
-       # On Windows, we use a custom triplet to work around two issues.
-       # First, there is a conflict between abseil_dll.dll and the version used by Simulink. 
-       # The shared library doesn't seem ABI stable and different versions cannot be used interchangeably. 
-       # To sidestep the problem, use static library.
-       # Second, define a preprocessor macro _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to work around an invalid MEX file issue on GitHub
-       # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
-       set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
-       set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
-       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
-   endif()
-
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
    set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
    set(VCPKG_GIT_TAG "fba75d0")
@@ -69,6 +47,28 @@ endif()
 
 if(NOT DEFINED VCPKG_INSTALLED_DIR)
    set(VCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
+endif()
+
+# Define custom triplets for vcpkg
+if(APPLE)
+    # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
+    # use libcurl as a shared library and load the MATLAB version at runtime
+    # run uname -m to determine whether arm64 or x86_64
+    exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
+    set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
+    set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
+    set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
+    set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+elseif(WIN32)
+    # On Windows, we use a custom triplet to work around two issues.
+    # First, there is a conflict between abseil_dll.dll and the version used by Simulink. 
+    # The shared library doesn't seem ABI stable and different versions cannot be used interchangeably. 
+    # To sidestep the problem, use static library.
+    # Second, define a preprocessor macro _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to work around an invalid MEX file issue on GitHub
+    # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
+    set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
+    set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
+    set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
 endif()
 
 # ######################################
