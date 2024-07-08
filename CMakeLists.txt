@@ -25,25 +25,6 @@ else()
        set(VCPKG_PREFIX ${CMAKE_BINARY_DIR}/vcpkg)
    endif()
 
-   # Define custom triplets for vcpkg
-   if(APPLE)
-       # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
-       # use libcurl as a shared library and load the MATLAB version at runtime
-       # run uname -m to determine whether arm64 or x86_64
-       exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
-       set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
-       set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
-       set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
-       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
-   elseif(WIN32)
-       # On Windows, there is a conflict between abseil_dll.dll and the version used by Simulink. 
-       # The shared library doesn't seem ABI stable and different versions cannot be used interchangeably. 
-       # To sidestep the problem, use static library.
-       set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
-       set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
-       set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
-   endif()
-
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
    set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
    set(VCPKG_GIT_TAG "fba75d0")
@@ -66,6 +47,28 @@ endif()
 
 if(NOT DEFINED VCPKG_INSTALLED_DIR)
    set(VCPKG_INSTALLED_DIR ${CMAKE_BINARY_DIR}/vcpkg_installed)
+endif()
+
+# Define custom triplets for vcpkg
+if(APPLE)
+    # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
+    # use libcurl as a shared library and load the MATLAB version at runtime
+    # run uname -m to determine whether arm64 or x86_64
+    exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
+    set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
+    set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
+    set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
+    set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+elseif(WIN32)
+    # On Windows, we use a custom triplet to work around two issues.
+    # First, there is a conflict between abseil_dll.dll and the version used by Simulink. 
+    # The shared library doesn't seem ABI stable and different versions cannot be used interchangeably. 
+    # To sidestep the problem, use static library.
+    # Second, define a preprocessor macro _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to work around an invalid MEX file issue on GitHub
+    # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
+    set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
+    set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
+    set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
 endif()
 
 # ######################################
@@ -184,10 +187,18 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
 
    set(OTEL_CPP_CXX_STANDARD 14)
 
-   if(NOT APPLE OR SKIP_OTEL_CPP_PATCH)
-       set(patch_command "")
+   set(PATCHES_DIR ${CMAKE_SOURCE_DIR}/patches)
+   if(SKIP_OTEL_CPP_PATCH)
+       set(patch_comand "")
+   elseif(WIN32)
+       # Windows patch to add a preprocessor definition _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
+       # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
+       set(patch_command git apply ${PATCHES_DIR}/otel-cpp-windows.patch)
+   elseif(APPLE)
+       # Mac patch to fix a linker issue when including gRPC exporter 
+       set(patch_command git apply ${PATCHES_DIR}/otel-cpp-mac.patch)
    else()
-       set(patch_command git apply ${CMAKE_SOURCE_DIR}/otel-cpp.patch)
+       set(patch_command "")
    endif()
 
    ExternalProject_Add(
@@ -293,7 +304,8 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${LOGS_SDK_SOURCE_DIR}/LoggerProviderProxy.cpp
     ${LOGS_SDK_SOURCE_DIR}/SimpleLogRecordProcessorProxy.cpp
     ${LOGS_SDK_SOURCE_DIR}/BatchLogRecordProcessorProxy.cpp
-    ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
+    ${COMMON_SDK_SOURCE_DIR}/resource.cpp
+    ${COMMON_SDK_SOURCE_DIR}/InternalLogHandlerProxy.cpp)
 if(WITH_OTLP_HTTP)
     set(OPENTELEMETRY_PROXY_SOURCES 
     ${OPENTELEMETRY_PROXY_SOURCES} 
@@ -307,6 +319,12 @@ if(WITH_OTLP_GRPC)
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcSpanExporterProxy.cpp
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcLogRecordExporterProxy.cpp)
+endif()
+
+if(WIN32)
+    # Add a preprocessor definition _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to fix an invalid mex file issue on Windows.
+    # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
+    add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 endif()
 
 libmexclass_client_add_proxy_library(

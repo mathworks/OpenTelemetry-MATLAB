@@ -1,0 +1,17 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cc085b1a..6c4dc0ae 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,6 +15,12 @@ endif()
+ 
+ project(opentelemetry-cpp)
+ 
++if(WIN32)
++  # Add a preprocessor macro _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to work around an invalid MEX file issue
++  # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
++  add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
++endif()
++
+ # Mark variables as used so cmake doesn't complain about them
+ mark_as_advanced(CMAKE_TOOLCHAIN_FILE)
+ 
