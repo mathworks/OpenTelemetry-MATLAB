@@ -58,7 +58,7 @@ if(APPLE)
     set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
     set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
-    set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+    set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
 elseif(WIN32)
     # On Windows, we use a custom triplet to work around two issues.
     # First, there is a conflict between abseil_dll.dll and the version used by Simulink. 
@@ -68,7 +68,7 @@ elseif(WIN32)
     # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
     set(VCPKG_TARGET_TRIPLET x64-windows-otel-matlab)
-    set(TRIPLET_DEFINITIONS -DVCPKG_OVERLAY_TRIPLETS="${VCPKG_OVERLAY_TRIPLETS}" -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
+    set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
 endif()
 
 # ######################################
@@ -304,7 +304,8 @@ set(OPENTELEMETRY_PROXY_SOURCES
     ${LOGS_SDK_SOURCE_DIR}/LoggerProviderProxy.cpp
     ${LOGS_SDK_SOURCE_DIR}/SimpleLogRecordProcessorProxy.cpp
     ${LOGS_SDK_SOURCE_DIR}/BatchLogRecordProcessorProxy.cpp
-    ${COMMON_SDK_SOURCE_DIR}/resource.cpp)
+    ${COMMON_SDK_SOURCE_DIR}/resource.cpp
+    ${COMMON_SDK_SOURCE_DIR}/InternalLogHandlerProxy.cpp)
 if(WITH_OTLP_HTTP)
     set(OPENTELEMETRY_PROXY_SOURCES 
     ${OPENTELEMETRY_PROXY_SOURCES} 

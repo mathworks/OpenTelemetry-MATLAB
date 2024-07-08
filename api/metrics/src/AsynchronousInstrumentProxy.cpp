@@ -26,8 +26,8 @@ void AsynchronousInstrumentProxy::removeCallback(libmexclass::proxy::method::Con
     double idx = idx_mda[0] - 1;   // adjust index from 1-based in MATLAB to 0-based in C++
     auto iter = CallbackInputs.begin();
     std::advance(iter, idx);
-    CallbackInputs.erase(iter);
     CppInstrument->RemoveCallback(MeasurementFetcher::Fetcher, static_cast<void*>(&(*iter)));
+    CallbackInputs.erase(iter);
 }
 
 } // namespace libmexclass::opentelemetry

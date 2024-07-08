@@ -198,6 +198,7 @@ classdef ttrace < matlab.unittest.TestCase
             tr = getTracer(tp, "foo");
             sp = startSpan(tr, "bar");
             verifyWarning(testCase, @()makeCurrent(sp), "opentelemetry:trace:Span:makeCurrent:NoOutputSpecified");
+            endSpan(sp);
         end
 
         function testSpanKind(testCase)

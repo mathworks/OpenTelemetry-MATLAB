@@ -45,23 +45,23 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
        if (valtype == matlab::data::ArrayType::DOUBLE) {
           matlab::data::TypedArray<double> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
-	     nostd::span<const double>{&(*attrvalue_mda.cbegin()), &(*attrvalue_mda.cend())})); 
+	     nostd::span<const double>{&(*attrvalue_mda.cbegin()), attrvalue_mda.getNumberOfElements()})); 
        } else if (valtype == matlab::data::ArrayType::INT32) {
           matlab::data::TypedArray<int32_t> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
-	     nostd::span<const int32_t>{&(*attrvalue_mda.cbegin()), &(*attrvalue_mda.cend())})); 
+	     nostd::span<const int32_t>{&(*attrvalue_mda.cbegin()), attrvalue_mda.getNumberOfElements()})); 
        } else if (valtype == matlab::data::ArrayType::UINT32) {
           matlab::data::TypedArray<uint32_t> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
-	     nostd::span<const uint32_t>{&(*attrvalue_mda.cbegin()), &(*attrvalue_mda.cend())})); 
+	     nostd::span<const uint32_t>{&(*attrvalue_mda.cbegin()), attrvalue_mda.getNumberOfElements()})); 
        } else if (valtype == matlab::data::ArrayType::INT64) {
           matlab::data::TypedArray<int64_t> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
-	     nostd::span<const int64_t>{&(*attrvalue_mda.cbegin()), &(*attrvalue_mda.cend())})); 
+	     nostd::span<const int64_t>{&(*attrvalue_mda.cbegin()), attrvalue_mda.getNumberOfElements()})); 
        } else if (valtype == matlab::data::ArrayType::LOGICAL) {
           matlab::data::TypedArray<bool> attrvalue_mda = attrvalue;
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
-	     nostd::span<const bool>{&(*attrvalue_mda.cbegin()), &(*attrvalue_mda.cend())})); 
+	     nostd::span<const bool>{&(*attrvalue_mda.cbegin()), attrvalue_mda.getNumberOfElements()})); 
        } else if (valtype == matlab::data::ArrayType::MATLAB_STRING) {   // string
           matlab::data::StringArray attrvalue_mda = attrvalue;
 	  std::vector<nostd::string_view> strarray_attr;
@@ -73,7 +73,7 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
 	  }
 	  attrs.StringViewBuffer.push_back(strarray_attr);
           attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(attrname, 
-	     nostd::span<const nostd::string_view>{&(*attrs.StringViewBuffer.back().cbegin()), &(*attrs.StringViewBuffer.back().cend())}));
+	     nostd::span<const nostd::string_view>{&(*attrs.StringViewBuffer.back().cbegin()), attrvalue_mda.getNumberOfElements()}));
        } else {   // ignore all other types
 	   return;
        }
@@ -85,8 +85,7 @@ void processAttribute(const std::string& attrname, 			// input, attribute name
        }
        attrs.DimensionsBuffer.push_back(attrvalue_dims_buffer);
        attrs.Attributes.push_back(std::pair<std::string, common::AttributeValue>(sizeattr, 
-	  nostd::span<const double>{&(*attrs.DimensionsBuffer.back().cbegin()), 
-	  &(*attrs.DimensionsBuffer.back().cend())})); 
+	  nostd::span<const double>{attrs.DimensionsBuffer.back().data(), attrvalue_dims_buffer.size()})); 
     }
 }
 } // namespace

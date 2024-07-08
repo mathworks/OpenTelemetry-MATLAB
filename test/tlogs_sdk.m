@@ -134,6 +134,9 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             forceFlush(lp, testCase.ForceFlushTimeout);
             verifyTrue(testCase, shutdown(lp));
 
+            % suppress internal error logs about log export failure
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+            
             % emit another log record
             emitLogRecord(lg, "info", "quux");
 
@@ -155,6 +158,9 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % shutdown the SDK logger provider through the Cleanup class
             forceFlush(lp, testCase.ForceFlushTimeout);
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(lp));
+
+            % suppress internal error logs about log export failure
+            nologs = SuppressInternalLogs; %#ok<NASGU>
 
             % emit another log record
             emitLogRecord(lg, "warn", "quux");
@@ -180,6 +186,9 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % shutdown the API logger provider through the Cleanup class
             opentelemetry.sdk.common.Cleanup.forceFlush(lp_api, testCase.ForceFlushTimeout);
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(lp_api));
+
+            % suppress internal error logs about log export failure
+            nologs = SuppressInternalLogs; %#ok<NASGU>
 
             % emit another log record
             emitLogRecord(lg, "error", "quux");

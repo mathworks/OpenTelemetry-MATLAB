@@ -372,6 +372,9 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % of metrics
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
 
+            % suppress internal warning logs about repeated shutdown
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+
             % shutdown the meter provider
             verifyTrue(testCase, shutdown(mp));
 
@@ -394,6 +397,9 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % Shut down an SDK meter provider instance
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
 
+            % suppress internal warning logs about repeated shutdown
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+
             % shutdown the meter provider through the Cleanup class
             verifyTrue(testCase, opentelemetry.sdk.common.Cleanup.shutdown(mp));
 
@@ -412,7 +418,10 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
         function testCleanupApi(testCase)
             % testCleanupApi: shutdown an API meter provider through the Cleanup class
-  
+
+            % suppress internal warning logs about repeated shutdown
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+
             % Shut down an API meter provider instance
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             setMeterProvider(mp);
