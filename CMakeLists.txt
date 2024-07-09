@@ -10,7 +10,8 @@ cmake_policy(SET CMP0074 NEW)
 include(FetchContent)
 
 # check if VCPKG_ROOT is defined, which should point to an existing installation
-if(DEFINED ENV{VCPKG_ROOT})
+# FETCH_VCPKG is a switch that can be defined to ignore VCPKG_ROOT
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED FETCH_VCPKG)
    # Autodetect vcpkg toolchain
    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
        string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
@@ -18,7 +19,7 @@ if(DEFINED ENV{VCPKG_ROOT})
 else()
    # VCPKG_ROOT not defined, get it using FetchContent
 
-   if(DEFINED VCPKG_PREFIX})
+   if(DEFINED VCPKG_PREFIX)
        # download location specified
        string(REPLACE "\\" "/" VCPKG_PREFIX "${VCPKG_PREFIX}")
    else()
