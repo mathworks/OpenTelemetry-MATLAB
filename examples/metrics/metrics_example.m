@@ -1,9 +1,13 @@
-function metrics_example
+function metrics_example(iterations)
 % This example creates 3 metric instruments including a counter, an 
 % updowncounter, and a histogram. It then enters a loop and updates the 
 % value of the instruments at each iteration.
 
 % Copyright 2023-2024 The MathWorks, Inc.
+
+if nargin < 1
+    iterations = 20;    % default to 20 iterations
+end
 
 % initialize meter provider
 initMetrics;
@@ -13,8 +17,9 @@ m = opentelemetry.metrics.getMeter("metrics_example");
 c = createCounter(m, "counter");
 u = createUpDownCounter(m, "updowncounter");
 h = createHistogram(m, "histogram");
-iterations = 20;    % number of iterations
 
+% wait a little before starting
+pause(2);
 for i = 1:iterations
     c.add(randi(10));
     u.add(randi([-10 10]));

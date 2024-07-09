@@ -1,20 +1,13 @@
 function commonTeardown(testCase)
 % Teardown function for tests
-%
-% Copyright 2023 The MathWorks, Inc.
 
-% Terminate Collector if it is still running
-terminateCollector(testCase);
+% Copyright 2023-2024 The MathWorks, Inc.
 
-% On Windows, a command prompt has popped up, remove it as clean up
-if ispc
-    system(testCase.ListPid("cmd") + "  > " + testCase.PidFile);
-    tbl = testCase.ReadPidList(testCase.PidFile);
-    if height(tbl) > 1
-        pid = tbl.Var2(end-1);
-        system(testCase.Sigterm(pid));
-    end
-end
+% Terminate Collector if it is still running. Use interrupt signal.
+terminateProcess(testCase, testCase.OtelcolName, testCase.Sigint);
+
+% Close command window if opened
+closeWindow(testCase);
 
 if exist(testCase.JsonFile, "file")
     delete(testCase.JsonFile);
