@@ -225,8 +225,8 @@ set(OPENTELEMETRY_PROXY_LIBRARY_NAME "OtelMatlabProxy")
 find_package(Matlab REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(nlohmann_json REQUIRED)
-if(WIN32)
-    find_package(zlib REQUIRED)
+if(WIN32 OR APPLE)
+    find_package(ZLIB REQUIRED)
 endif()
 
 if(WITH_OTLP_HTTP)
@@ -406,12 +406,16 @@ if(WIN32)
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL}
 	    $<TARGET_FILE:re2::re2>)
     endif()
-elseif(UNIX AND NOT CYGWIN)
+else()
+    set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
     if(WITH_OTLP_GRPC)
-        set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX}
+        set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} 
                              ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto_grpc${CMAKE_SHARED_LIBRARY_SUFFIX})
-    else()
-        set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
+    endif()
+    if(APPLE)
+        set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} $<TARGET_FILE:ZLIB::ZLIB> 
+           $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_MAJOR_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
+           $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX})
     endif()
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
