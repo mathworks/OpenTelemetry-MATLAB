@@ -1,0 +1,102 @@
+# Full build-and-test with gRPC exporter, only run when pushed to main
+name: "Build and Run Tests Full"
+on: 
+    workflow_dispatch:
+    push:
+      branches: 
+        - main
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
+jobs:
+    build-and-run-tests-ubuntu:
+        # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
+        # Instead, run on ubuntu-20.04
+        runs-on: ubuntu-20.04
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: sudo apt-get install ninja-build
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler MATLAB_Compiler_SDK
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              run: |
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Run tests
+              env:
+                 # Add the installation directory to the MATLAB Search Path by
+                 # setting the MATLABPATH environment variable.
+                 MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              uses: matlab-actions/run-tests@v2
+              with:
+                 select-by-folder: opentelemetry-matlab/test
+    build-and-run-tests-windows:
+        runs-on: windows-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: choco install ninja
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler MATLAB_Compiler_SDK
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              shell: cmd
+              run: |
+                  call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Run tests
+              env:
+                 # Add the installation directory to the MATLAB Search Path by
+                 # setting the MATLABPATH environment variable.
+                 MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              uses: matlab-actions/run-tests@v2
+              with:
+                 select-by-folder: opentelemetry-matlab/test
+    build-and-run-tests-macos:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [macos-13, macos-14]   # runs on Mac with both Intel (macos-13) and Apple Silicon (macos-14) processors
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: brew install ninja
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler MATLAB_Compiler_SDK
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              run: |
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Run tests
+              env:
+                 # Add the installation directory to the MATLAB Search Path by
+                 # setting the MATLABPATH environment variable.
+                 MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              uses: matlab-actions/run-tests@v2
+              with:
+                 select-by-folder: opentelemetry-matlab/test
