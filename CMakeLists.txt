@@ -10,7 +10,8 @@ cmake_policy(SET CMP0074 NEW)
 include(FetchContent)
 
 # check if VCPKG_ROOT is defined, which should point to an existing installation
-if(DEFINED ENV{VCPKG_ROOT})
+# FETCH_VCPKG is a switch that can be defined to ignore VCPKG_ROOT
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED FETCH_VCPKG)
    # Autodetect vcpkg toolchain
    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
        string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
@@ -18,7 +19,7 @@ if(DEFINED ENV{VCPKG_ROOT})
 else()
    # VCPKG_ROOT not defined, get it using FetchContent
 
-   if(DEFINED VCPKG_PREFIX})
+   if(DEFINED VCPKG_PREFIX)
        # download location specified
        string(REPLACE "\\" "/" VCPKG_PREFIX "${VCPKG_PREFIX}")
    else()
@@ -225,8 +226,8 @@ set(OPENTELEMETRY_PROXY_LIBRARY_NAME "OtelMatlabProxy")
 find_package(Matlab REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(nlohmann_json REQUIRED)
-if(WIN32)
-    find_package(zlib REQUIRED)
+if(WIN32 OR APPLE)
+    find_package(ZLIB REQUIRED)
 endif()
 
 if(WITH_OTLP_HTTP)
@@ -406,12 +407,16 @@ if(WIN32)
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL}
 	    $<TARGET_FILE:re2::re2>)
     endif()
-elseif(UNIX AND NOT CYGWIN)
+else()
+    set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
     if(WITH_OTLP_GRPC)
-        set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX}
+        set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} 
                              ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto_grpc${CMAKE_SHARED_LIBRARY_SUFFIX})
-    else()
-        set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
+    endif()
+    if(APPLE)
+        set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} $<TARGET_FILE:ZLIB::ZLIB> 
+           $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_MAJOR_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
+           $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX})
     endif()
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
