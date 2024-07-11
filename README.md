@@ -1,5 +1,5 @@
 # MATLAB Interface to OpenTelemetry
-[![View OpenTelemetry-Matlab on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/130979-opentelemetry-matlab) [![MATLAB](https://github.com/mathworks/OpenTelemetry-Matlab/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/mathworks/OpenTelemetry-Matlab/actions/workflows/build_and_test.yml)
+[![View OpenTelemetry-Matlab on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/130979-opentelemetry-matlab) [![MATLAB](https://github.com/mathworks/OpenTelemetry-Matlab/actions/workflows/build_and_test_full.yml/badge.svg)](https://github.com/mathworks/OpenTelemetry-Matlab/actions/workflows/build_and_test_full.yml)
 
 MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), based on the [OpenTelemetry Specification](https://opentelemetry.io/docs/specs/otel/). OpenTelemetry is an observability framework for creating and managing telemetry data, such as traces, metrics, and logs. This data can then be sent to an observability back-end for monitoring, alerts, and analysis. 
 
