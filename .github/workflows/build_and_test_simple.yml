@@ -3,10 +3,9 @@ name: "Build and Run Tests Simple"
 on: 
     workflow_dispatch:
     push:
-      branches:
-        - '**'
-        - '!main'
-        - '!v*.*'
+      branches-ignore:
+        - 'main'
+        - '[0-9]+.[0-9]+.[0-9]+'
 env:
   MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
 jobs:
