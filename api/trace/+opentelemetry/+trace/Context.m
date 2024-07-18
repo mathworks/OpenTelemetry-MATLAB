@@ -1,7 +1,7 @@
 classdef Context
 % Tracing-related actions on context instances
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     methods (Static)
         function sp = extractSpan(context)
@@ -22,12 +22,12 @@ classdef Context
         function context = insertSpan(context, span)
             % Insert span into context
             %    NEWCTXT = OPENTELEMETRY.TRACE.CONTEXT.INSERTSPAN(CTXT, SP) inserts
-            %    span SP into a context object CTXT and returns a new context. 
+            %    span or span context SP into a context object CTXT and returns a new context. 
             %
             %    See also EXTRACTSPAN, OPENTELEMETRY.CONTEXT.CONTEXT
             arguments
                 context (1,1) opentelemetry.context.Context
-                span (1,1) opentelemetry.trace.Span
+                span (1,1) {mustBeA(span, ["opentelemetry.trace.Span", "opentelemetry.trace.SpanContext"])}
             end
             context = span.insertSpan(context);  % call span method
         end
