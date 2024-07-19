@@ -240,8 +240,8 @@ classdef ttrace < matlab.unittest.TestCase
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), newname);
         end
 
-        function testSpanContext(testCase)
-            % testSpanContext: getSpanContext
+        function testGetSpanContext(testCase)
+            % testGetSpanContext: getSpanContext
             tp = opentelemetry.sdk.trace.TracerProvider();
             tr = getTracer(tp, "foo");
             sp = startSpan(tr, "bar");
@@ -254,6 +254,50 @@ classdef ttrace < matlab.unittest.TestCase
             verifyEqual(testCase, ctxt.SpanId, string(results{1}.resourceSpans.scopeSpans.spans.spanId));
             verifyEqual(testCase, ctxt.TraceState, "");
             verifyEqual(testCase, ctxt.TraceFlags, "01");   % sampled flag should be on
+        end
+
+        function testSpanContext(testCase)
+            % testSpanContext: create a new span context and specify it as
+            % parent 
+            traceid = "0123456789ABCDEF0123456789abcdef";
+            spanid = "0000000000111122";
+            issampled = false;
+            isremote = false;
+            sc = opentelemetry.trace.SpanContext(traceid, spanid, ...
+                "IsSampled", issampled, "IsRemote", isremote);
+
+            % verify SpanContext object created correctly
+            verifyEqual(testCase, sc.TraceId, lower(traceid));
+            verifyEqual(testCase, sc.SpanId, spanid);
+            verifyEqual(testCase, sc.TraceState, "");
+            verifyEqual(testCase, sc.TraceFlags, "00");   % sampled flag should be off
+            verifyEqual(testCase, isRemote(sc), isremote); 
+
+            % start a span and pass in context
+            context = opentelemetry.trace.Context.insertSpan(...
+                opentelemetry.context.Context, sc);
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar", "Context", context); 
+            endSpan(sp);
+
+            % start another span and declare parent implicitly
+            curscope = makeCurrent(sc); %#ok<NASGU>
+            sp1 = startSpan(tr, "quux");
+            endSpan(sp1);
+            clear("curscope");
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.traceId), ...
+                lower(traceid));
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.parentSpanId), ...
+                spanid);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.traceId), ...
+                lower(traceid));
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.parentSpanId), ...
+                spanid);
         end
 
         function testTime(testCase)
@@ -733,6 +777,31 @@ classdef ttrace < matlab.unittest.TestCase
 
             % check span status
             verifyEmpty(testCase, fieldnames(results.resourceSpans.scopeSpans.spans.status));   % status unset
+        end
+
+        function testInvalidSpanContext(testCase)
+            % testInvalidSpanContext: create a span context with an invalid
+            %                         trace or span ID
+            traceid = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+            spanid = "yyyyyyyyyyyyyyyy";
+            sc = opentelemetry.trace.SpanContext(traceid, spanid);
+
+            % verify SpanContext object uses default invalid IDs
+            verifyEqual(testCase, sc.TraceId, string(repmat('0', 1, 32)));
+            verifyEqual(testCase, sc.SpanId, string(repmat('0', 1, 16)));
+
+            % start a span, pass in context, check it has no effect
+            context = opentelemetry.trace.Context.insertSpan(...
+                opentelemetry.context.Context, sc);
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tr = getTracer(tp, "foo");
+            sp = startSpan(tr, "bar", "Context", context);
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+
+            verifyEmpty(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId);
         end
     end
 end

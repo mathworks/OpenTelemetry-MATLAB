@@ -1,10 +1,10 @@
 classdef Link
 % Specifies a link to a span
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
-        Target (1,1) opentelemetry.trace.SpanContext  % Target span 
+        Target % Target span context 
     end
 
     properties (Access=?opentelemetry.trace.Tracer)

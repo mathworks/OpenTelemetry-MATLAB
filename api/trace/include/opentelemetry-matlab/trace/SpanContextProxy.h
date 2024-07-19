@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
 
@@ -6,6 +6,9 @@
 #include "libmexclass/proxy/method/Context.h"
 
 #include "opentelemetry/trace/span_context.h"
+#include "opentelemetry/trace/trace_id.h"
+#include "opentelemetry/trace/span_id.h"
+#include "opentelemetry/trace/trace_flags.h"
 
 namespace trace_api = opentelemetry::trace;
 namespace nostd = opentelemetry::nostd;
@@ -22,12 +25,11 @@ class SpanContextProxy : public libmexclass::proxy::Proxy {
         REGISTER_METHOD(SpanContextProxy, isSampled);
         REGISTER_METHOD(SpanContextProxy, isValid);
         REGISTER_METHOD(SpanContextProxy, isRemote);
+        REGISTER_METHOD(SpanContextProxy, makeCurrent);
+        REGISTER_METHOD(SpanContextProxy, insertSpan);
     }
 
-    // dummy make static method, to satisfy proxy registration
-    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
-        return std::make_shared<SpanContextProxy>(trace_api::SpanContext{false, false});
-    }
+    static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
 
     trace_api::SpanContext getInstance() {
         return CppSpanContext;
@@ -46,6 +48,10 @@ class SpanContextProxy : public libmexclass::proxy::Proxy {
     void isValid(libmexclass::proxy::method::Context& context);
 
     void isRemote(libmexclass::proxy::method::Context& context);
+
+    void makeCurrent(libmexclass::proxy::method::Context& context);
+
+    void insertSpan(libmexclass::proxy::method::Context& context);
 
   private:
 
