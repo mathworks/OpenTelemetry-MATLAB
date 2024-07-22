@@ -1,8 +1,13 @@
 name: "Publish mltbx"
-on: 
+on:
     workflow_dispatch:
-    release:
-      types: published
+    push:
+      tags:
+        - '*' 
+          #on: 
+          #workflow_dispatch:
+          #release:
+          #types: published
 jobs:
     build-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
@@ -137,12 +142,21 @@ jobs:
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface
-            - name: Upload Release Asset
-              uses: actions/upload-release-asset@v1
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with: 
-                upload_url: ${{ github.event.release.upload_url }}
-                asset_path: ./otel-matlab.mltbx
-                asset_name: otel-matlab.mltbx
-                asset_content_type: application/octet-stream
+                  #- name: Upload Release Asset
+                  #uses: actions/upload-release-asset@v1
+                  #env:
+                  #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  #with: 
+                  #upload_url: ${{ github.event.release.upload_url }}
+                  #asset_path: ./otel-matlab.mltbx
+                  #asset_name: otel-matlab.mltbx
+                  #asset_content_type: application/octet-stream
+            - name: Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                files: ./otel-matlab.mltbx
+                fail_on_unmatched_files: true
+                generate_release_notes: false
+                prerelease: false
+                make_latest: false
+                draft: true
