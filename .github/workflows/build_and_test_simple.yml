@@ -12,10 +12,12 @@ jobs:
     get_version:
         runs-on: ubuntu-20.04
         steps:
+            # need fetch-depth:0 to also download the tags
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
+                fetch-depth: 0
             - name: Get Version
               id: getversion
               shell: bash
