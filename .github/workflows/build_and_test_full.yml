@@ -11,9 +11,14 @@ jobs:
     get_version:
         runs-on: ubuntu-20.04
         steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
             - name: Get Version
               id: getversion
               shell: bash
+              working-directory: opentelemetry-matlab
               run: echo "latest_tag=$(sed -re 's/^v?([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?.*/\1/' <<< $(git describe --tags --abbrev=0))" >> $GITHUB_OUTPUT
     build-and-run-tests-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 

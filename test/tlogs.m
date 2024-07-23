@@ -86,7 +86,9 @@ classdef tlogs < matlab.unittest.TestCase
                 versionidx = find(resourcekeys == "telemetry.sdk.version");
                 verifyNotEmpty(testCase, versionidx);
                 versionpattern = digitsPattern + "." + digitsPattern + "." + digitsPattern;
-                verifyTrue(testCase, matches(results.resourceLogs.resource.attributes(versionidx).value.stringValue, versionpattern));
+                version_actual = results.resourceLogs.resource.attributes(versionidx).value.stringValue;
+                verifyTrue(testCase, matches(version_actual, versionpattern), ...
+                    "Invalid version string: " + version_actual);
 
                 nameidx = find(resourcekeys == "telemetry.sdk.name");
                 verifyNotEmpty(testCase, nameidx);
