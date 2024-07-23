@@ -8,10 +8,18 @@ on:
 env:
   MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
 jobs:
+    get_version:
+        runs-on: ubuntu-20.04
+        steps:
+            - name: Get Version
+              id: getversion
+              shell: bash
+              run: echo "latest_tag=$(sed -re 's/^v?([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?.*/\1/' <<< $(git describe --tags --abbrev=0))" >> $GITHUB_OUTPUT
     build-and-run-tests-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
         # Instead, run on ubuntu-20.04
         runs-on: ubuntu-20.04
+        needs: get_version
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
             SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
@@ -29,7 +37,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.getversion.outputs.latest_tag }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
@@ -41,6 +49,7 @@ jobs:
                  select-by-folder: opentelemetry-matlab/test
     build-and-run-tests-windows:
         runs-on: windows-latest
+        needs: get_version
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
@@ -59,7 +68,7 @@ jobs:
               shell: cmd
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DFETCH_VCPKG=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.getversion.outputs.latest_tag }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
@@ -74,6 +83,7 @@ jobs:
         strategy:
           matrix:
             os: [macos-13, macos-14]   # runs on Mac with both Intel (macos-13) and Apple Silicon (macos-14) processors
+        needs: get_version
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
@@ -90,7 +100,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.getversion.outputs.latest_tag }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Run tests
               env:
