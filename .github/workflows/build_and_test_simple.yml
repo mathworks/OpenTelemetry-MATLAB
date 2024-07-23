@@ -18,6 +18,10 @@ jobs:
               with: 
                 path: opentelemetry-matlab
                 fetch-depth: 0
+            - name: Debug
+              shell: bash
+              working-directory: opentelemetry-matlab
+              run: echo "$(git describe --tags --abbrev=0)" 
             - name: Get Version
               id: getversion
               shell: bash
