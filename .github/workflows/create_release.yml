@@ -1,8 +1,8 @@
-name: "Publish mltbx"
-on: 
-    workflow_dispatch:
-    release:
-      types: published
+name: "Create Release"
+on:
+    push:
+      tags:
+        - '[0-9]+.[0-9]+.[0-9]+'
 jobs:
     build-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
@@ -24,7 +24,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -54,7 +54,7 @@ jobs:
               shell: cmd
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DFETCH_VCPKG=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -85,7 +85,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_GRPC=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_GRPC=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -111,10 +111,6 @@ jobs:
               uses: actions/checkout@v3
               with:
                 path: OpenTelemetry-Matlab
-            - name: Read version
-              id: getversion
-              working-directory: OpenTelemetry-Matlab
-              run: echo "version=$(cat VERSION.txt)" >> $GITHUB_OUTPUT
             - name: Download Artifacts
               uses: actions/download-artifact@v3
               with:
@@ -133,16 +129,17 @@ jobs:
                 MATLABPATH: OpenTelemetry-Matlab/tools
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
-                OTEL_MATLAB_TOOLBOX_VERSION: ${{ steps.getversion.outputs.version }}
+                OTEL_MATLAB_TOOLBOX_VERSION: ${{ github.ref_name }}
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface
-            - name: Upload Release Asset
-              uses: actions/upload-release-asset@v1
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with: 
-                upload_url: ${{ github.event.release.upload_url }}
-                asset_path: ./otel-matlab.mltbx
-                asset_name: otel-matlab.mltbx
-                asset_content_type: application/octet-stream
+            - name: Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                files: ./otel-matlab.mltbx
+                name: "Version ${{ github.ref_name }}"
+                fail_on_unmatched_files: true
+                generate_release_notes: false
+                prerelease: false
+                make_latest: false
+                draft: true

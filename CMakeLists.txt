@@ -102,9 +102,9 @@ endif()
 set(CLIENT_PROJECT_NAME otel-matlab)
 
 # read version number
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt OTEL_MATLAB_VERSION_RAW)
-string(STRIP ${OTEL_MATLAB_VERSION_RAW} OTEL_MATLAB_VERSION)
-
+if(NOT DEFINED OTEL_MATLAB_VERSION)
+    set(OTEL_MATLAB_VERSION 0.0.0)   # set to an invalid default if not defined
+endif()
 
 project(${CLIENT_PROJECT_NAME} VERSION ${OTEL_MATLAB_VERSION} LANGUAGES CXX)
 
@@ -472,7 +472,7 @@ set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcLogRecordExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcValidator.m)
-set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt)
+set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
 
@@ -493,7 +493,7 @@ endif()
 if(WITH_OTLP_GRPC)
     install(FILES ${OTLP_GRPC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 endif()
-# Install license and version. The only reason these are needed is to work around a packaging bug where if 
+# Install license. The only reason it is needed is to work around a packaging bug where if 
 # all files are in packages (+xxx directories), matlab.addons.toolbox.packageToolbox refuses to add the 
 # toolbox path into MATLAB path. This issue is fixed in R2024a
 install(FILES ${OTLP_MISC_FILES} DESTINATION .)
