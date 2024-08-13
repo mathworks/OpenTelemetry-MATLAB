@@ -1,0 +1,10 @@
+fixes:
+    - "+opentelemetry/+sdk/+trace/::sdk/trace/+opentelemetry/+sdk/+trace/"
+    - "+opentelemetry/+sdk/+metrics/::sdk/trace/+opentelemetry/+sdk/+metrics/"    
+    - "+opentelemetry/+sdk/+common/::sdk/metrics/+opentelemetry/+sdk/+common/"
+    - "+opentelemetry/+trace/::api/metrics/+opentelemetry/+trace/"
+    - "+opentelemetry/+metrics/::api/metrics/+opentelemetry/+metrics/"
+    - "+opentelemetry/+context/::api/metrics/+opentelemetry/+context/"
+    - "+opentelemetry/+common/::api/metrics/+opentelemetry/+common/"
+    - "+opentelemetry/+baggage/::api/metrics/+opentelemetry/+baggage/"
+    - "+opentelemetry/+exporters/+otlp/::exporters/otlp/+opentelemetry/+exporters/+otlp/"
