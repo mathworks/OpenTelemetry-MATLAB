@@ -10,3 +10,5 @@ fixes:
     - "\\+opentelemetry/\\+common/::api/common/+opentelemetry/+common/"
     - "\\+opentelemetry/\\+baggage/::api/baggage/+opentelemetry/+baggage/"
     - "\\+opentelemetry/\\+exporters/\\+otlp/::exporters/otlp/+opentelemetry/+exporters/+otlp/"
+    - "\\+opentelemetry/\\+sdk/\\+logs::sdk/logs/+opentelemetry/+sdk/+logs/"
+    - "\\+opentelemetry/\\+logs/::api/logs/+opentelemetry/+logs/"s

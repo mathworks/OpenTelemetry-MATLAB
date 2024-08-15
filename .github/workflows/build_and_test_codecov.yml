@@ -1,4 +1,4 @@
-name: "OpenTelemetry-Matlab"
+name: "Code Coverage"
 on: 
     workflow_dispatch:
     push:
