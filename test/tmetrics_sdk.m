@@ -64,6 +64,48 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             verifyEqual(testCase, string(exporter.PreferredAggregationTemporality), temporality);
         end
 
+        function testOtlpFileExporter(testCase)
+            % testOtlpFileExporter: use a file exporter to write to files
+
+            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpFileMetricExporter", "class")), ...
+                "Otlp file exporter must be installed.");
+
+            % create temporary folder to write the output files
+            folderfixture = testCase.applyFixture(...
+                matlab.unittest.fixtures.TemporaryFolderFixture);
+   
+            % create file exporter
+            output = fullfile(folderfixture.Folder,"output%n.json");
+            alias = fullfile(folderfixture.Folder,"output_latest.json");
+            exp = opentelemetry.exporters.otlp.OtlpFileMetricExporter(...
+                FileName=output, AliasName=alias);
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exp, ...
+                Interval=testCase.ShortIntervalReader.Interval, ...
+                Timeout=testCase.ShortIntervalReader.Timeout);
+            p = opentelemetry.sdk.metrics.MeterProvider(reader);
+
+            metername = "foo";
+            countername = "bar";
+            mt = p.getMeter(metername);
+            ct = mt.createCounter(countername);
+
+            % create testing value 
+            val = 10;
+
+            % add value
+            ct.add(val);
+
+            % fetch result
+            clear p;
+            results = jsondecode(fileread(alias));
+
+            % verify meter and counter names
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+
+            % verify counter value
+            verifyEqual(testCase, results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, val);
+        end
         
         function testDefaultReader(testCase)
             reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader();

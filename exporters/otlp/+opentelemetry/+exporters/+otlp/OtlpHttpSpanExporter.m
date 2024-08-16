@@ -14,7 +14,7 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
-    properties (Constant)
+    properties (Access=private, Constant)
         Validator = opentelemetry.exporters.otlp.OtlpHttpValidator
     end
 
@@ -41,7 +41,9 @@ classdef OtlpHttpSpanExporter < opentelemetry.sdk.trace.SpanExporter
             %                             will abort
             %       "HTTPHeaders"       - Additional HTTP Headers
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER
+            %    See also
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER, 
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPFILESPANEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

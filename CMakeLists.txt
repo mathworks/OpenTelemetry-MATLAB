@@ -78,8 +78,9 @@ endif()
 
 option(WITH_OTLP_HTTP "Whether to include the OTLP HTTP exporter" ON)
 option(WITH_OTLP_GRPC "Whether to include the OTLP gRPC exporter" OFF)
-if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC)
-    message(FATAL_ERROR "At least one of WITH_OTLP_HTTP and WITH_OTLP_GRPC must be ON")
+option(WITH_OTLP_FILE "Whether to include the OTLP file exporter" OFF)
+if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC AND NOT WITH_OTLP_FILE)
+    message(FATAL_ERROR "At least one of WITH_OTLP_HTTP, WITH_OTLP_GRPC, or WITH_OTLP_FILE must be ON")
 endif()
 if(APPLE)
     option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
@@ -178,6 +179,12 @@ if(WITH_OTLP_GRPC)
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_log${CMAKE_STATIC_LIBRARY_SUFFIX}
             ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX})
 endif()
+if(WITH_OTLP_FILE)
+    set(OTEL_CPP_LIBRARIES ${OTEL_CPP_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_file${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_file_client${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_file_metric${CMAKE_STATIC_LIBRARY_SUFFIX}
+	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_file_log${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 
 if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    # No installed location supplied. Fetch it as an external project
@@ -209,7 +216,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
        PREFIX ${OTEL_CPP_PREFIX}
        UPDATE_DISCONNECTED 1
        PATCH_COMMAND ${patch_command}
-       CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
+       CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DWITH_OTLP_FILE=${WITH_OTLP_FILE} -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
        BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
        INSTALL_DIR ${OTEL_CPP_PREFIX}
        INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
@@ -321,6 +328,13 @@ if(WITH_OTLP_GRPC)
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcMetricExporterProxy.cpp
     ${OTLP_EXPORTER_SOURCE_DIR}/OtlpGrpcLogRecordExporterProxy.cpp)
 endif()
+if(WITH_OTLP_FILE)
+    set(OPENTELEMETRY_PROXY_SOURCES 
+    ${OPENTELEMETRY_PROXY_SOURCES} 
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpFileSpanExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpFileMetricExporterProxy.cpp
+    ${OTLP_EXPORTER_SOURCE_DIR}/OtlpFileLogRecordExporterProxy.cpp)
+endif()
 
 if(WIN32)
     # Add a preprocessor definition _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to fix an invalid mex file issue on Windows.
@@ -338,13 +352,17 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
     add_dependencies(${OPENTELEMETRY_PROXY_LIBRARY_NAME} ${OTEL_CPP_PROJECT_NAME})
 endif()
 
-# Additional compiler flags for HTTP/gRPC exporters
+# Additional compiler flags for HTTP/gRPC/file exporters
 if(WITH_OTLP_HTTP)
     target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE WITH_OTLP_HTTP)
 endif()
 
 if(WITH_OTLP_GRPC)
     target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE WITH_OTLP_GRPC)
+endif()
+
+if(WITH_OTLP_FILE)
+    target_compile_definitions(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE WITH_OTLP_FILE)
 endif()
 
 # pass in version number
@@ -472,6 +490,11 @@ set(OTLP_GRPC_EXPORTER_MATLAB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcMetricExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcLogRecordExporter.m
     ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpGrpcValidator.m)
+set(OTLP_FILE_EXPORTER_MATLAB_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpFileSpanExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpFileMetricExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpFileLogRecordExporter.m
+    ${CMAKE_CURRENT_SOURCE_DIR}/exporters/otlp/+opentelemetry/+exporters/+otlp/OtlpFileValidator.m)
 set(OTLP_MISC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE)
 
 set(OTLP_EXPORTERS_DIR +opentelemetry/+exporters/+otlp)
@@ -492,6 +515,9 @@ if(WITH_OTLP_HTTP)
 endif()
 if(WITH_OTLP_GRPC)
     install(FILES ${OTLP_GRPC_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
+endif()
+if(WITH_OTLP_FILE)
+    install(FILES ${OTLP_FILE_EXPORTER_MATLAB_SOURCES} DESTINATION ${OTLP_EXPORTERS_DIR})
 endif()
 # Install license. The only reason it is needed is to work around a packaging bug where if 
 # all files are in packages (+xxx directories), matlab.addons.toolbox.packageToolbox refuses to add the 

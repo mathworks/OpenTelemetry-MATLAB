@@ -14,7 +14,7 @@ classdef OtlpHttpMetricExporter < opentelemetry.sdk.metrics.MetricExporter
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
-    properties (Constant)
+    properties (Access=private, Constant)
         Validator = opentelemetry.exporters.otlp.OtlpHttpValidator
     end
 
@@ -44,7 +44,9 @@ classdef OtlpHttpMetricExporter < opentelemetry.sdk.metrics.MetricExporter
             %                           - An aggregation temporality of 
             %                           - delta or cumulative
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMETRICEXPORTER
+            %    See also
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCMETRICEXPORTER, 
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPFILEMETRICEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

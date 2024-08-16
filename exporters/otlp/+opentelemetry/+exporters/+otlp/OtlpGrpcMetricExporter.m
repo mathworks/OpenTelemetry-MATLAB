@@ -3,7 +3,7 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
 % gRPC. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         Endpoint (1,1) string = "http://localhost:4317"   % Export destination
@@ -14,7 +14,7 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)   % Additional HTTP headers
     end
 
-    properties (Constant)
+    properties (Access=private, Constant)
         Validator = opentelemetry.exporters.otlp.OtlpGrpcValidator
     end
 
@@ -44,7 +44,9 @@ classdef OtlpGrpcMetricExporter < opentelemetry.sdk.metrics.MetricExporter
             %                           - An aggregation temporality of 
             %                           - delta or cumulative
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMETRICEXPORTER
+            %    See also
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPMETRICEXPORTER, 
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPFILEMETRICEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues
