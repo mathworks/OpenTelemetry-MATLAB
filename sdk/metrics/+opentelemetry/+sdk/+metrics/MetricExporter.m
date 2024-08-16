@@ -1,15 +1,16 @@
 classdef MetricExporter
 % Base class of metric exporters
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties
-	PreferredAggregationTemporality (1,1) string = "cumulative"   % Preferred Aggregation Temporality
+        PreferredAggregationTemporality (1,1) string = "cumulative"   % Preferred Aggregation Temporality
     end
 
-    properties (Access={?opentelemetry.sdk.metrics.PeriodicExportingMetricReader, ...
+    properties (Hidden, Access={?opentelemetry.sdk.metrics.PeriodicExportingMetricReader, ...
             ?opentelemetry.exporters.otlp.OtlpHttpMetricExporter, ...
-            ?opentelemetry.exporters.otlp.OtlpGrpcMetricExporter})
+            ?opentelemetry.exporters.otlp.OtlpGrpcMetricExporter, ...
+            ?opentelemetry.exporters.otlp.OtlpFileMetricExporter})
         Proxy   % Proxy object to interface C++ code
     end
 

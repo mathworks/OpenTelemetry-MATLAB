@@ -3,7 +3,7 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
 % gRPC. By default, it exports to the default address of the OpenTelemetry
 % Collector.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties 
         Endpoint (1,1) string = "http://localhost:4317"   % Export destination
@@ -14,7 +14,7 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
-    properties (Constant)
+    properties (Access=private, Constant)
         Validator = opentelemetry.exporters.otlp.OtlpGrpcValidator
     end
 
@@ -41,7 +41,9 @@ classdef OtlpGrpcSpanExporter < opentelemetry.sdk.trace.SpanExporter
             %                             will abort
             %       "HTTPHeaders"       - Additional HTTP Headers
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER
+            %    See also
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER,
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPFILESPANEXPORTER
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

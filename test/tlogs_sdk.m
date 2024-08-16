@@ -39,7 +39,42 @@ classdef tlogs_sdk < matlab.unittest.TestCase
         end
     end
 
-    methods (Test)        
+    methods (Test)      
+        function testOtlpFileExporter(testCase)
+            % testOtlpFileExporter: use a file exporter to write to files
+
+            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpFileLogRecordExporter", "class")), ...
+                "Otlp file exporter must be installed.");
+
+            % create temporary folder to write the output files
+            folderfixture = testCase.applyFixture(...
+                matlab.unittest.fixtures.TemporaryFolderFixture);
+
+            % create file exporter
+            output = fullfile(folderfixture.Folder,"output%n.json");
+            alias = fullfile(folderfixture.Folder,"output_latest.json");
+            exp = opentelemetry.exporters.otlp.OtlpFileLogRecordExporter(...
+                FileName=output, AliasName=alias);
+
+            lp = opentelemetry.sdk.logs.LoggerProvider(...
+                opentelemetry.sdk.logs.SimpleLogRecordProcessor(exp));
+
+            loggername = "foo";
+            logseverity = "debug";
+            logmessage = "bar";
+            lg = getLogger(lp, loggername);
+            emitLogRecord(lg, logseverity, logmessage);
+
+            % perform test comparisons
+            forceFlush(lp, testCase.ForceFlushTimeout);
+            results = jsondecode(fileread(alias));
+
+            % check logger name, log body and severity
+            verifyEqual(testCase, string(results.resourceLogs.scopeLogs.scope.name), loggername);
+            verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity));
+            verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.body.stringValue), logmessage);
+        end
+       
         function testAddLogRecordProcessor(testCase)
             % testAddLogRecordProcessor: addLogRecordProcessor method
             loggername = "foo";

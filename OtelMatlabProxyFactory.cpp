@@ -40,6 +40,11 @@
     #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcMetricExporterProxy.h"
     #include "opentelemetry-matlab/exporters/otlp/OtlpGrpcLogRecordExporterProxy.h"
 #endif
+#ifdef WITH_OTLP_FILE
+    #include "opentelemetry-matlab/exporters/otlp/OtlpFileSpanExporterProxy.h"
+    #include "opentelemetry-matlab/exporters/otlp/OtlpFileMetricExporterProxy.h"
+    #include "opentelemetry-matlab/exporters/otlp/OtlpFileLogRecordExporterProxy.h"
+#endif
 
 libmexclass::proxy::MakeResult
 OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_name,
@@ -87,6 +92,11 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcSpanExporterProxy);
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcMetricExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcMetricExporterProxy);
         REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpGrpcLogRecordExporterProxy, libmexclass::opentelemetry::exporters::OtlpGrpcLogRecordExporterProxy);
+    #endif
+    #ifdef WITH_OTLP_FILE
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpFileSpanExporterProxy, libmexclass::opentelemetry::exporters::OtlpFileSpanExporterProxy);
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpFileMetricExporterProxy, libmexclass::opentelemetry::exporters::OtlpFileMetricExporterProxy);
+        REGISTER_PROXY(libmexclass.opentelemetry.exporters.OtlpFileLogRecordExporterProxy, libmexclass::opentelemetry::exporters::OtlpFileLogRecordExporterProxy);
     #endif
     return nullptr;
 }

@@ -5,7 +5,8 @@ classdef LogRecordExporter
 
     properties (GetAccess={?opentelemetry.sdk.logs.LogRecordProcessor, ...
             ?opentelemetry.exporters.otlp.OtlpHttpLogRecordExporter, ...
-            ?opentelemetry.exporters.otlp.OtlpGrpcLogRecordExporter})
+            ?opentelemetry.exporters.otlp.OtlpGrpcLogRecordExporter, ...
+            ?opentelemetry.exporters.otlp.OtlpFileLogRecordExporter})
         Proxy   % Proxy object to interface C++ code
     end
 

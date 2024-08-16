@@ -14,7 +14,7 @@ classdef OtlpHttpLogRecordExporter < opentelemetry.sdk.logs.LogRecordExporter
         HttpHeaders (1,1) dictionary = dictionary(string.empty, string.empty)  % Additional HTTP headers
     end
 
-    properties (Constant)
+    properties (Access=private, Constant)
         Validator = opentelemetry.exporters.otlp.OtlpHttpValidator
     end
 
@@ -41,7 +41,9 @@ classdef OtlpHttpLogRecordExporter < opentelemetry.sdk.logs.LogRecordExporter
             %                             will abort
             %       "HTTPHeaders"       - Additional HTTP Headers
             %
-            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCLOGRECORDEXPORTER
+            %    See also OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCLOGRECORDEXPORTER,
+            %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPFILELOGRECORDEXPORTER
+
             arguments (Repeating)
                 optionnames (1,:) {mustBeTextScalar}
                 optionvalues

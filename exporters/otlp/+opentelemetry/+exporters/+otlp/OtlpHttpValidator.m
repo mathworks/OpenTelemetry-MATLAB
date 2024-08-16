@@ -1,8 +1,8 @@
 classdef OtlpHttpValidator < opentelemetry.exporters.otlp.OtlpValidator 
-% OtlpHttpValidator   Validate options inputs for OtlpHttpSpanExporter and
-% OtlpHttpMetricExporter
+% OtlpHttpValidator   Validate options inputs for OtlpHttpSpanExporter, 
+% OtlpHttpMetricExporter, and OtlpHttpLogRecordExporter
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     methods (Static)
         function newformat = validateFormat(newformat)

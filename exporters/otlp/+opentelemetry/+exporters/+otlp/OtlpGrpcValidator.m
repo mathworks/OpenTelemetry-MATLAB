@@ -1,8 +1,8 @@
 classdef OtlpGrpcValidator < opentelemetry.exporters.otlp.OtlpValidator 
-% OtlpGrpcValidator   Validate options inputs for OtlpGrpcSpanExporter and
-% OtlpGrpcMetricExporter
+% OtlpGrpcValidator   Validate options inputs for OtlpGrpcSpanExporter, 
+% OtlpGrpcMetricExporter, and OtlpGrpcLogRecordExporter
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     methods (Static)
         function uc = validateUseCredentials(uc)

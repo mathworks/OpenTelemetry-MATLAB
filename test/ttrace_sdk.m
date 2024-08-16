@@ -129,6 +129,40 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             end
         end
 
+        function testOtlpFileExporter(testCase)
+            % testOtlpFileExporter: use a file exporter to write to files
+
+            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpFileSpanExporter", "class")), ...
+                "Otlp file exporter must be installed.");
+
+            % create temporary folder to write the output files
+            folderfixture = testCase.applyFixture(...
+                matlab.unittest.fixtures.TemporaryFolderFixture);
+   
+            % create file exporter
+            output = fullfile(folderfixture.Folder,"output%n.json");
+            alias = fullfile(folderfixture.Folder,"output_latest.json");
+            exp = opentelemetry.exporters.otlp.OtlpFileSpanExporter(...
+                FileName=output, AliasName=alias);
+
+            tp = opentelemetry.sdk.trace.TracerProvider(...
+                opentelemetry.sdk.trace.SimpleSpanProcessor(exp));      
+
+            tracername = "foo";
+            spanname = "bar";
+            tr = getTracer(tp, tracername);
+            sp = startSpan(tr, spanname);
+            pause(1);
+            endSpan(sp);
+
+            % perform test comparisons
+            results = jsondecode(fileread(alias));
+
+            % check span and tracer names
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
+        end
+
         function testCustomResource(testCase)
             % testCustomResource: check custom resources are included in
             % emitted spans
