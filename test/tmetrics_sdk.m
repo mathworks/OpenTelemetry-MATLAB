@@ -317,8 +317,10 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % testViewAttributes: filter out attributes
             metername = "foo";
             countername = "bar";
-            view = opentelemetry.sdk.metrics.View(InstrumentType="Counter", ...
-                InstrumentName=countername, AllowedAttributes="Building");
+            view = opentelemetry.sdk.metrics.View;
+            view.InstrumentType = "Counter";
+            view.InstrumentName = countername; 
+            view.AllowedAttributes= "Building";
             mp = opentelemetry.sdk.metrics.MeterProvider(...
                 testCase.ShortIntervalReader, View=view); 
 
@@ -349,6 +351,57 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             verifyEqual(testCase, dp.attributes(1).value.doubleValue, 1);
         end
 
+        function testViewAllowAllAttributes(testCase)
+            % testViewAllowAllAttributes: Specify AllowedAttributes to
+            % allow all
+            metername = "foo";
+            countername = "bar";
+            buildingattr = "Building";
+            roomattr = "Room";
+            view = opentelemetry.sdk.metrics.View;
+            view.InstrumentType = "Counter";
+            view.InstrumentName = countername; 
+            view.AllowedAttributes= "*";    % allow all attributes
+            mp = opentelemetry.sdk.metrics.MeterProvider(...
+                testCase.ShortIntervalReader, View=view); 
+
+            m = getMeter(mp, metername);
+            c = createCounter(m, countername);
+            
+            % add values
+            values1 = [10 50];
+            values2 = [20 60];
+            add(c, values1(1), buildingattr, 1, roomattr, 1);
+            add(c, values2(1), buildingattr, 1, roomattr, 2);
+            add(c, values1(2), buildingattr, 1, roomattr, 1);
+            add(c, values2(2), buildingattr, 1, roomattr, 2);
+            
+            pause(testCase.WaitTime);
+            
+            clear mp;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify counter name
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
+
+            % verify all attributes are included
+            dp = results.resourceMetrics.scopeMetrics.metrics.sum.dataPoints;
+            verifyLength(testCase, dp, 2);
+            verifyLength(testCase, dp(1).attributes, 2);
+            attrkeys = string({dp(1).attributes.key});
+            buildingidx = find(attrkeys == buildingattr);
+            roomidx = find(attrkeys == roomattr);
+            verifyNotEmpty(testCase, buildingidx);
+            verifyNotEmpty(testCase, roomidx);
+
+            % verify counts are correct
+            roomidx = [dp(1).attributes(roomidx).value.doubleValue ...
+                dp(2).attributes(roomidx).value.doubleValue];
+            verifyEqual(testCase, dp(roomidx==1).asDouble, sum(values1));
+            verifyEqual(testCase, dp(roomidx==2).asDouble, sum(values2));
+        end
+
         function testMultipleViews(testCase)
             % testMultipleView: Applying multiple views to a meter provider
 
@@ -359,8 +412,10 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % match meter name
             metermatch_name = "match_meter_name";
-            metermatch = opentelemetry.sdk.metrics.View(Name=metermatch_name, ....
-                InstrumentType="Counter", MeterName = "abc");
+            metermatch = opentelemetry.sdk.metrics.View;
+            metermatch.Name = metermatch_name;
+            metermatch.InstrumentType = "Counter"; 
+            metermatch.MeterName = "abc";
             mp = opentelemetry.sdk.metrics.MeterProvider(...
                 testCase.ShortIntervalReader, View=instmatch); 
             addView(mp, metermatch);
