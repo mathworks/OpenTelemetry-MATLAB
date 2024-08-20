@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #pragma once
 
@@ -28,15 +28,45 @@ namespace nostd = opentelemetry::nostd;
 namespace libmexclass::opentelemetry::sdk {
 class ViewProxy : public libmexclass::proxy::Proxy {
 public:
-    ViewProxy(std::string name, std::string description, std::string instrumentName, 
-		metrics_sdk::InstrumentType instrumentType, std::string instrumentUnit, std::string meterName, 
-		std::string meterVersion, std::string meterSchema, std::unordered_map<std::string, bool> allowedAttributes,
-		bool filterAttributes, metrics_sdk::AggregationType aggregationType, std::vector<double> histogramBinEdges) 
-       : Name(std::move(name)), Description(std::move(description)), InstrumentName(std::move(instrumentName)), InstrumentType(instrumentType), 
-	InstrumentUnit(std::move(instrumentUnit)), MeterName(std::move(meterName)), MeterVersion(std::move(meterVersion)), MeterSchema(std::move(meterSchema)), 
-	AllowedAttributes(std::move(allowedAttributes)), FilterAttributes(filterAttributes), Aggregation(aggregationType), HistogramBinEdges(std::move(histogramBinEdges)) {}
 
+    ViewProxy()
+       : FilterAttributes(false) {
+        REGISTER_METHOD(ViewProxy, setName);
+        REGISTER_METHOD(ViewProxy, setDescription);
+        REGISTER_METHOD(ViewProxy, setInstrumentName);
+        REGISTER_METHOD(ViewProxy, setInstrumentType);
+        REGISTER_METHOD(ViewProxy, setInstrumentUnit);
+        REGISTER_METHOD(ViewProxy, setMeterName);
+        REGISTER_METHOD(ViewProxy, setMeterVersion);
+        REGISTER_METHOD(ViewProxy, setMeterSchema);
+        REGISTER_METHOD(ViewProxy, setAllowedAttributes);
+        REGISTER_METHOD(ViewProxy, setAggregation);
+        REGISTER_METHOD(ViewProxy, setHistogramBinEdges);
+    }
+    
     static libmexclass::proxy::MakeResult make(const libmexclass::proxy::FunctionArguments& constructor_arguments);
+
+    void setName(libmexclass::proxy::method::Context& context);
+
+    void setDescription(libmexclass::proxy::method::Context& context);
+
+    void setInstrumentName(libmexclass::proxy::method::Context& context);
+
+    void setInstrumentType(libmexclass::proxy::method::Context& context);
+
+    void setInstrumentUnit(libmexclass::proxy::method::Context& context);
+
+    void setMeterName(libmexclass::proxy::method::Context& context);
+
+    void setMeterVersion(libmexclass::proxy::method::Context& context);
+
+    void setMeterSchema(libmexclass::proxy::method::Context& context);
+
+    void setAllowedAttributes(libmexclass::proxy::method::Context& context);
+
+    void setAggregation(libmexclass::proxy::method::Context& context);
+
+    void setHistogramBinEdges(libmexclass::proxy::method::Context& context);
 
     std::unique_ptr<metrics_sdk::View> getView();
 
@@ -45,10 +75,6 @@ public:
     std::unique_ptr<metrics_sdk::MeterSelector> getMeterSelector();
 
 private:
-    std::unique_ptr<metrics_sdk::View> View;
-
-    std::unique_ptr<metrics_sdk::InstrumentSelector> InstrumentSelector;
-    
     std::string InstrumentName;
     metrics_sdk::InstrumentType InstrumentType;
     std::string InstrumentUnit;

@@ -6,104 +6,105 @@
 
 namespace libmexclass::opentelemetry::sdk {
 libmexclass::proxy::MakeResult ViewProxy::make(const libmexclass::proxy::FunctionArguments& constructor_arguments) {
-    libmexclass::proxy::MakeResult out;
-
-    // Name
-    matlab::data::StringArray name_mda = constructor_arguments[0];
-    std::string name = static_cast<std::string>(name_mda[0]);
-
-    // Description
-    matlab::data::StringArray description_mda = constructor_arguments[1];
-    std::string description = static_cast<std::string>(description_mda[0]);
-    
-    // InstrumentName
-    matlab::data::StringArray instrument_name_mda = constructor_arguments[2];
-    auto instrument_name = static_cast<std::string>(instrument_name_mda[0]);
-
-    // InstrumentType
-    matlab::data::StringArray instrument_type_mda = constructor_arguments[3];
-    matlab::data::String instrument_type_str = instrument_type_mda[0];
-    metrics_sdk::InstrumentType instrument_type;
-    if (instrument_type_str.compare(u"counter") == 0) {
-        instrument_type = metrics_sdk::InstrumentType::kCounter;
-    } else if (instrument_type_str.compare(u"updowncounter") == 0) {
-	instrument_type = metrics_sdk::InstrumentType::kUpDownCounter;
-    } else if (instrument_type_str.compare(u"histogram") == 0) {
-	instrument_type = metrics_sdk::InstrumentType::kHistogram;
-    } else if (instrument_type_str.compare(u"observablecounter") == 0) {
-	instrument_type = metrics_sdk::InstrumentType::kObservableCounter;
-    } else if (instrument_type_str.compare(u"observableupdowncounter") == 0) {
-	instrument_type = metrics_sdk::InstrumentType::kObservableUpDownCounter;
-    } else {
-	assert(instrument_type_str.compare(u"observablegauge") == 0);
-	instrument_type = metrics_sdk::InstrumentType::kObservableGauge;
-    }
-
-    // InstrumentUnit
-    matlab::data::StringArray unit_mda = constructor_arguments[4];
-    auto instrument_unit = static_cast<std::string>(unit_mda[0]);
-
-
-    // MeterName
-    matlab::data::StringArray meter_name_mda = constructor_arguments[5];
-    auto meter_name = static_cast<std::string>(meter_name_mda[0]);
-
-    // MeterVersion
-    matlab::data::StringArray meter_version_mda = constructor_arguments[6];
-    auto meter_version = static_cast<std::string>(meter_version_mda[0]);
-
-    // MeterSchema
-    matlab::data::StringArray meter_schema_mda = constructor_arguments[7];
-    auto meter_schema = static_cast<std::string>(meter_schema_mda[0]);
-
-    // FilterAttributes (a boolean indicating whether AllowedAttributes has been specified)
-    matlab::data::TypedArray<bool> filter_attributes_mda = constructor_arguments[8];
-    bool filter_attributes = filter_attributes_mda[0];
-
-    // AllowedAttributes
-    std::unique_ptr<metrics_sdk::AttributesProcessor> attributes_processor;
-    matlab::data::StringArray attributes_mda = constructor_arguments[9];
-    std::unordered_map<std::string, bool> allowed_attribute_keys;
-    for (size_t a=0; a<attributes_mda.getNumberOfElements(); a++) {
-	std::string attr = static_cast<std::string>(attributes_mda[a]);
-	if (!attr.empty()) {
-            allowed_attribute_keys[attr] = true;
-	}
-    }
-
-    // Aggregation
-    matlab::data::StringArray aggregation_type_mda = constructor_arguments[10];
-    matlab::data::String aggregation_type_str = aggregation_type_mda[0];
-    metrics_sdk::AggregationType aggregation_type;
-    if (aggregation_type_str.compare(u"sum") == 0) {
-        aggregation_type = metrics_sdk::AggregationType::kSum;
-    } else if (aggregation_type_str.compare(u"drop") == 0) {
-        aggregation_type = metrics_sdk::AggregationType::kDrop;
-    } else if (aggregation_type_str.compare(u"lastvalue") == 0) {
-        aggregation_type = metrics_sdk::AggregationType::kLastValue;
-    } else if (aggregation_type_str.compare(u"histogram") == 0) {
-        aggregation_type = metrics_sdk::AggregationType::kHistogram;
-    } else {
-        assert(aggregation_type_str.compare(u"default") == 0);
-        aggregation_type = metrics_sdk::AggregationType::kDefault;
-    }
-
-    // HistogramBinEdges
-    std::vector<double> histogramBinEdges;
-    if(aggregation_type == metrics_sdk::AggregationType::kHistogram ||
-		    (aggregation_type == metrics_sdk::AggregationType::kDefault && instrument_type == metrics_sdk::InstrumentType::kHistogram)){
-        matlab::data::TypedArray<double> histogramBinEdges_mda = constructor_arguments[11];
-        for (auto h : histogramBinEdges_mda) {
-            histogramBinEdges.push_back(h);
-        }
-    }
-    
-    // Call View Proxy Constructor
-    return std::make_shared<ViewProxy>(std::move(name), std::move(description), std::move(instrument_name), instrument_type, 
-		    std::move(instrument_unit), std::move(meter_name), std::move(meter_version), std::move(meter_schema), 
-		    std::move(allowed_attribute_keys), filter_attributes, aggregation_type, std::move(histogramBinEdges));
+    return std::make_shared<ViewProxy>();
 }
 
+// Setters for properties
+void ViewProxy::setName(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray name_mda = context.inputs[0];
+    Name = static_cast<std::string>(name_mda[0]);
+}
+
+void ViewProxy::setDescription(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray description_mda = context.inputs[0];
+    Description = static_cast<std::string>(description_mda[0]);
+}
+
+void ViewProxy::setInstrumentName(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray instrumentname_mda = context.inputs[0];
+    InstrumentName = static_cast<std::string>(instrumentname_mda[0]);
+}
+
+void ViewProxy::setInstrumentType(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray instrumenttype_mda = context.inputs[0];
+    matlab::data::String instrument_type_str = instrumenttype_mda[0];
+    if (instrument_type_str.compare(u"counter") == 0) {
+        InstrumentType = metrics_sdk::InstrumentType::kCounter;
+    } else if (instrument_type_str.compare(u"updowncounter") == 0) {
+	InstrumentType = metrics_sdk::InstrumentType::kUpDownCounter;
+    } else if (instrument_type_str.compare(u"histogram") == 0) {
+	InstrumentType = metrics_sdk::InstrumentType::kHistogram;
+    } else if (instrument_type_str.compare(u"observablecounter") == 0) {
+	InstrumentType = metrics_sdk::InstrumentType::kObservableCounter;
+    } else if (instrument_type_str.compare(u"observableupdowncounter") == 0) {
+	InstrumentType = metrics_sdk::InstrumentType::kObservableUpDownCounter;
+    } else {
+	assert(instrument_type_str.compare(u"observablegauge") == 0);
+	InstrumentType = metrics_sdk::InstrumentType::kObservableGauge;
+    }
+}
+
+void ViewProxy::setInstrumentUnit(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray instrumentunit_mda = context.inputs[0];
+    InstrumentUnit = static_cast<std::string>(instrumentunit_mda[0]);
+}
+
+void ViewProxy::setMeterName(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray metername_mda = context.inputs[0];
+    MeterName = static_cast<std::string>(metername_mda[0]);
+}
+
+void ViewProxy::setMeterVersion(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray meterversion_mda = context.inputs[0];
+    MeterVersion = static_cast<std::string>(meterversion_mda[0]);
+}
+
+void ViewProxy::setMeterSchema(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray meterschema_mda = context.inputs[0];
+    MeterSchema = static_cast<std::string>(meterschema_mda[0]);
+}
+
+void ViewProxy::setAllowedAttributes(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray attributes_mda = context.inputs[0];
+    if (attributes_mda.getNumberOfElements() == 1 && static_cast<matlab::data::String>(attributes_mda[0]).compare(u"*") == 0) {
+	FilterAttributes = false;
+    } else {
+        FilterAttributes = true;
+	AllowedAttributes.clear();    // clear all previous entries
+        for (size_t a=0; a<attributes_mda.getNumberOfElements(); a++) {
+	    std::string attr = static_cast<std::string>(attributes_mda[a]);
+	    if (!attr.empty()) {
+                AllowedAttributes[attr] = true;
+	    }
+        }
+    }
+}
+
+void ViewProxy::setAggregation(libmexclass::proxy::method::Context& context) {
+    matlab::data::StringArray aggregation_type_mda = context.inputs[0];
+    matlab::data::String aggregation_type_str = aggregation_type_mda[0];
+    if (aggregation_type_str.compare(u"sum") == 0) {
+        Aggregation = metrics_sdk::AggregationType::kSum;
+    } else if (aggregation_type_str.compare(u"drop") == 0) {
+        Aggregation = metrics_sdk::AggregationType::kDrop;
+    } else if (aggregation_type_str.compare(u"lastvalue") == 0) {
+        Aggregation = metrics_sdk::AggregationType::kLastValue;
+    } else if (aggregation_type_str.compare(u"histogram") == 0) {
+        Aggregation = metrics_sdk::AggregationType::kHistogram;
+    } else {
+        assert(aggregation_type_str.compare(u"default") == 0);
+        Aggregation = metrics_sdk::AggregationType::kDefault;
+    }
+}
+
+void ViewProxy::setHistogramBinEdges(libmexclass::proxy::method::Context& context) {
+    matlab::data::TypedArray<double> histogramBinEdges_mda = context.inputs[0];
+    for (auto h : histogramBinEdges_mda) {
+        HistogramBinEdges.push_back(h);
+    }
+}
+    
+// Methods to generate input objects for MeterProvider.addView
 std::unique_ptr<metrics_sdk::View> ViewProxy::getView(){
     // AttributesProcessor
     std::unique_ptr<metrics_sdk::AttributesProcessor> attributes_processor;
