@@ -11,6 +11,8 @@
 #include "opentelemetry/trace/trace_flags.h"
 #include "opentelemetry/trace/trace_state.h"
 
+#include <list>
+
 namespace common = opentelemetry::common;
 namespace context_api = opentelemetry::context;
 
