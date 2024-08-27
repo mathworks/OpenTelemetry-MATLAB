@@ -9,6 +9,9 @@
 #include "opentelemetry/trace/default_span.h"
 #include "opentelemetry/trace/context.h"
 #include "opentelemetry/trace/trace_flags.h"
+#include "opentelemetry/trace/trace_state.h"
+
+#include <list>
 
 namespace common = opentelemetry::common;
 namespace context_api = opentelemetry::context;
@@ -29,7 +32,23 @@ libmexclass::proxy::MakeResult SpanContextProxy::make(const libmexclass::proxy::
     if (issampled) {
         traceflags |= trace_api::TraceFlags::kIsSampled;
     }
-    return std::make_shared<SpanContextProxy>(trace_api::SpanContext{traceid, spanid, trace_api::TraceFlags(traceflags), isremote});
+    
+    if (constructor_arguments.getNumberOfElements() <= 4) {
+        return std::make_shared<SpanContextProxy>(trace_api::SpanContext{traceid, spanid, trace_api::TraceFlags(traceflags), isremote});
+    } else {
+	auto tracestate = trace_api::TraceState::GetDefault();
+	matlab::data::StringArray tracestatekeys_mda = constructor_arguments[4];
+	matlab::data::StringArray tracestatevalues_mda = constructor_arguments[5];
+	size_t ntskeys = tracestatekeys_mda.getNumberOfElements();
+	for (size_t i = 0; i < ntskeys; ++i) {
+	    std::string tracestatekeyi = static_cast<std::string>(tracestatekeys_mda[i]), 
+		    tracestatevaluei = static_cast<std::string>(tracestatevalues_mda[i]);
+	    if (tracestate->IsValidKey(tracestatekeyi) && tracestate->IsValidValue(tracestatevaluei)) {
+                tracestate = tracestate->Set(tracestatekeyi, tracestatevaluei);
+	    }
+	}
+        return std::make_shared<SpanContextProxy>(trace_api::SpanContext{traceid, spanid, trace_api::TraceFlags(traceflags), isremote, tracestate});
+    }
 }
 
 void SpanContextProxy::getTraceId(libmexclass::proxy::method::Context& context) {
@@ -71,11 +90,25 @@ void SpanContextProxy::getSpanId(libmexclass::proxy::method::Context& context) {
 }
 
 void SpanContextProxy::getTraceState(libmexclass::proxy::method::Context& context) {
-    nostd::shared_ptr<trace_api::TraceState> tracestate = CppSpanContext.trace_state();
+    std::list<std::string> keys;
+    std::list<std::string> values;
 
+    // repeatedly invoke the callback lambda to retrieve each entry
+    bool success = CppSpanContext.trace_state()->GetAllEntries(
+        [&keys, &values](nostd::string_view currkey, nostd::string_view currvalue) {
+	  keys.push_back(std::string(currkey));
+	  values.push_back(std::string(currvalue));
+
+          return true;
+        });
+
+    size_t nkeys = keys.size();
+    matlab::data::ArrayDimensions dims = {nkeys, 1};
     matlab::data::ArrayFactory factory;
-    auto tracestate_mda = factory.createScalar(tracestate->ToHeader());
-    context.outputs[0] = tracestate_mda;
+    auto keys_mda = factory.createArray(dims, keys.cbegin(), keys.cend());
+    auto values_mda = factory.createArray(dims, values.cbegin(), values.cend());
+    context.outputs[0] = keys_mda;
+    context.outputs[1] = values_mda;
 }
 
 void SpanContextProxy::getTraceFlags(libmexclass::proxy::method::Context& context) {

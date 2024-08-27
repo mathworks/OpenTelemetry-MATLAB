@@ -17,6 +17,7 @@ classdef tcontextPropagation < matlab.unittest.TestCase
         TraceId
         SpanId
         TraceState
+        TraceStateString
         Headers
         BaggageKeys
         BaggageValues
@@ -33,9 +34,10 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             % simulate an HTTP header with relevant fields, used for extraction
             testCase.TraceId = "0af7651916cd43dd8448eb211c80319c";
             testCase.SpanId = "00f067aa0ba902b7";
-            testCase.TraceState = "foo=00f067aa0ba902b7";
+            testCase.TraceState = dictionary("foo", "00f067aa0ba902b7");
+            testCase.TraceStateString = "foo=00f067aa0ba902b7";
             testCase.Headers = ["traceparent", "00-" + testCase.TraceId + ...
-                "-" + testCase.SpanId + "-01"; "tracestate", testCase.TraceState];
+                "-" + testCase.SpanId + "-01"; "tracestate", testCase.TraceStateString];
             testCase.BaggageKeys = ["userId", "serverNode", "isProduction"];
             testCase.BaggageValues = ["alice", "DF28", "false"];
             testCase.BaggageHeaders = ["baggage", strjoin(strcat(testCase.BaggageKeys, ...
@@ -71,11 +73,13 @@ classdef tcontextPropagation < matlab.unittest.TestCase
             results = readJsonResults(testCase);
             results = results{1};
 
-            % check trace and parent IDs
+            % check trace and parent IDs, and span context
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceId), ...
                 testCase.TraceId);
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.parentSpanId), ...
                 testCase.SpanId);
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.traceState), ...
+                testCase.TraceStateString);
             % check trace state in span context
             spancontext = getSpanContext(sp);
             verifyEqual(testCase, spancontext.TraceState, testCase.TraceState);

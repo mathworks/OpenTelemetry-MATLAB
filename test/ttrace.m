@@ -254,7 +254,7 @@ classdef ttrace < matlab.unittest.TestCase
             results = readJsonResults(testCase);
             verifyEqual(testCase, ctxt.TraceId, string(results{1}.resourceSpans.scopeSpans.spans.traceId));
             verifyEqual(testCase, ctxt.SpanId, string(results{1}.resourceSpans.scopeSpans.spans.spanId));
-            verifyEqual(testCase, ctxt.TraceState, "");
+            verifyTrue(testCase, isa(ctxt.TraceState, "dictionary") && numEntries(ctxt.TraceState) == 0);  
             verifyEqual(testCase, ctxt.TraceFlags, "01");   % sampled flag should be on
         end
 
@@ -265,13 +265,16 @@ classdef ttrace < matlab.unittest.TestCase
             spanid = "0000000000111122";
             issampled = false;
             isremote = false;
+            tracestate = dictionary(["foo" "bar"], ["foo1" "bar1"]);
+            tracestate_str = "bar=bar1,foo=foo1";
             sc = opentelemetry.trace.SpanContext(traceid, spanid, ...
-                "IsSampled", issampled, "IsRemote", isremote);
+                "IsSampled", issampled, "IsRemote", isremote, ...
+                "TraceState", tracestate);
 
             % verify SpanContext object created correctly
             verifyEqual(testCase, sc.TraceId, lower(traceid));
             verifyEqual(testCase, sc.SpanId, spanid);
-            verifyEqual(testCase, sc.TraceState, "");
+            verifyEqual(testCase, sc.TraceState, tracestate);
             verifyEqual(testCase, sc.TraceFlags, "00");   % sampled flag should be off
             verifyEqual(testCase, isRemote(sc), isremote); 
 
@@ -296,10 +299,14 @@ classdef ttrace < matlab.unittest.TestCase
                 lower(traceid));
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.parentSpanId), ...
                 spanid);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.traceState), ...
+                tracestate_str);
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.traceId), ...
                 lower(traceid));
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.parentSpanId), ...
                 spanid);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.traceState), ...
+                tracestate_str);
         end
 
         function testTime(testCase)

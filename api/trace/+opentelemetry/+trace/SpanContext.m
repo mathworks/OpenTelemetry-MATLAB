@@ -54,8 +54,9 @@ classdef SpanContext < handle
                 % default option values
                 issampled = true;
                 isremote = true;
+                includets = false;   % whether TraceState is specified
                 if nargin > 2
-                    optionnames = ["IsSampled", "IsRemote"];
+                    optionnames = ["IsSampled", "IsRemote", "TraceState"];
                     for i = 1:2:length(varargin)
                         try 
                             namei = validatestring(varargin{i}, optionnames);
@@ -68,17 +69,37 @@ classdef SpanContext < handle
                             if (isnumeric(valuei) || islogical(valuei)) && isscalar(valuei)
                                 issampled = logical(valuei);
                             end
-                        else % strcmp(namei, "IsRemote")
+                        elseif strcmp(namei, "IsRemote")
                             if (isnumeric(valuei) || islogical(valuei)) && isscalar(valuei)
                                 isremote = logical(valuei);
+                            end
+                        else  % strcmp(namei, "TraceState")
+                            if isa(valuei, "dictionary")
+                                try
+                                    tskeysi = string(keys(valuei));
+                                    tsvaluesi = string(values(valuei));
+                                catch
+                                    % invalid TraceState, ignore
+                                    continue
+                                end
+                                tskeys = tskeysi;
+                                tsvalues = tsvaluesi;
+                                includets = true;
                             end
                         end
                     end
                 end
 
-                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
-                    "libmexclass.opentelemetry.SpanContextProxy", ...
-                    "ConstructorArguments", {traceid, spanid, issampled, isremote});
+                if includets
+                    obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                        "libmexclass.opentelemetry.SpanContextProxy", ...
+                        "ConstructorArguments", {traceid, spanid, issampled, ...
+                        isremote, tskeys, tsvalues});
+                else
+                    obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                        "libmexclass.opentelemetry.SpanContextProxy", ...
+                        "ConstructorArguments", {traceid, spanid, issampled, isremote});
+                end
             end
         end
     end
@@ -93,7 +114,8 @@ classdef SpanContext < handle
         end
 
         function tracestate = get.TraceState(obj)
-            tracestate = obj.Proxy.getTraceState();
+            [keys, values] = obj.Proxy.getTraceState();
+            tracestate = dictionary(keys, values);
         end
 
         function traceflags = get.TraceFlags(obj)
