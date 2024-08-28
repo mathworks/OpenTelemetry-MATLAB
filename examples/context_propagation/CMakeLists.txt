@@ -4,7 +4,9 @@ option(USE_BATCH_FOR_MCC "Running on GitHub Actions workflows requires calling m
 # C++ target
 set(CONTEXTPROP_EXAMPLE_CPP_TARGET contextprop_example_client)
 add_executable(${CONTEXTPROP_EXAMPLE_CPP_TARGET} cpp/client.cc)
-add_dependencies(${CONTEXTPROP_EXAMPLE_CPP_TARGET} ${OTEL_CPP_PROJECT_NAME})
+if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
+    add_dependencies(${CONTEXTPROP_EXAMPLE_CPP_TARGET} ${OTEL_CPP_PROJECT_NAME})
+endif()
 
 target_include_directories(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE ${OTEL_CPP_PREFIX}/include)
 target_link_libraries(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE ${OPENTELEMETRY_PROXY_LINK_LIBRARIES})
@@ -13,8 +15,12 @@ if(UNIX AND NOT APPLE AND NOT CYGWIN)
 elseif(APPLE)
     set_target_properties(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PROPERTIES BUILD_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBMEXCLASS_PROXY_INSTALLED_DIR}")
 endif()
-# use the same C++ standard as OpenTelemetry-cpp
-target_compile_features(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE cxx_std_${OTEL_CPP_CXX_STANDARD})
+# use the same C++ standard as OpenTelemetry-cpp if known, otherwise just use the default C++14
+if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
+    target_compile_features(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE cxx_std_${OTEL_CPP_CXX_STANDARD})
+else()
+    target_compile_features(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE cxx_std_14)
+endif()
 
 # MATLAB target
 find_package(Matlab REQUIRED COMPONENTS MCC_COMPILER MAIN_PROGRAM)
