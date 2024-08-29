@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/sdk/metrics/MeterProviderProxy.h"
 #include "opentelemetry-matlab/sdk/metrics/PeriodicExportingMetricReaderProxy.h"
@@ -39,8 +39,7 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
 	            libmexclass::proxy::ProxyManager::getProxy(readerid))->getInstance();
         
         auto view_registry = metrics_sdk::ViewRegistryFactory::Create();
-        auto p = metrics_sdk::MeterProviderFactory::Create(std::move(view_registry), resource_custom);
-        auto *p_sdk = static_cast<metrics_sdk::MeterProvider *>(p.get());
+        auto p_sdk = metrics_sdk::MeterProviderFactory::Create(std::move(view_registry), resource_custom);
         p_sdk->AddMetricReader(std::move(reader));
 
 	// View
@@ -52,8 +51,9 @@ libmexclass::proxy::MakeResult MeterProviderProxy::make(const libmexclass::proxy
             p_sdk->AddView(view->getInstrumentSelector(), view->getMeterSelector(), view->getView());
 	}
 
-        auto p_out = nostd::shared_ptr<metrics_api::MeterProvider>(std::move(p));
-        out = std::make_shared<MeterProviderProxy>(p_out);
+	nostd::shared_ptr<metrics_sdk::MeterProvider> p_sdk_shared(std::move(p_sdk));
+	nostd::shared_ptr<metrics_api::MeterProvider> p_api_shared(std::move(p_sdk_shared));
+        out = std::make_shared<MeterProviderProxy>(p_api_shared);
     }
     return out;
 }

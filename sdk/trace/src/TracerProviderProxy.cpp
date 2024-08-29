@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2024 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/sdk/trace/TracerProviderProxy.h"
 #include "opentelemetry-matlab/sdk/trace/SpanProcessorProxy.h"
@@ -14,6 +14,7 @@
 #include "opentelemetry/trace/tracer_provider.h"
 #include "opentelemetry/trace/noop.h"
 #include "opentelemetry/common/key_value_iterable_view.h"
+#include "opentelemetry/nostd/shared_ptr.h"
 
 namespace trace_api = opentelemetry::trace;
 namespace trace_sdk = opentelemetry::sdk::trace;
@@ -53,9 +54,11 @@ libmexclass::proxy::MakeResult TracerProviderProxy::make(const libmexclass::prox
     
        auto resource_custom = createResource(resourcenames_mda, resourcevalues_mda);
 
-       out = std::make_shared<TracerProviderProxy>(nostd::shared_ptr<trace_api::TracerProvider>(
-		    std::move(trace_sdk::TracerProviderFactory::Create(std::move(processor), resource_custom,
-		    std::move(sampler)))));
+       std::unique_ptr<trace_sdk::TracerProvider> p_sdk = trace_sdk::TracerProviderFactory::Create(std::move(processor), 
+		       resource_custom, std::move(sampler));
+       nostd::shared_ptr<trace_sdk::TracerProvider> p_sdk_shared(std::move(p_sdk));
+       nostd::shared_ptr<trace_api::TracerProvider> p_api_shared(std::move(p_sdk_shared));
+       out = std::make_shared<TracerProviderProxy>(p_api_shared);
     }
     return out;
 }

@@ -151,9 +151,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             tracername = "foo";
             spanname = "bar";
             tr = getTracer(tp, tracername);
-            sp = startSpan(tr, spanname);
+            sp = startSpan(tr, spanname); %#ok<NASGU>
             pause(1);
-            endSpan(sp);
+            clear("sp", "tr", "tp");
 
             % perform test comparisons
             results = jsondecode(fileread(alias));
