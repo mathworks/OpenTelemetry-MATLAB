@@ -45,8 +45,11 @@ libmexclass::proxy::MakeResult LoggerProviderProxy::make(const libmexclass::prox
     
        auto resource_custom = createResource(resourcenames_mda, resourcevalues_mda);
 
-       out = std::make_shared<LoggerProviderProxy>(nostd::shared_ptr<logs_api::LoggerProvider>(
-		    std::move(logs_sdk::LoggerProviderFactory::Create(std::move(processor), resource_custom))));
+       std::unique_ptr<logs_sdk::LoggerProvider> p_sdk = logs_sdk::LoggerProviderFactory::Create(
+				       std::move(processor), resource_custom);
+       nostd::shared_ptr<logs_sdk::LoggerProvider> p_sdk_shared(std::move(p_sdk));
+       nostd::shared_ptr<logs_api::LoggerProvider> p_api_shared(std::move(p_sdk_shared));
+       out = std::make_shared<LoggerProviderProxy>(p_api_shared);
     }
     return out;
 }
