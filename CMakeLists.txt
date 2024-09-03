@@ -28,7 +28,7 @@ else()
 
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
    set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
-   set(VCPKG_GIT_TAG "3508985")
+   set(VCPKG_GIT_TAG "f7423ee")
    FetchContent_Declare(
        ${VCPKG_FETCH_CONTENT_NAME}
        GIT_REPOSITORY ${VCPKG_GIT_REPOSITORY}
