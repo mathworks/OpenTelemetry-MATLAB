@@ -5,6 +5,7 @@ on:
     push:
       branches: 
         - main
+        - testing
 env:
   MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
 jobs:
@@ -56,6 +57,45 @@ jobs:
               uses: matlab-actions/run-tests@v2
               with:
                  select-by-folder: opentelemetry-matlab/test
+    code-coverage-build-and-run-tests-ubuntu:
+        # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
+        # Instead, run on ubuntu-20.04
+        runs-on: ubuntu-20.04
+        needs: get_version
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: sudo apt-get install ninja-build
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                products: MATLAB_Compiler MATLAB_Compiler_SDK
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              run: |
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.outputs.version }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Run tests & get coverage
+              env:
+                 # Add the installation directory to the MATLAB Search Path by
+                 # setting the MATLABPATH environment variable.
+                 MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+              uses: matlab-actions/run-tests@v2
+              with:
+                 source-folder: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                 code-coverage-cobertura: cobertura.xml
+            - name: Upload Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                 token: ${{ secrets.CODECOV_TOKEN }}
+                 slug: mathworks/OpenTelemetry-Matlab
+                 file: cobertura.xml
     build-and-run-tests-windows:
         runs-on: windows-latest
         needs: get_version
