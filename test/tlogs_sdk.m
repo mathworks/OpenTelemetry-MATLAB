@@ -101,7 +101,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
 
         function testBatchLogRecordProcessor(testCase)
             % testBatchLogRecordProcessor: setting properties of
-            % BatchRecordProcessor
+            % BatchLogRecordProcessor
             loggername = "foo";
             logseverity = "debug";
             logbody = "bar";
@@ -138,8 +138,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % emitted log record
             customkeys = ["foo" "bar"];
             customvalues = [1 5];
-            lp = opentelemetry.sdk.logs.LoggerProvider(opentelemetry.sdk.logs.SimpleLogRecordProcessor, ...
-                "Resource", dictionary(customkeys, customvalues)); 
+            lp = opentelemetry.sdk.logs.LoggerProvider("Resource", dictionary(customkeys, customvalues)); 
             lg = getLogger(lp, "baz");
             emitLogRecord(lg, "debug", "qux");
 

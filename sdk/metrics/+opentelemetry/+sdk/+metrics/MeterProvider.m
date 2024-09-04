@@ -2,7 +2,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
     % An SDK implementation of meter provider, which stores a set of configurations used
     % in a metrics system.
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties(Access=private)
         isShutdown (1,1) logical = false
@@ -15,7 +15,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
     end
 
     methods
-        function obj = MeterProvider(reader, optionnames, optionvalues)
+        function obj = MeterProvider(varargin)
             % SDK implementation of meter provider
             %    MP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER creates a meter
             %    provider that uses a periodic exporting metric reader and default configurations.
@@ -24,7 +24,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
             %    reader R. Currently, the only supported metric reader is the periodic
     	    %    exporting metric reader.
             %
-            %    TP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER(R, PARAM1, VALUE1,
+            %    TP = OPENTELEMETRY.SDK.METRICS.METERPROVIDER(..., PARAM1, VALUE1,
             %    PARAM2, VALUE2, ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "View"        - View object used to customize collected metrics.
@@ -34,73 +34,27 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
             %    See also OPENTELEMETRY.SDK.METRICS.PERIODICEXPORTINGMETRICREADER
             %    OPENTELEMETRY.SDK.METRICS.VIEW
 
-            arguments
-     	        reader {mustBeA(reader, ["opentelemetry.sdk.metrics.PeriodicExportingMetricReader", ...
-                   "libmexclass.proxy.Proxy"])} = ...
-    		            opentelemetry.sdk.metrics.PeriodicExportingMetricReader()
-            end
-            
-            arguments (Repeating)
-                optionnames (1,:) {mustBeTextScalar}
-                optionvalues
-            end
-
             % explicit call to superclass constructor to make it a no-op
             obj@opentelemetry.metrics.MeterProvider("skip");
 
-            if isa(reader, "libmexclass.proxy.Proxy")
+            if nargin == 1 && isa(varargin{1}, "libmexclass.proxy.Proxy")
                 % This code branch is used to support conversion from API
                 % MeterProvider to SDK equivalent, needed internally by
                 % opentelemetry.sdk.metrics.Cleanup
-                mpproxy = reader;  % rename the variable
+                mpproxy = varargin{1};  
                 assert(mpproxy.Name == "libmexclass.opentelemetry.MeterProviderProxy");
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
                     "ConstructorArguments", {mpproxy.ID});
                 % leave other properties unassigned, they won't be used
             else
-                validnames = ["Resource", "View"];
-                resourcekeys = string.empty();
-                resourcevalues = {};
-                resource = dictionary(resourcekeys, resourcevalues);
-                suppliedview = false;
-                viewid = 0;
-                for i = 1:length(optionnames)
-                    namei = validatestring(optionnames{i}, validnames);
-                    valuei = optionvalues{i};
-                    if strcmp(namei, "Resource")
-                        if ~isa(valuei, "dictionary")
-                            error("opentelemetry:sdk:metrics:MeterProvider:InvalidResourceType", ...
-                                "Resource input must be a dictionary.");
-                        end
-                        resource = valuei;
-                        resourcekeys = keys(valuei);
-                        resourcevalues = values(valuei,"cell");
-                        % collapse one level of cells, as this may be due to
-                        % a behavior of dictionary.values
-                        if all(cellfun(@iscell, resourcevalues))
-                            resourcevalues = [resourcevalues{:}];
-                        end
-                    elseif strcmp(namei, "View")
-                        suppliedview = true;
-                        view = valuei;
-                        if ~isa(view, "opentelemetry.sdk.metrics.View")
-                            error("opentelemetry:sdk:metrics:MeterProvider:InvalidViewType", ...
-                                "View input must be a opentelemetry.sdk.metrics.View object.");
-                        end
-                        viewid = view.Proxy.ID;
-                    end
+                if nargin == 0 || ~isa(varargin{1}, "opentelemetry.sdk.metrics.PeriodicExportingMetricReader")
+                    reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader();  % default metric reader
+                else
+                    reader = varargin{1};
+                    varargin(1) = [];
                 end
-    
-                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
-                    "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
-                    "ConstructorArguments", {reader.Proxy.ID, resourcekeys, ...
-                    resourcevalues, suppliedview, viewid});
-                obj.MetricReader = reader;
-                obj.Resource = resource;
-                if suppliedview
-                    obj.View = view;
-                end
+                obj.processOptions(reader, varargin{:});
             end
         end
 
@@ -166,5 +120,61 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
             end
         end
 
+    end
+
+    methods(Access=private)
+        function processOptions(obj, reader, optionnames, optionvalues)
+            arguments
+                obj
+                reader
+            end
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+
+            validnames = ["Resource", "View"];
+            resourcekeys = string.empty();
+            resourcevalues = {};
+            resource = dictionary(resourcekeys, resourcevalues);
+            suppliedview = false;
+            viewid = 0;
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                if strcmp(namei, "Resource")
+                    if ~isa(valuei, "dictionary")
+                        error("opentelemetry:sdk:metrics:MeterProvider:InvalidResourceType", ...
+                            "Resource input must be a dictionary.");
+                    end
+                    resource = valuei;
+                    resourcekeys = keys(valuei);
+                    resourcevalues = values(valuei,"cell");
+                    % collapse one level of cells, as this may be due to
+                    % a behavior of dictionary.values
+                    if all(cellfun(@iscell, resourcevalues))
+                        resourcevalues = [resourcevalues{:}];
+                    end
+                elseif strcmp(namei, "View")
+                    suppliedview = true;
+                    view = valuei;
+                    if ~isa(view, "opentelemetry.sdk.metrics.View")
+                        error("opentelemetry:sdk:metrics:MeterProvider:InvalidViewType", ...
+                            "View input must be a opentelemetry.sdk.metrics.View object.");
+                    end
+                    viewid = view.Proxy.ID;
+                end
+            end
+
+            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...
+                "ConstructorArguments", {reader.Proxy.ID, resourcekeys, ...
+                resourcevalues, suppliedview, viewid});
+            obj.MetricReader = reader;
+            obj.Resource = resource;
+            if suppliedview
+                obj.View = view;
+            end
+        end
     end
 end

@@ -2,7 +2,7 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
     % An SDK implementation of tracer provider, which stores a set of configurations used
     % in a distributed tracing system.
 
-    % Copyright 2023 The MathWorks, Inc.
+    % Copyright 2023-2024 The MathWorks, Inc.
 
     properties(Access=private)
         isShutdown (1,1) logical = false
@@ -15,7 +15,7 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
     end
 
     methods
-        function obj = TracerProvider(processor, optionnames, optionvalues)
+        function obj = TracerProvider(varargin)
             % SDK implementation of tracer provider
             %    TP = OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER creates a tracer 
             %    provider that uses a simple span processor and default configurations.
@@ -23,7 +23,7 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
             %    TP = OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER(P) uses span 
             %    processor P. P can be a simple or batched span processor.
             %
-            %    TP = OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER(P, PARAM1, VALUE1, 
+            %    TP = OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER(..., PARAM1, VALUE1, 
             %    PARAM2, VALUE2, ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Sampler"     - Sampling policy. Default is always on.
@@ -37,25 +37,14 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
             %    OPENTELEMETRY.SDK.TRACE.TRACEIDRATIOBASEDSAMPLER,
             %    OPENTELEMETRY.SDK.TRACE.PARENTBASEDSAMPLER
 
-    	    arguments
-     	       processor {mustBeA(processor, ["opentelemetry.sdk.trace.SpanProcessor", ...
-                   "libmexclass.proxy.Proxy"])} = ...
-    		       opentelemetry.sdk.trace.SimpleSpanProcessor()
-            end
-
-            arguments (Repeating)
-                optionnames (1,:) {mustBeTextScalar}
-                optionvalues
-            end
-            
             % explicit call to superclass constructor to make it a no-op
             obj@opentelemetry.trace.TracerProvider("skip");
 
-            if isa(processor, "libmexclass.proxy.Proxy")
+            if nargin == 1 && isa(varargin{1}, "libmexclass.proxy.Proxy")
                 % This code branch is used to support conversion from API
                 % TracerProvider to SDK equivalent, needed internally by
                 % opentelemetry.sdk.trace.Cleanup
-                tpproxy = processor;  % rename the variable
+                tpproxy = varargin{1};
                 assert(tpproxy.Name == "libmexclass.opentelemetry.TracerProviderProxy");
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.TracerProviderProxy", ...
@@ -63,47 +52,14 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
                 % leave other properties unassigned, they won't be used
             else
                 % Code branch for construction from inputs
-                validnames = ["Sampler", "Resource"];
-                foundsampler = false;
-                resourcekeys = string.empty();
-                resourcevalues = {};
-                resource = dictionary(resourcekeys, resourcevalues);
-                for i = 1:length(optionnames)
-                    namei = validatestring(optionnames{i}, validnames);
-                    valuei = optionvalues{i};
-                    if strcmp(namei, "Sampler")
-                        if ~isa(valuei, "opentelemetry.sdk.trace.Sampler")
-                            error("opentelemetry:sdk:trace:TracerProvider:InvalidSamplerType", ...
-                                "Sampler must be an instance of one of the sampler classes");
-                        end
-                        sampler = valuei;
-                        foundsampler = true;
-                    else  % "Resource"
-                        if ~isa(valuei, "dictionary")
-                            error("opentelemetry:sdk:trace:TracerProvider:InvalidResourceType", ...
-                                "Attibutes input must be a dictionary.");
-                        end
-                        resource = valuei;
-                        resourcekeys = keys(valuei);
-                        resourcevalues = values(valuei,"cell");
-                        % collapse one level of cells, as this may be due to
-                        % a behavior of dictionary.values
-                        if all(cellfun(@iscell, resourcevalues))
-                            resourcevalues = [resourcevalues{:}];
-                        end
-                    end
+                if nargin == 0 || ~isa(varargin{1}, "opentelemetry.sdk.trace.SpanProcessor")
+                    processor = opentelemetry.sdk.trace.SimpleSpanProcessor();  % default span processor
+                else
+                    processor = varargin{1};
+                    varargin(1) = [];
                 end
-                if ~foundsampler
-                    sampler = opentelemetry.sdk.trace.AlwaysOnSampler;
-                end
-                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
-                    "libmexclass.opentelemetry.sdk.TracerProviderProxy", ...
-                    "ConstructorArguments", {processor.Proxy.ID, sampler.Proxy.ID, ...
-                    resourcekeys, resourcevalues});
-                obj.SpanProcessor = processor;
-                obj.Sampler = sampler;
-                obj.Resource = resource;
-            end
+                obj.processOptions(processor, varargin{:});
+            end           
         end
         
         function addSpanProcessor(obj, processor)
@@ -156,6 +112,59 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
             else
                 success = obj.Proxy.forceFlush(milliseconds(timeout)*1000); % convert to microseconds
             end
+        end
+    end
+
+    methods(Access=private)
+        function processOptions(obj, processor, optionnames, optionvalues)
+            arguments
+       	       obj
+               processor
+            end
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+            validnames = ["Sampler", "Resource"];
+            foundsampler = false;
+            resourcekeys = string.empty();
+            resourcevalues = {};
+            resource = dictionary(resourcekeys, resourcevalues);
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                if strcmp(namei, "Sampler")
+                    if ~isa(valuei, "opentelemetry.sdk.trace.Sampler")
+                        error("opentelemetry:sdk:trace:TracerProvider:InvalidSamplerType", ...
+                            "Sampler must be an instance of one of the sampler classes");
+                    end
+                    sampler = valuei;
+                    foundsampler = true;
+                else  % "Resource"
+                    if ~isa(valuei, "dictionary")
+                        error("opentelemetry:sdk:trace:TracerProvider:InvalidResourceType", ...
+                            "Attibutes input must be a dictionary.");
+                    end
+                    resource = valuei;
+                    resourcekeys = keys(valuei);
+                    resourcevalues = values(valuei,"cell");
+                    % collapse one level of cells, as this may be due to
+                    % a behavior of dictionary.values
+                    if all(cellfun(@iscell, resourcevalues))
+                        resourcevalues = [resourcevalues{:}];
+                    end
+                end
+            end
+            if ~foundsampler
+                sampler = opentelemetry.sdk.trace.AlwaysOnSampler;
+            end
+            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.sdk.TracerProviderProxy", ...
+                "ConstructorArguments", {processor.Proxy.ID, sampler.Proxy.ID, ...
+                resourcekeys, resourcevalues});
+            obj.SpanProcessor = processor;
+            obj.Sampler = sampler;
+            obj.Resource = resource;
         end
     end
 end
