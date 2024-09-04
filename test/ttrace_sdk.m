@@ -14,6 +14,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
         ExtractPid
         Sigint
         Sigterm
+        ForceFlushTimeout
     end
 
     methods (TestClassSetup)
@@ -22,6 +23,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
             commonSetupOnce(testCase);
+            testCase.ForceFlushTimeout = seconds(2);
         end
     end
 
@@ -38,10 +40,45 @@ classdef ttrace_sdk < matlab.unittest.TestCase
     end
 
     methods (Test)        
+        function testBatchSpanProcessor(testCase)
+            % testBatchSpanProcessor: setting properties of
+            % BatchSpanProcessor
+            tracername = "foo";
+            spanname = "bar";
+
+            queuesize = 500;
+            delay = seconds(2);
+            batchsize = 50;
+            b = opentelemetry.sdk.trace.BatchSpanProcessor(...
+                MaximumQueueSize=queuesize, ...
+                ScheduledDelay=delay, ...
+                MaximumExportBatchSize=batchsize);
+            tp = opentelemetry.sdk.trace.TracerProvider(b);
+            tr = getTracer(tp, tracername);
+            sp = startSpan(tr, spanname);
+            pause(1);
+            endSpan(sp);
+
+            % verify batch properties set correctly
+            verifyEqual(testCase, b.MaximumQueueSize, queuesize);
+            verifyEqual(testCase, b.ScheduledDelay, delay);
+            verifyEqual(testCase, b.MaximumExportBatchSize, batchsize)
+            verifyEqual(testCase, class(b.SpanExporter), ...
+                class(opentelemetry.exporters.otlp.defaultSpanExporter));
+
+            % perform test comparisons
+            forceFlush(tp, testCase.ForceFlushTimeout);
+            results = readJsonResults(testCase);
+            results = results{1};
+
+            % check span and tracer names
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
+            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
+        end
+
         function testAlwaysOffSampler(testCase)
             % testAlwaysOffSampler: should not produce any spans
             tp = opentelemetry.sdk.trace.TracerProvider( ...
-                opentelemetry.sdk.trace.SimpleSpanProcessor, ...
                 "Sampler", opentelemetry.sdk.trace.AlwaysOffSampler);
             tr = getTracer(tp, "mytracer");
             sp = startSpan(tr, "myspan");
@@ -59,7 +96,6 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             spanname = "bar";
 
             tp = opentelemetry.sdk.trace.TracerProvider( ...
-                opentelemetry.sdk.trace.SimpleSpanProcessor, ...
                 "Sampler", opentelemetry.sdk.trace.AlwaysOnSampler);
             tr = getTracer(tp, tracername);
             sp = startSpan(tr, spanname);
@@ -81,8 +117,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
             tracername = "mytracer";
             offspan = "offspan";
-            tp = opentelemetry.sdk.trace.TracerProvider( ...
-                opentelemetry.sdk.trace.SimpleSpanProcessor, "Sampler", s); 
+            tp = opentelemetry.sdk.trace.TracerProvider("Sampler", s); 
             tr = getTracer(tp, tracername);
             sp = startSpan(tr, offspan);
             pause(1);
@@ -90,8 +125,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
             s.Ratio = 1;  % equivalent to always on
             onspan = "onspan";
-            tp = opentelemetry.sdk.trace.TracerProvider( ...
-                opentelemetry.sdk.trace.SimpleSpanProcessor, "Sampler", s); 
+            tp = opentelemetry.sdk.trace.TracerProvider("Sampler", s); 
             tr = getTracer(tp, tracername);
             sp = startSpan(tr, onspan);
             pause(1);
@@ -100,8 +134,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             s.Ratio = 0.5;  % filter half of the spans
             sampledspan = "sampledspan";
             numspans = 10;
-            tp = opentelemetry.sdk.trace.TracerProvider( ...
-                opentelemetry.sdk.trace.SimpleSpanProcessor, "Sampler", s); 
+            tp = opentelemetry.sdk.trace.TracerProvider("Sampler", s); 
             tr = getTracer(tp, tracername);
             for i = 1:numspans
                 sp = startSpan(tr, sampledspan + i);
@@ -168,8 +201,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             % emitted spans
             customkeys = ["foo" "bar"];
             customvalues = [1 5];
-            tp = opentelemetry.sdk.trace.TracerProvider(opentelemetry.sdk.trace.SimpleSpanProcessor, ...
-                "Resource", dictionary(customkeys, customvalues)); 
+            tp = opentelemetry.sdk.trace.TracerProvider("Resource", dictionary(customkeys, customvalues)); 
             tr = getTracer(tp, "mytracer");
             sp = startSpan(tr, "myspan");
             pause(1);

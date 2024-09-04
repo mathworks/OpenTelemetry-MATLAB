@@ -10,7 +10,7 @@ classdef BatchLogRecordProcessor < opentelemetry.sdk.logs.LogRecordProcessor
     end
 
     methods
-        function obj = BatchLogRecordProcessor(exporter, optionnames, optionvalues)
+        function obj = BatchLogRecordProcessor(varargin)
             % Batch log record processor creates batches of log records and passes them to an exporter.
             %    BLP = OPENTELEMETRY.SDK.LOGS.BATCHLOGRECORDPROCESSOR creates a 
             %    batch log record processor that uses an OTLP HTTP exporter, which 
@@ -20,7 +20,7 @@ classdef BatchLogRecordProcessor < opentelemetry.sdk.logs.LogRecordProcessor
             %    the log record exporter. Supported log record exporters are OTLP HTTP 
             %    exporter and OTLP gRPC exporter.
             %    
-            %    BLP = OPENTELEMETRY.SDK.LOGS.BATCHLOGRECORDPROCESSOR(EXP, PARAM1, 
+            %    BLP = OPENTELEMETRY.SDK.LOGS.BATCHLOGRECORDPROCESSOR(..., PARAM1, 
             %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
             %    name/value pairs. Parameters are:
             %       "MaximumQueueSize"  - Maximum queue size. After queue
@@ -35,24 +35,18 @@ classdef BatchLogRecordProcessor < opentelemetry.sdk.logs.LogRecordProcessor
             %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPLOGRECORDEXPORTER, 
             %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCLOGRECORDEXPORTER, 
             %    OPENTELEMETRY.SDK.LOGS.LOGGERPROVIDER  
-            arguments
-      	       exporter {mustBeA(exporter, "opentelemetry.sdk.logs.LogRecordExporter")} = ...
-                   opentelemetry.exporters.otlp.defaultLogRecordExporter()
-            end
-            arguments (Repeating)
-                optionnames (1,:) {mustBeTextScalar}
-                optionvalues
+
+            if nargin == 0 || ~isa(varargin{1}, "opentelemetry.sdk.logs.LogRecordExporter")
+                exporter = opentelemetry.exporters.otlp.defaultLogRecordExporter;
+            else   % isa(varargin{1}, "opentelemetry.sdk.logs.LogRecordExporter")
+                exporter = varargin{1};
+                varargin(1) = [];
             end
 
             obj = obj@opentelemetry.sdk.logs.LogRecordProcessor(exporter, ...
                 "libmexclass.opentelemetry.sdk.BatchLogRecordProcessorProxy");
 
-            validnames = ["MaximumQueueSize", "ScheduledDelay", "MaximumExportBatchSize"];
-            for i = 1:length(optionnames)
-                namei = validatestring(optionnames{i}, validnames);
-                valuei = optionvalues{i};
-                obj.(namei) = valuei;
-            end
+            obj = obj.processOptions(varargin{:});
         end
 
         function obj = set.MaximumQueueSize(obj, maxqsz)
@@ -84,6 +78,24 @@ classdef BatchLogRecordProcessor < opentelemetry.sdk.logs.LogRecordProcessor
             maxbatch = double(maxbatch);
             obj.Proxy.setMaximumExportBatchSize(maxbatch);
             obj.MaximumExportBatchSize = maxbatch;
+        end
+    end
+
+    methods(Access=private)
+        function obj = processOptions(obj, optionnames, optionvalues)
+            arguments
+      	       obj
+            end
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+            validnames = ["MaximumQueueSize", "ScheduledDelay", "MaximumExportBatchSize"];
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                obj.(namei) = valuei;
+            end
         end
     end
 end

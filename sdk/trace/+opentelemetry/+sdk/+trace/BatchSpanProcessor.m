@@ -1,7 +1,7 @@
 classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
 % Batch span processor creates batches of spans and passes them to an exporter.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2024 The MathWorks, Inc.
 
     properties
         MaximumQueueSize (1,1) double = 2048       % Maximum queue size. After queue size is reached, spans are dropped.
@@ -10,7 +10,7 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
     end
 
     methods
-        function obj = BatchSpanProcessor(spanexporter, optionnames, optionvalues)
+        function obj = BatchSpanProcessor(varargin)
             % Batch span processor creates batches of spans and passes them to an exporter.
             %    BSP = OPENTELEMETRY.SDK.TRACE.BATCHSPANPROCESSOR creates a 
             %    batch span processor that uses an OTLP HTTP exporter, which 
@@ -20,7 +20,7 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
             %    the span exporter. Supported span exporters are OTLP HTTP 
             %    exporter and OTLP gRPC exporter.
             %    
-            %    BSP = OPENTELEMETRY.SDK.TRACE.BATCHSPANPROCESSOR(EXP, PARAM1, 
+            %    BSP = OPENTELEMETRY.SDK.TRACE.BATCHSPANPROCESSOR(..., PARAM1, 
             %    VALUE1, PARAM2, VALUE2, ...) specifies optional parameter 
             %    name/value pairs. Parameters are:
             %       "MaximumQueueSize"  - Maximum queue size. After queue
@@ -35,24 +35,17 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
             %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPHTTPSPANEXPORTER, 
             %    OPENTELEMETRY.EXPORTERS.OTLP.OTLPGRPCSPANEXPORTER, 
             %    OPENTELEMETRY.SDK.TRACE.TRACERPROVIDER  
-            arguments
-      	       spanexporter {mustBeA(spanexporter, "opentelemetry.sdk.trace.SpanExporter")} = ...
-                   opentelemetry.exporters.otlp.defaultSpanExporter()
+            
+            if nargin == 0 || ~isa(varargin{1}, "opentelemetry.sdk.trace.SpanExporter")
+                spanexporter = opentelemetry.exporters.otlp.defaultSpanExporter;
+            else   % isa(varargin{1}, "opentelemetry.sdk.trace.SpanExporter")
+                spanexporter = varargin{1};
+                varargin(1) = [];
             end
-            arguments (Repeating)
-                optionnames (1,:) {mustBeTextScalar}
-                optionvalues
-            end
-
             obj = obj@opentelemetry.sdk.trace.SpanProcessor(spanexporter, ...
                 "libmexclass.opentelemetry.sdk.BatchSpanProcessorProxy");
 
-            validnames = ["MaximumQueueSize", "ScheduledDelay", "MaximumExportBatchSize"];
-            for i = 1:length(optionnames)
-                namei = validatestring(optionnames{i}, validnames);
-                valuei = optionvalues{i};
-                obj.(namei) = valuei;
-            end
+            obj = obj.processOptions(varargin{:});
         end
 
         function obj = set.MaximumQueueSize(obj, maxqsz)
@@ -84,6 +77,24 @@ classdef BatchSpanProcessor < opentelemetry.sdk.trace.SpanProcessor
             maxbatch = double(maxbatch);
             obj.Proxy.setMaximumExportBatchSize(maxbatch);
             obj.MaximumExportBatchSize = maxbatch;
+        end
+    end
+
+    methods(Access=private)
+        function obj = processOptions(obj, optionnames, optionvalues)
+            arguments
+      	       obj
+            end
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+            validnames = ["MaximumQueueSize", "ScheduledDelay", "MaximumExportBatchSize"];
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                obj.(namei) = valuei;
+            end
         end
     end
 end

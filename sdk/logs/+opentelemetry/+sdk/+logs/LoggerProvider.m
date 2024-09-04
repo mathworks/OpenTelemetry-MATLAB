@@ -14,7 +14,7 @@ classdef LoggerProvider < opentelemetry.logs.LoggerProvider & handle
     end
 
     methods
-        function obj = LoggerProvider(processor, optionnames, optionvalues)
+        function obj = LoggerProvider(varargin)
             % SDK implementation of logger provider
             %    LP = OPENTELEMETRY.SDK.LOGS.LOGGERPROVIDER creates a logger
             %    provider that uses a simple log record processor and default configurations.
@@ -22,7 +22,7 @@ classdef LoggerProvider < opentelemetry.logs.LoggerProvider & handle
             %    LP = OPENTELEMETRY.SDK.LOGS.LOGGERPROVIDER(P) uses log record 
             %    processor P. P can be a simple or batched log record processor.
             %
-            %    LP = OPENTELEMETRY.SDK.LOGS.LOGGERPROVIDER(R, PARAM1, VALUE1,
+            %    LP = OPENTELEMETRY.SDK.LOGS.LOGGERPROVIDER(..., PARAM1, VALUE1,
             %    PARAM2, VALUE2, ...) specifies optional parameter name/value pairs.
             %    Parameters are:
             %       "Resource"    - Additional resource attributes.
@@ -31,60 +31,28 @@ classdef LoggerProvider < opentelemetry.logs.LoggerProvider & handle
             %    See also OPENTELEMETRY.SDK.LOGS.SIMPLELOGRECORDPROCESSOR, 
             %    OPENTELEMETRY.SDK.LOGS.BATCHLOGRECORDPROCESSOR
 
-            arguments
-     	        processor {mustBeA(processor, ["opentelemetry.sdk.logs.LogRecordProcessor", ...
-                   "libmexclass.proxy.Proxy"])} = ...
-    	    	            opentelemetry.sdk.logs.SimpleLogRecordProcessor()
-            end           
-            arguments (Repeating)
-                optionnames (1,:) {mustBeTextScalar}
-                optionvalues
-            end
-
             % explicit call to superclass constructor to make it a no-op
             obj@opentelemetry.logs.LoggerProvider("skip");
 
-            if isa(processor, "libmexclass.proxy.Proxy")
+            if nargin == 1 && isa(varargin{1}, "libmexclass.proxy.Proxy")
                 % This code branch is used to support conversion from API
                 % LoggerProvider to SDK equivalent, needed internally by
                 % opentelemetry.sdk.logs.Cleanup
-                lpproxy = processor;  % rename the variable
+                lpproxy = varargin{1};
                 assert(lpproxy.Name == "libmexclass.opentelemetry.LoggerProviderProxy");
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.sdk.LoggerProviderProxy", ...
                     "ConstructorArguments", {lpproxy.ID});
                 % leave other properties unassigned, they won't be used
             else
-                validnames = "Resource";
-                resourcekeys = string.empty();
-                resourcevalues = {};
-
-                resource = dictionary(resourcekeys, resourcevalues);
-                for i = 1:length(optionnames)
-                    namei = validatestring(optionnames{i}, validnames);
-                    valuei = optionvalues{i};
-                    if strcmp(namei, "Resource")
-                        if ~isa(valuei, "dictionary")
-                            error("opentelemetry:sdk:logs:LoggerProvider:InvalidResourceType", ...
-                                "Resource input must be a dictionary.");
-                        end
-                        resource = valuei;
-                        resourcekeys = keys(valuei);
-                        resourcevalues = values(valuei,"cell");
-                        % collapse one level of cells, as this may be due to
-                        % a behavior of dictionary.values
-                        if all(cellfun(@iscell, resourcevalues))
-                            resourcevalues = [resourcevalues{:}];
-                        end
-                    end
+                if nargin == 0 || ~isa(varargin{1}, "opentelemetry.sdk.logs.LogRecordProcessor")
+                    processor = opentelemetry.sdk.logs.SimpleLogRecordProcessor();  % default processor
+                else
+                    processor = varargin{1};
+                    varargin(1) = [];
                 end
-
-                obj.Proxy = libmexclass.proxy.Proxy("Name", ...
-                    "libmexclass.opentelemetry.sdk.LoggerProviderProxy", ...
-                    "ConstructorArguments", {processor.Proxy.ID, resourcekeys, ...
-                    resourcevalues});
-                obj.LogRecordProcessor = processor;
-                obj.Resource = resource;
+                obj.processOptions(processor, varargin{:});
+                
             end
         end
 
@@ -137,6 +105,50 @@ classdef LoggerProvider < opentelemetry.logs.LoggerProvider & handle
             else
                 success = obj.Proxy.forceFlush(milliseconds(timeout)*1000); % convert to microseconds
             end
+        end
+    end
+
+    methods(Access=private)
+        function processOptions(obj, processor, optionnames, optionvalues)
+            arguments
+                obj
+                processor
+            end
+            arguments (Repeating)
+                optionnames (1,:) {mustBeTextScalar}
+                optionvalues
+            end
+
+            validnames = "Resource";
+            resourcekeys = string.empty();
+            resourcevalues = {};
+
+            resource = dictionary(resourcekeys, resourcevalues);
+            for i = 1:length(optionnames)
+                namei = validatestring(optionnames{i}, validnames);
+                valuei = optionvalues{i};
+                if strcmp(namei, "Resource")
+                    if ~isa(valuei, "dictionary")
+                        error("opentelemetry:sdk:logs:LoggerProvider:InvalidResourceType", ...
+                            "Resource input must be a dictionary.");
+                    end
+                    resource = valuei;
+                    resourcekeys = keys(valuei);
+                    resourcevalues = values(valuei,"cell");
+                    % collapse one level of cells, as this may be due to
+                    % a behavior of dictionary.values
+                    if all(cellfun(@iscell, resourcevalues))
+                        resourcevalues = [resourcevalues{:}];
+                    end
+                end
+            end
+
+            obj.Proxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.sdk.LoggerProviderProxy", ...
+                "ConstructorArguments", {processor.Proxy.ID, resourcekeys, ...
+                resourcevalues});
+            obj.LogRecordProcessor = processor;
+            obj.Resource = resource;
         end
     end
 end

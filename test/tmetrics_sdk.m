@@ -27,7 +27,6 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             interval = seconds(2);
             timeout = seconds(1);
             testCase.ShortIntervalReader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(...
-                opentelemetry.exporters.otlp.defaultMetricExporter(), ...
                 "Interval", interval, "Timeout", timeout);
             testCase.WaitTime = seconds(interval * 1.25); 
         end
@@ -119,10 +118,9 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
 
         function testReaderBasic(testCase)
-            exporter = opentelemetry.exporters.otlp.defaultMetricExporter;
             interval = hours(1);
             timeout = minutes(30);
-            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exporter, ...
+            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader( ...
                 "Interval", interval, ...
                 "Timeout", timeout);
             verifyEqual(testCase, reader.Interval, interval);
