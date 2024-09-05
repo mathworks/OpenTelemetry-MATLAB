@@ -44,3 +44,5 @@ In this example, a C++ client calls a MATLAB function hosted on MATLAB Productio
    contextprop_example_client
    ```
 5. Check for expected spans in the OpenTelemetry Collector or in a specified tracing backend.
+
+**NOTE:** In the first call to MATLAB Production Server, it needs to perform a significant amount of loading and initialization, and as a result the client may time out and return an error status. This should only happen in the first call and not in subsequent calls.

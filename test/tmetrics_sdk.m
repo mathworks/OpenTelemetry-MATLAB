@@ -95,6 +95,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             ct.add(val);
 
             % fetch result
+            forceFlush(p);
             clear("ct", "mt", "p");
             results = jsondecode(fileread(alias));
 
