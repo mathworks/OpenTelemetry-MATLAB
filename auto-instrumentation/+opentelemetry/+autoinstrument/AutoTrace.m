@@ -24,6 +24,9 @@ classdef AutoTrace < handle
             %    instrumentation will stop and the functions will no longer 
             %    be instrumented.
             %
+            %    If called in a deployable archive (CTF file), all M-files 
+            %    included in the CTF will be instrumented.
+            %
             %    AT = OPENTELEMETRY.AUTOINSTRUMENT.AUTOTRACE(FUN, NAME1, VALUE1, 
             %    NAME2, VALUE2, ...) specifies optional name-value pairs. 
             %    Supported options are:
@@ -155,9 +158,11 @@ end
 function processFileInput(f)
 f = string(f);   % force into a string
 if startsWith(f, '@')  % check for anonymous function
-    error(f + " is an anonymous function and is not supported.");
+    error("opentelemetry:autoinstrument:AutoTrace:AnonymousFunction", ...
+        f + " is an anonymous function and is not supported.");
 end
 if exist(f, "file") ~= 2
-    error(f + " is not a valid MATLAB file with a .m extension and is not supported.")
+    error("opentelemetry:autoinstrument:AutoTrace:InvalidMFile", ...
+        f + " is not found or is not a valid MATLAB file with a .m extension.")
 end
 end
