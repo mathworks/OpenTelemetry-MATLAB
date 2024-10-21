@@ -101,6 +101,9 @@ otelcol --config <otelcol-config-yaml>
 
 For more examples, see the "examples" folder.
 
+## Automatic Instrumentation
+See example [here](auto-instrumentation/README.md).
+
 ## Help
 To view documentation of individual function, type "help \<function_name>\". For example,
 ```
