@@ -166,7 +166,7 @@ classdef tautotrace < matlab.unittest.TestCase
             at = opentelemetry.autoinstrument.AutoTrace(@example1);
 
             % run the example with an invalid input, check for error
-            verifyError(testCase, @()beginTrace(at, "invalid"), "MATLAB:colon:inputsMustBeNumericCharLogical");
+            verifyError(testCase, @()beginTrace(at, "invalid"), "autotrace_examples:example1:generate_data:InvalidN");
 
             % perform test comparisons
             results = readJsonResults(testCase);
@@ -195,7 +195,7 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % call example directly instead of calling beginTrace, and pass
             % in an invalid input
-            verifyError(testCase, @()example1_trycatch(at, "invalid"), "MATLAB:colon:inputsMustBeNumericCharLogical");
+            verifyError(testCase, @()example1_trycatch(at, "invalid"), "autotrace_examples:example1:generate_data:InvalidN");
 
             % perform test comparisons
             results = readJsonResults(testCase);
