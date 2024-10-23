@@ -242,7 +242,10 @@ classdef tautotrace < matlab.unittest.TestCase
             verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@()example1), "opentelemetry:autoinstrument:AutoTrace:AnonymousFunction");
 
             % builtin function
-            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@uplus), "opentelemetry:autoinstrument:AutoTrace:InvalidMFile");
+            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@uplus), "opentelemetry:autoinstrument:AutoTrace:BuiltinFunction");
+
+            % nonexistent function
+            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@bogus), "opentelemetry:autoinstrument:AutoTrace:InvalidMFile");
         end
     end
 end

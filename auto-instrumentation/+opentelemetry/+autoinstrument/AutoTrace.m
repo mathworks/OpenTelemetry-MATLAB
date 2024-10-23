@@ -159,10 +159,17 @@ function processFileInput(f)
 f = string(f);   % force into a string
 if startsWith(f, '@')  % check for anonymous function
     error("opentelemetry:autoinstrument:AutoTrace:AnonymousFunction", ...
-        f + " is an anonymous function and is not supported.");
+        replace(f, "\", "\\") + " is an anonymous function and is not supported.");
 end
-if exist(f, "file") ~= 2
-    error("opentelemetry:autoinstrument:AutoTrace:InvalidMFile", ...
-        f + " is not found or is not a valid MATLAB file with a .m extension.")
+[~,~,fext] = fileparts(f);  % check file extension
+filetype = exist(f, "file");  % check file type
+if ~(filetype == 2 && ismember(fext, ["" ".m" ".mlx"])) 
+    if exist(f, "builtin")
+        error("opentelemetry:autoinstrument:AutoTrace:BuiltinFunction", ...
+            replace(f, "\", "\\") + " is a builtin function and is not supported.");
+    else
+        error("opentelemetry:autoinstrument:AutoTrace:InvalidMFile", ...
+            replace(f, "\", "\\") + " is not found or is not a valid MATLAB file with a .m or .mlx extension.");
+    end
 end
 end
