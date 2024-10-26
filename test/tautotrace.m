@@ -24,6 +24,10 @@ classdef tautotrace < matlab.unittest.TestCase
             % add the example folders to the path
             example1folder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "example1");
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture(example1folder));
+            example2folder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "example2");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(example2folder));
+            example2helpersfolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "example2", "helpers");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(example2helpersfolder));
             commonSetupOnce(testCase);
 
             % configure the global tracer provider
@@ -113,6 +117,54 @@ classdef tautotrace < matlab.unittest.TestCase
             % should only be 1 span
             verifyNumElements(testCase, results, 1);
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "example1");
+        end
+
+        function testIncludeFolder(testCase)
+            % testIncludeFolder: specify a folder in AdditionalFiles
+           
+            % set up AutoTrace
+            example2helpers = fullfile(fileparts(mfilename('fullpath')), ...
+                "autotrace_examples", "example2", "helpers");            
+            % turn off automatic detection and specify dependencies using
+            % their folder name
+            at = opentelemetry.autoinstrument.AutoTrace(@example2, ...
+                "AutoDetectFiles", false, "AdditionalFiles", example2helpers);
+
+            % run the example
+            [~] = beginTrace(at);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 3);
+
+            % check span names
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "ex2helper1");
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "ex2helper2");
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "example2");
+
+            % check parent children relationship
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{3}.resourceSpans.scopeSpans.spans.spanId);
+            verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.parentSpanId, results{3}.resourceSpans.scopeSpans.spans.spanId);
+        end
+
+        function testExcludeFolder(testCase)
+            % testExcludeFolder: specify a folder in ExcludeFiles
+            
+            % set up AutoTrace
+            example2helpers = fullfile(fileparts(mfilename('fullpath')), ...
+                "autotrace_examples", "example2", "helpers");            
+            at = opentelemetry.autoinstrument.AutoTrace(@example2, ...
+                "ExcludeFiles", example2helpers);
+
+            % run the example
+            [~] = beginTrace(at);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 1);
+
+            % check span names
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "example2");
         end
 
         function testNonFileOptions(testCase)
