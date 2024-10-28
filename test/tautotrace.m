@@ -21,13 +21,7 @@ classdef tautotrace < matlab.unittest.TestCase
             % add the utils folder to the path
             utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
             testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
-            % add the example folders to the path
-            example1folder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "example1");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(example1folder));
-            example2folder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "example2");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(example2folder));
-            example2helpersfolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "example2", "helpers");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(example2helpersfolder));
+                        
             commonSetupOnce(testCase);
 
             % configure the global tracer provider
@@ -52,8 +46,12 @@ classdef tautotrace < matlab.unittest.TestCase
         function testBasic(testCase)
             % testBasic: instrument a simple example
         
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+
             % set up AutoTrace
-            at = opentelemetry.autoinstrument.AutoTrace(@example1);
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example);
 
             % run the example
             [~] = beginTrace(at, 100);
@@ -66,7 +64,7 @@ classdef tautotrace < matlab.unittest.TestCase
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), "AutoTrace");   % default name
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "generate_data");
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "best_fit_line");
-            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "example1");
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "linearfit_example");
 
             % check they belong to the same trace
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.traceId, results{2}.resourceSpans.scopeSpans.spans.traceId);
@@ -80,8 +78,12 @@ classdef tautotrace < matlab.unittest.TestCase
         function testIncludeExcludeFiles(testCase)
             % testIncludeExcludeFiles: AdditionalFiles and ExcludeFiles options
 
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % set up AutoTrace
-            at = opentelemetry.autoinstrument.AutoTrace(@example1, ...
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example, ...
                 "AdditionalFiles", "polyfit", "ExcludeFiles", "generate_data");
 
             % run the example
@@ -94,7 +96,7 @@ classdef tautotrace < matlab.unittest.TestCase
             % check span names
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "polyfit");
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "best_fit_line");
-            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "example1");
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "linearfit_example");
 
             % check parent children relationship
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
@@ -104,8 +106,12 @@ classdef tautotrace < matlab.unittest.TestCase
         function testDisableFileDetection(testCase)
             % testDisableFileDetection: AutoDetectFiles set to false
 
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % set up AutoTrace
-            at = opentelemetry.autoinstrument.AutoTrace(@example1, ...
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example, ...
                 "AutoDetectFiles", false);
 
             % run the example
@@ -116,19 +122,21 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % should only be 1 span
             verifyNumElements(testCase, results, 1);
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "example1");
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "linearfit_example");
         end
 
         function testIncludeFolder(testCase)
             % testIncludeFolder: specify a folder in AdditionalFiles
            
-            % set up AutoTrace
-            example2helpers = fullfile(fileparts(mfilename('fullpath')), ...
-                "autotrace_examples", "example2", "helpers");            
-            % turn off automatic detection and specify dependencies using
-            % their folder name
-            at = opentelemetry.autoinstrument.AutoTrace(@example2, ...
-                "AutoDetectFiles", false, "AdditionalFiles", example2helpers);
+            % Add example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "subfolder_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder, ...
+                "IncludingSubfolders",true));
+
+            % set up AutoTrace, turn off automatic detection and specify 
+            % dependencies using their folder name
+            at = opentelemetry.autoinstrument.AutoTrace(@subfolder_example, ...
+                "AutoDetectFiles", false, "AdditionalFiles", fullfile(examplefolder, "helpers"));
 
             % run the example
             [~] = beginTrace(at);
@@ -138,9 +146,9 @@ classdef tautotrace < matlab.unittest.TestCase
             verifyNumElements(testCase, results, 3);
 
             % check span names
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "ex2helper1");
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "ex2helper2");
-            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "example2");
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "subfolder_helper1");
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "subfolder_helper2");
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "subfolder_example");
 
             % check parent children relationship
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{3}.resourceSpans.scopeSpans.spans.spanId);
@@ -150,11 +158,14 @@ classdef tautotrace < matlab.unittest.TestCase
         function testExcludeFolder(testCase)
             % testExcludeFolder: specify a folder in ExcludeFiles
             
-            % set up AutoTrace
-            example2helpers = fullfile(fileparts(mfilename('fullpath')), ...
-                "autotrace_examples", "example2", "helpers");            
-            at = opentelemetry.autoinstrument.AutoTrace(@example2, ...
-                "ExcludeFiles", example2helpers);
+            % Add example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "subfolder_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder, ...
+                "IncludingSubfolders",true));
+
+            % set up AutoTrace and exclude helper folder          
+            at = opentelemetry.autoinstrument.AutoTrace(@subfolder_example, ...
+                "ExcludeFiles", fullfile(examplefolder, "helpers"));
 
             % run the example
             [~] = beginTrace(at);
@@ -164,7 +175,7 @@ classdef tautotrace < matlab.unittest.TestCase
             verifyNumElements(testCase, results, 1);
 
             % check span names
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "example2");
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "subfolder_example");
         end
 
         function testNonFileOptions(testCase)
@@ -179,8 +190,13 @@ classdef tautotrace < matlab.unittest.TestCase
             attrnames = ["foo" "bar"];
             attrvalues = [1 2];
             attrs = dictionary(attrnames, attrvalues);
+
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % set up AutoTrace
-            at = opentelemetry.autoinstrument.AutoTrace(@example1, ...
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example, ...
                 "TracerName", tracername, "TracerVersion", tracerversion, ...
                 "TracerSchema", tracerschema, "SpanKind", spankind, "Attributes", attrs);
 
@@ -214,11 +230,15 @@ classdef tautotrace < matlab.unittest.TestCase
         function testError(testCase)
             % testError: handling error situation
         
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % set up AutoTrace
-            at = opentelemetry.autoinstrument.AutoTrace(@example1);
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example);
 
             % run the example with an invalid input, check for error
-            verifyError(testCase, @()beginTrace(at, "invalid"), "autotrace_examples:example1:generate_data:InvalidN");
+            verifyError(testCase, @()beginTrace(at, "invalid"), "autotrace_examples:linearfit_example:generate_data:InvalidN");
 
             % perform test comparisons
             results = readJsonResults(testCase);
@@ -226,7 +246,7 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % check span names
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "generate_data");
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "example1");
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "linearfit_example");
 
             % check parent children relationship
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
@@ -238,16 +258,21 @@ classdef tautotrace < matlab.unittest.TestCase
 
         function testHandleError(testCase)
             % testHandleError: directly call handleError method rather than using
-            % beginTrace method. This test should use example1_trycatch, which
+            % beginTrace method. This test should use linearfit_example_trycatch, which
             % wraps a try-catch in the input function and calls handleError
             % in the catch block.
 
-            % set up AutoTrace, using example1_trycatch
-            at = opentelemetry.autoinstrument.AutoTrace(@example1_trycatch);
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
+            % set up AutoTrace, using linearfit_example_trycatch
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example_trycatch);
 
             % call example directly instead of calling beginTrace, and pass
             % in an invalid input
-            verifyError(testCase, @()example1_trycatch(at, "invalid"), "autotrace_examples:example1:generate_data:InvalidN");
+            verifyError(testCase, @()linearfit_example_trycatch(at, "invalid"), ...
+                "autotrace_examples:linearfit_example:generate_data:InvalidN");
 
             % perform test comparisons
             results = readJsonResults(testCase);
@@ -255,7 +280,7 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % check span names
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "generate_data");
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "example1_trycatch");
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "linearfit_example_trycatch");
 
             % check parent children relationship
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
@@ -269,35 +294,88 @@ classdef tautotrace < matlab.unittest.TestCase
             % testMultipleInstances: multiple overlapped instances should
             % return an error
 
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % set up AutoTrace
-            at = opentelemetry.autoinstrument.AutoTrace(@example1); %#ok<NASGU>
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example); %#ok<NASGU>
 
             % set up another identical instance, check for error
-            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@example1), "opentelemetry:autoinstrument:AutoTrace:OverlappedInstances");
+            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@linearfit_example), "opentelemetry:autoinstrument:AutoTrace:OverlappedInstances");
         end
 
-        function testClearInstance(~)
+        function testClearInstance(testCase)
             % testClearInstance: clear an instance and recreate a new instance
 
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % create and instance and then clear
-            at = opentelemetry.autoinstrument.AutoTrace(@example1); %#ok<NASGU>
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example); %#ok<NASGU>
             clear("at")
 
             % create a new instance should not result in any error
-            at = opentelemetry.autoinstrument.AutoTrace(@example1); %#ok<NASGU>
+            at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example); %#ok<NASGU>
         end
 
         function testInvalidInputFunction(testCase)
             % testInvalidInputFunction: negative test for invalid input
 
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "linearfit_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+            
             % anonymous function
-            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@()example1), "opentelemetry:autoinstrument:AutoTrace:AnonymousFunction");
+            verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@()linearfit_example), "opentelemetry:autoinstrument:AutoTrace:AnonymousFunction");
 
             % builtin function
             verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@uplus), "opentelemetry:autoinstrument:AutoTrace:BuiltinFunction");
 
             % nonexistent function
             verifyError(testCase, @()opentelemetry.autoinstrument.AutoTrace(@bogus), "opentelemetry:autoinstrument:AutoTrace:InvalidMFile");
+        end
+
+        function testAutoManualInstrument(testCase)
+            % testAutoManualInstrument: using both auto and manual
+            % instrumentation
+            
+            % add the example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "manual_instrumented_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+
+            % set up AutoTrace
+            at = opentelemetry.autoinstrument.AutoTrace(@manual_instrumented_example);
+
+            % run the example
+            [~] = beginTrace(at, 100);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 6);
+
+            % check tracer and span names
+            tracername = "ManualInstrument";
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername); 
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername); 
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername); 
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "compute_y");
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "generate_data");
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "polyfit");
+            verifyEqual(testCase, string(results{4}.resourceSpans.scopeSpans.spans.name), "polyval");
+            verifyEqual(testCase, string(results{5}.resourceSpans.scopeSpans.spans.name), "best_fit_line");
+            verifyEqual(testCase, string(results{6}.resourceSpans.scopeSpans.spans.name), "manual_instrumented_example");
+
+            % check auto and manual spans belong to the same trace
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.traceId, results{6}.resourceSpans.scopeSpans.spans.traceId);
+            verifyEqual(testCase, results{3}.resourceSpans.scopeSpans.spans.traceId, results{6}.resourceSpans.scopeSpans.spans.traceId);
+            verifyEqual(testCase, results{4}.resourceSpans.scopeSpans.spans.traceId, results{6}.resourceSpans.scopeSpans.spans.traceId);
+
+            % check parent children relationship of manual spans
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
+            verifyEqual(testCase, results{3}.resourceSpans.scopeSpans.spans.parentSpanId, results{5}.resourceSpans.scopeSpans.spans.spanId);
+            verifyEqual(testCase, results{4}.resourceSpans.scopeSpans.spans.parentSpanId, results{5}.resourceSpans.scopeSpans.spans.spanId);
         end
     end
 end

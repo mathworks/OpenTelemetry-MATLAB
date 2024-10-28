@@ -1,5 +1,5 @@
-function yf = example1_trycatch(at, n)
-% example code for testing auto instrumentation. This example should not
+function yf = linearfit_example_trycatch(at, n)
+% Example code for testing auto instrumentation. This example should not
 % use beginTrace method and instead should be called directly. 
 
 % Copyright 2024 The MathWorks, Inc.
