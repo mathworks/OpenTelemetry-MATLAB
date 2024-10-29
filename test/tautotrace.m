@@ -358,8 +358,9 @@ classdef tautotrace < matlab.unittest.TestCase
             % check tracer and span names
             tracername = "ManualInstrument";
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername); 
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername); 
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername); 
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.scope.name), tracername); 
+            verifyEqual(testCase, string(results{4}.resourceSpans.scopeSpans.scope.name), tracername); 
+            
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "compute_y");
             verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "generate_data");
             verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "polyfit");
