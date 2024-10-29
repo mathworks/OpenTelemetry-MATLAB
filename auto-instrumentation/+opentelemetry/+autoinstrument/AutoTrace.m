@@ -58,9 +58,15 @@ classdef AutoTrace < handle
                 options.AdditionalFiles {mustBeText}
                 options.AutoDetectFiles (1,1) {mustBeNumericOrLogical} = true
             end
+            % check for anonymous function
+            fs = functions(startfun);
+            if fs.type == "anonymous"                  
+                error("opentelemetry:autoinstrument:AutoTrace:AnonymousFunction", ...
+                    "Anonymous functions are not supported.");
+            end
             obj.StartFunction = startfun;
             startfunname = func2str(startfun);
-            processFileInput(startfunname);   % validate startfun
+            startfunname = processFileInput(startfunname);   % validate startfun
             if options.AutoDetectFiles
                 if isdeployed
                     % matlab.codetools.requiredFilesAndProducts is not
@@ -76,15 +82,16 @@ classdef AutoTrace < handle
                 end
             else
                 % only include the input file, not its dependencies
-                files = string(which(startfunname));
+                files = startfunname;
             end
             % add extra files, this is intended for files
             % matlab.codetools.requiredFilesAndProducts somehow missed
             if isfield(options, "AdditionalFiles")   
-                incfiles = string(options.AdditionalFiles);
-                for i = 1:numel(incfiles)
-                    incfiles(i) = which(incfiles(i));  % get the full path
-                    processFileInput(incfiles(i));   % validate additional file
+                incinput = string(options.AdditionalFiles);
+                incfiles = []; 
+                for i = 1:numel(incinput)
+                    % validate additional file
+                    incfiles = [incfiles; processFileOrFolderInput(incinput(i))];   %#ok<AGROW> 
                 end
                 files = union(files, incfiles);
             end
@@ -94,9 +101,11 @@ classdef AutoTrace < handle
 
             % filter out excluded files
             if isfield(options, "ExcludeFiles")   
-                excfiles = string(options.ExcludeFiles);
-                for i = 1:numel(excfiles)
-                    excfiles(i) = which(excfiles(i));  % get the full path
+                excinput = string(options.ExcludeFiles);
+                excfiles = [];
+                for i = 1:numel(excinput)
+                    % validate exclude file
+                    excfiles = [excfiles; processFileOrFolderInput(excinput(i))];   %#ok<AGROW>
                 end
                 files = setdiff(files, excfiles);
             end
@@ -155,15 +164,13 @@ classdef AutoTrace < handle
 end
 
 % check input file is valid
-function processFileInput(f)
+function f = processFileInput(f)
 f = string(f);   % force into a string
-if startsWith(f, '@')  % check for anonymous function
-    error("opentelemetry:autoinstrument:AutoTrace:AnonymousFunction", ...
-        replace(f, "\", "\\") + " is an anonymous function and is not supported.");
-end
 [~,~,fext] = fileparts(f);  % check file extension
 filetype = exist(f, "file");  % check file type
-if ~(filetype == 2 && ismember(fext, ["" ".m" ".mlx"])) 
+if filetype == 2 && ismember(fext, ["" ".m" ".mlx"])
+    f = string(which(f));
+else
     if exist(f, "builtin")
         error("opentelemetry:autoinstrument:AutoTrace:BuiltinFunction", ...
             replace(f, "\", "\\") + " is a builtin function and is not supported.");
@@ -171,5 +178,21 @@ if ~(filetype == 2 && ismember(fext, ["" ".m" ".mlx"]))
         error("opentelemetry:autoinstrument:AutoTrace:InvalidMFile", ...
             replace(f, "\", "\\") + " is not found or is not a valid MATLAB file with a .m or .mlx extension.");
     end
+end
+end
+
+% check input file or folder is valid
+function f = processFileOrFolderInput(f)
+f = string(f);   % force into a string
+if isfolder(f)
+    % expand the directory
+    mfileinfo = dir(fullfile(f, "*.m"));
+    mfiles = fullfile(string({mfileinfo.folder}), string({mfileinfo.name}));
+    mlxfileinfo = dir(fullfile(f, "*.mlx"));
+    mlxfiles = fullfile(string({mlxfileinfo.folder}), string({mlxfileinfo.name}));
+    f = [mfiles; mlxfiles];
+else
+    % file
+    f = processFileInput(f);
 end
 end
