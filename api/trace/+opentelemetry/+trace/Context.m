@@ -7,8 +7,7 @@ classdef Context
         function sp = extractSpan(context)
             % Extract span from context
             %    SP = OPENTELEMETRY.TRACE.CONTEXT.EXTRACTSPAN(CTXT) extracts
-            %    span SP from a context object CTXT. SP is a nonrecording span 
-            %    such that ISRECORDING(SP) returns false. If CTXT does not 
+            %    span SP from a context object CTXT. If CTXT does not 
             %    contain any spans, SP will be an invalid span with all-zero
             %    trace and span IDs.
             %
