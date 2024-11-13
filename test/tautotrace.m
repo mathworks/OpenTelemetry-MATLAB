@@ -253,6 +253,8 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % check error status
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 2);  % error 
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.message, ...
+                'Input must be a numeric scalar');  
             verifyEmpty(testCase, fieldnames(results{2}.resourceSpans.scopeSpans.spans.status));  % ok, no error
         end
 
@@ -287,6 +289,8 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % check error status
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 2);  % error
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.message, ...
+                'Input must be a numeric scalar');  
             verifyEmpty(testCase, fieldnames(results{2}.resourceSpans.scopeSpans.spans.status));  % ok, no error
         end
 
