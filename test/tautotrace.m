@@ -253,6 +253,8 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % check error status
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 2);  % error 
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.message, ...
+                'Input must be a numeric scalar');  
             verifyEmpty(testCase, fieldnames(results{2}.resourceSpans.scopeSpans.spans.status));  % ok, no error
         end
 
@@ -287,6 +289,8 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % check error status
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 2);  % error
+            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.message, ...
+                'Input must be a numeric scalar');  
             verifyEmpty(testCase, fieldnames(results{2}.resourceSpans.scopeSpans.spans.status));  % ok, no error
         end
 
@@ -349,7 +353,8 @@ classdef tautotrace < matlab.unittest.TestCase
             at = opentelemetry.autoinstrument.AutoTrace(@manual_instrumented_example);
 
             % run the example
-            [~] = beginTrace(at, 100);
+            n = 100;
+            [~] = beginTrace(at, n);
 
             % perform test comparisons
             results = readJsonResults(testCase);
@@ -377,6 +382,11 @@ classdef tautotrace < matlab.unittest.TestCase
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
             verifyEqual(testCase, results{3}.resourceSpans.scopeSpans.spans.parentSpanId, results{5}.resourceSpans.scopeSpans.spans.spanId);
             verifyEqual(testCase, results{4}.resourceSpans.scopeSpans.spans.parentSpanId, results{5}.resourceSpans.scopeSpans.spans.spanId);
+
+            % check attribute
+            verifyNumElements(testCase, results{6}.resourceSpans.scopeSpans.spans.attributes, 1);
+            verifyEqual(testCase, results{6}.resourceSpans.scopeSpans.spans.attributes.key, 'DataSize');
+            verifyEqual(testCase, results{6}.resourceSpans.scopeSpans.spans.attributes.value.doubleValue, n);
         end
     end
 end

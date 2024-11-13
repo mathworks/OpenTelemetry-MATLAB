@@ -20,7 +20,6 @@ classdef Span < handle
                 obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                     "libmexclass.opentelemetry.SpanProxy", ...
                     "ConstructorArguments", {context.Proxy.ID});
-                obj.Name = "";   % unknown name when span is extracted from context, leave blank
             else   % in is a proxy object
                 obj.Proxy = proxy;
                 obj.Name = spname;

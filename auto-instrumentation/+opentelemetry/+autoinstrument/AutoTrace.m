@@ -150,7 +150,7 @@ classdef AutoTrace < handle
             %    spans and their corresponding scopes. Rethrow the
             %    exception ME.
             if ~isempty(obj.Instrumentor.Spans)
-                setStatus(obj.Instrumentor.Spans(end), "Error");
+                setStatus(obj.Instrumentor.Spans(end), "Error", ME.message);
                 for i = length(obj.Instrumentor.Spans):-1:1
                     obj.Instrumentor.Spans(i) = [];
                     obj.Instrumentor.Scopes(i) = [];
