@@ -6,6 +6,7 @@
 #include "opentelemetry-matlab/common/attribute.h"
 
 #include "opentelemetry/common/attribute_value.h"
+#include "opentelemetry/common/key_value_iterable_view.h"
 #include "opentelemetry/nostd/string_view.h"
 
 namespace common = opentelemetry::common;

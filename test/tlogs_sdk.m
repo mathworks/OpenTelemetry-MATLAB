@@ -68,7 +68,8 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             % perform test comparisons
             forceFlush(lp, testCase.ForceFlushTimeout);
             clear("lg", "lp");
-            results = jsondecode(fileread(alias));
+            resultstxt = readlines(alias);
+            results = jsondecode(resultstxt(1));
 
             % check logger name, log body and severity
             verifyEqual(testCase, string(results.resourceLogs.scopeLogs.scope.name), loggername);

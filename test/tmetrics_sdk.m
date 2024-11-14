@@ -97,7 +97,8 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % fetch result
             forceFlush(p);
             clear("ct", "mt", "p");
-            results = jsondecode(fileread(alias));
+            resultstxt = readlines(alias);
+            results = jsondecode(resultstxt(1));
 
             % verify meter and counter names
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
