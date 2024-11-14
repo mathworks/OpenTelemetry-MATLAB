@@ -189,7 +189,8 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             clear("sp", "tr", "tp");
 
             % perform test comparisons
-            results = jsondecode(fileread(alias));
+            resultstxt = readlines(alias);
+            results = jsondecode(resultstxt(1));
 
             % check span and tracer names
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
