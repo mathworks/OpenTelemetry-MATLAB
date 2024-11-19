@@ -30,7 +30,7 @@ jobs:
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with: 
                 name: otel-matlab-ubuntu.tar.gz
                 path: ${{ github.workspace }}/otel-matlab-ubuntu.tar.gz
@@ -60,7 +60,7 @@ jobs:
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
             - name: Upload artifacts
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with: 
                 name: otel-matlab-windows.tar.gz
                 path: ${{ github.workspace }}/otel-matlab-windows.tar.gz
@@ -91,7 +91,7 @@ jobs:
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-${{ matrix.os }}.tar.gz otel_matlab_install
             - name: Upload artifacts
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with: 
                 name: otel-matlab-${{ matrix.os }}.tar.gz
                 path: ${{ github.workspace }}/otel-matlab-${{ matrix.os }}.tar.gz
@@ -112,7 +112,7 @@ jobs:
               with:
                 path: OpenTelemetry-Matlab
             - name: Download Artifacts
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
                 path: artifacts-downloaded
             - name: Decompress Artifacts
