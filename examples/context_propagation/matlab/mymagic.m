@@ -41,8 +41,7 @@ end
 function initTracer
 % set up global TracerProvider
 resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
-tp = opentelemetry.sdk.trace.TracerProvider(...
-    opentelemetry.sdk.trace.SimpleSpanProcessor, Resource=resource);
+tp = opentelemetry.sdk.trace.TracerProvider(Resource=resource);
 setTracerProvider(tp);
 
 % set up global propagator
