@@ -44,8 +44,7 @@ end
 function initLogger
 % set up global LoggerProvider
 resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
-lp = opentelemetry.sdk.logs.LoggerProvider(...
-    opentelemetry.sdk.logs.SimpleLogRecordProcessor, Resource=resource);
+lp = opentelemetry.sdk.logs.LoggerProvider(Resource=resource);
 setLoggerProvider(lp);
 end
 

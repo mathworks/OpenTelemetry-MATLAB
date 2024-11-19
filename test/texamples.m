@@ -370,5 +370,63 @@ classdef texamples < matlab.unittest.TestCase
             verifyLessThanOrEqual(testCase, str2double(worker2.resourceSpans.scopeSpans.spans.endTimeUnixNano), ...
                 str2double(toplevel.resourceSpans.scopeSpans.spans.endTimeUnixNano));
         end
+
+        function testAutoTrace(testCase)
+            % testAutoTrace: AutoTrace example in examples/autotrace folder
+
+            % add the example folder to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "..", "examples", "autotrace");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+
+            % run the example
+            run_example;
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 3);
+            
+            % check generate_data span
+            gendata = results{1};
+            verifyEqual(testCase, gendata.resourceSpans.scopeSpans.scope.name, 'autotrace_example');
+            verifyEqual(testCase, gendata.resourceSpans.scopeSpans.spans.name, 'generate_data');
+            verifyEqual(testCase, gendata.resourceSpans.scopeSpans.spans.kind, 1);
+            service_name_idx = find(string({gendata.resourceSpans.resource.attributes.key}) == "service.name");
+            verifyNotEmpty(testCase, service_name_idx);
+            verifyEqual(testCase, gendata.resourceSpans.resource.attributes(service_name_idx).value.stringValue, ...
+                'OpenTelemetry-Matlab_examples');
+
+            % check best_fit_line span
+            bestfitline = results{2};
+            verifyEqual(testCase, bestfitline.resourceSpans.scopeSpans.scope.name, 'autotrace_example');
+            verifyEqual(testCase, bestfitline.resourceSpans.scopeSpans.spans.name, 'best_fit_line');
+            verifyEqual(testCase, bestfitline.resourceSpans.scopeSpans.spans.kind, 1);
+
+            % check top level function span
+            toplevel = results{3};
+            verifyEqual(testCase, toplevel.resourceSpans.scopeSpans.scope.name, 'autotrace_example');
+            verifyEqual(testCase, toplevel.resourceSpans.scopeSpans.spans.name, 'autotrace_example');
+            verifyEqual(testCase, toplevel.resourceSpans.scopeSpans.spans.kind, 1);
+
+            % check parent child relationships
+            verifyEqual(testCase, gendata.resourceSpans.scopeSpans.spans.parentSpanId, ...
+                toplevel.resourceSpans.scopeSpans.spans.spanId);
+            verifyEqual(testCase, bestfitline.resourceSpans.scopeSpans.spans.parentSpanId, ...
+                toplevel.resourceSpans.scopeSpans.spans.spanId);
+            verifyEmpty(testCase, toplevel.resourceSpans.scopeSpans.spans.parentSpanId);
+
+            % check all spans belong to the same trace
+            verifyEqual(testCase, gendata.resourceSpans.scopeSpans.spans.traceId, ...
+                toplevel.resourceSpans.scopeSpans.spans.traceId);
+            verifyEqual(testCase, bestfitline.resourceSpans.scopeSpans.spans.traceId, ...
+                toplevel.resourceSpans.scopeSpans.spans.traceId);
+
+            % check for expected timing
+            verifyLessThanOrEqual(testCase, str2double(toplevel.resourceSpans.scopeSpans.spans.startTimeUnixNano), ...
+                str2double(gendata.resourceSpans.scopeSpans.spans.startTimeUnixNano));
+            verifyLessThanOrEqual(testCase, str2double(gendata.resourceSpans.scopeSpans.spans.endTimeUnixNano), ...
+                str2double(bestfitline.resourceSpans.scopeSpans.spans.startTimeUnixNano));
+            verifyLessThanOrEqual(testCase, str2double(bestfitline.resourceSpans.scopeSpans.spans.endTimeUnixNano), ...
+                str2double(toplevel.resourceSpans.scopeSpans.spans.endTimeUnixNano));
+        end
     end
 end

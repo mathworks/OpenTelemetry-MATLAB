@@ -34,8 +34,7 @@ end
 
 function initMetrics
 % set up global MeterProvider
-exp = opentelemetry.exporters.otlp.defaultMetricExporter();
-reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(exp, ...
+reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(...
     "Interval", seconds(5), "Timeout", seconds(2.5));  % exports every 5 seconds
 % Use custom histogram bins
 v = opentelemetry.sdk.metrics.View(InstrumentType="histogram", HistogramBinEdges=0:10:100);
