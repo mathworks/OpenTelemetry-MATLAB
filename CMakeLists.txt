@@ -191,7 +191,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-   set(OTEL_CPP_GIT_TAG "fa0a520")
+   set(OTEL_CPP_GIT_TAG "955a807")
 
    set(OTEL_CPP_CXX_STANDARD 14)
 
