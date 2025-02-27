@@ -1,7 +1,7 @@
 classdef metricsTest < matlab.perftest.TestCase
 % performance tests for metrics
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -78,6 +78,15 @@ classdef metricsTest < matlab.perftest.TestCase
             testCase.stopMeasuring();
         end
 
+        function testCreateGauge(testCase)
+            % create a gauge
+            mt = opentelemetry.metrics.getMeter("foo");
+
+            testCase.startMeasuring();
+            g = createGauge(mt, "bar");
+            testCase.stopMeasuring();
+        end
+
         function testCreateObservableCounter(testCase)
             % create an observable counter
             mt = opentelemetry.metrics.getMeter("foo");
@@ -132,6 +141,16 @@ classdef metricsTest < matlab.perftest.TestCase
 
             while(testCase.keepMeasuring)
                 record(h, 111);
+            end
+        end
+
+        function testGaugeRecord(testCase)
+            % record a gauge value
+            mt = opentelemetry.metrics.getMeter("foo");
+            g = createGauge(mt, "bar");
+
+            while(testCase.keepMeasuring)
+                record(g, 55);
             end
         end
 

@@ -2,9 +2,9 @@
 There are two examples in this directory, metrics\_example and async\_metrics\_example.
 
 ## metrics\_example
-This example shows how to emit OpenTelemetry synchronous metrics from MATLAB. It uses all 3 synchronous instruments counter, updowncounter, and histogram.
+This example shows how to emit OpenTelemetry synchronous metrics from MATLAB. It uses all 4 synchronous instruments counter, updowncounter, histogram, and gauge.
 * At the beginning of the first run, initialization is necessary to create and store a global meter provider.
-* The example then enters a loop and at each iteration updates all 3 instruments. The metrics will then be exported periodically at a fixed time interval.
+* The example then enters a loop and at each iteration updates all 4 instruments. The metrics will then be exported periodically at a fixed time interval.
 
 ## async\_metrics\_example
 This example shows how to emit OpenTelemetry asynchronous metrics from MATLAB. Is uses all 3 asynchronous instruments observable counter, observable
