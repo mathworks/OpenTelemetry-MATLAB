@@ -211,6 +211,8 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
        set(patch_command "")
    endif()
 
+   # Note: examples are temporarily turned off (-DWITH_EXAMPLES=OFF) due to a build issue that is now fixed in #3284
+   # Renable examples after pulling in the fix
    ExternalProject_Add(
        ${OTEL_CPP_PROJECT_NAME}
        GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}

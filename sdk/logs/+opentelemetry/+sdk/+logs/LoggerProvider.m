@@ -2,7 +2,7 @@ classdef LoggerProvider < opentelemetry.logs.LoggerProvider & handle
     % An SDK implementation of logger provider, which stores a set of configurations used
     % in a logging system.
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties(Access=private)
         isShutdown (1,1) logical = false
@@ -143,6 +143,9 @@ classdef LoggerProvider < opentelemetry.logs.LoggerProvider & handle
                 end
             end
 
+            [resourcekeys, resourcevalues] = opentelemetry.sdk.common.addDefaultResource(...
+                resourcekeys, resourcevalues);
+            
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.LoggerProviderProxy", ...
                 "ConstructorArguments", {processor.Proxy.ID, resourcekeys, ...

@@ -2,7 +2,7 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
     % An SDK implementation of tracer provider, which stores a set of configurations used
     % in a distributed tracing system.
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties(Access=private)
         isShutdown (1,1) logical = false
@@ -155,6 +155,8 @@ classdef TracerProvider < opentelemetry.trace.TracerProvider & handle
                     end
                 end
             end
+            [resourcekeys, resourcevalues] = opentelemetry.sdk.common.addDefaultResource(...
+                resourcekeys, resourcevalues);
             if ~foundsampler
                 sampler = opentelemetry.sdk.trace.AlwaysOnSampler;
             end
