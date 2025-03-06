@@ -1,7 +1,7 @@
 classdef texamples < matlab.unittest.TestCase
     % verify examples in the examples folder produce expected results
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -197,6 +197,13 @@ classdef texamples < matlab.unittest.TestCase
             histogramobj = result_latest.resourceMetrics.scopeMetrics.metrics{histogramidx};
             verifyLessThanOrEqual(testCase, str2double(histogramobj.histogram.dataPoints.count), niter_actual);  % just check the count
             verifyEqual(testCase, histogramobj.histogram.aggregationTemporality, 2); % cumulative
+
+            % check gauge
+            gaugeidx = find(instrnames == "gauge");
+            verifyNotEmpty(testCase, gaugeidx);
+            gauge = result_latest.resourceMetrics.scopeMetrics.metrics{gaugeidx};
+            verifyLessThanOrEqual(testCase, gauge.gauge.dataPoints.asDouble, 100);
+            verifyGreaterThanOrEqual(testCase, gauge.gauge.dataPoints.asDouble, 0);
         end
 
         function testAsyncMetrics(testCase)

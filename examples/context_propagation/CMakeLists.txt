@@ -8,6 +8,8 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
     add_dependencies(${CONTEXTPROP_EXAMPLE_CPP_TARGET} ${OTEL_CPP_PROJECT_NAME})
 endif()
 
+# Specify the ABI version, include directories, and libraries of otel-cpp. The C++ code in this example directly calls otel-cpp functions.
+target_compile_definitions(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE ${OTEL_CPP_ABI_VERSION})
 target_include_directories(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE ${OTEL_CPP_PREFIX}/include)
 target_link_libraries(${CONTEXTPROP_EXAMPLE_CPP_TARGET} PRIVATE ${OPENTELEMETRY_PROXY_LINK_LIBRARIES})
 if(UNIX AND NOT APPLE AND NOT CYGWIN)

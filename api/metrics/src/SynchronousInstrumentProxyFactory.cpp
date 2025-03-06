@@ -1,9 +1,10 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2025 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/metrics/SynchronousInstrumentProxyFactory.h"
 #include "opentelemetry-matlab/metrics/CounterProxy.h"
 #include "opentelemetry-matlab/metrics/HistogramProxy.h"
 #include "opentelemetry-matlab/metrics/UpDownCounterProxy.h"
+#include "opentelemetry-matlab/metrics/GaugeProxy.h"
 
 
 namespace libmexclass::opentelemetry {
@@ -27,6 +28,12 @@ std::shared_ptr<libmexclass::proxy::Proxy> SynchronousInstrumentProxyFactory::cr
        {
                nostd::shared_ptr<metrics_api::Histogram<double> > hist = std::move(CppMeter->CreateDoubleHistogram(name, description, unit));
                proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new HistogramProxy(hist));
+       }
+	       break;
+       case SynchronousInstrumentType::Gauge:
+       {
+               nostd::shared_ptr<metrics_api::Gauge<double> > g = std::move(CppMeter->CreateDoubleGauge(name, description, unit));
+               proxy = std::shared_ptr<libmexclass::proxy::Proxy>(new GaugeProxy(g));
        }
 	       break;
    }

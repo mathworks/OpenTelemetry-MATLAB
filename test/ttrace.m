@@ -1,7 +1,7 @@
 classdef ttrace < matlab.unittest.TestCase
     % tests for traces and spans
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -100,6 +100,16 @@ classdef ttrace < matlab.unittest.TestCase
             serviceidx = find(resourcekeys == "service.name");
             verifyNotEmpty(testCase, serviceidx);
             verifyEqual(testCase, results.resourceSpans.resource.attributes(serviceidx).value.stringValue, 'unknown_service');
+
+            runtimeidx = find(resourcekeys == "process.runtime.name");
+            verifyNotEmpty(testCase, runtimeidx);
+            runtime_actual = results.resourceSpans.resource.attributes(runtimeidx).value.stringValue;
+            verifyTrue(testCase, runtime_actual == "MATLAB" || runtime_actual == "MATLAB Runtime");
+
+            runtimeversionidx = find(resourcekeys == "process.runtime.version");
+            verifyNotEmpty(testCase, runtimeversionidx);
+            runtimeversion_actual = results.resourceSpans.resource.attributes(runtimeversionidx).value.stringValue;
+            verifyTrue(testCase, contains(runtimeversion_actual, "R" + digitsPattern + characterListPattern("ab")));
         end
 
         function testGetSetTracerProvider(testCase)

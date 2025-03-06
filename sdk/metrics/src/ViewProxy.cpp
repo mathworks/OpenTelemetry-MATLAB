@@ -1,4 +1,4 @@
-// Copyright 2023-2024 The MathWorks, Inc.
+// Copyright 2023-2025 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 
@@ -34,6 +34,8 @@ void ViewProxy::setInstrumentType(libmexclass::proxy::method::Context& context) 
 	InstrumentType = metrics_sdk::InstrumentType::kUpDownCounter;
     } else if (instrument_type_str.compare(u"histogram") == 0) {
 	InstrumentType = metrics_sdk::InstrumentType::kHistogram;
+    } else if (instrument_type_str.compare(u"gauge") == 0) {
+	InstrumentType = metrics_sdk::InstrumentType::kGauge;
     } else if (instrument_type_str.compare(u"observablecounter") == 0) {
 	InstrumentType = metrics_sdk::InstrumentType::kObservableCounter;
     } else if (instrument_type_str.compare(u"observableupdowncounter") == 0) {

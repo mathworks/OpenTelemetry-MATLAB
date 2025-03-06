@@ -1,7 +1,7 @@
 classdef tmetrics < matlab.unittest.TestCase
     % tests for metrics
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -471,6 +471,104 @@ classdef tmetrics < matlab.unittest.TestCase
             end
         end
 
+        function testGaugeBasic(testCase)
+            % test names and recorded value in Gauge
+
+            metername = "foo";
+            gaugename = "moo";
+
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter(metername);
+            g = mt.createGauge(gaugename);
+
+            % verify MATLAB object properties
+            verifyEqual(testCase, g.Name, gaugename);
+
+            % create testing value 
+            vals = [35 25 16];
+
+            % record values 
+            for i = 1:length(vals)
+                g.record(vals(i));
+            end
+
+            % wait for collector response time 
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify meter and gauge names
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), gaugename);
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+
+            % verify gauge value is the last recorded value
+            verifyEqual(testCase, results.resourceMetrics.scopeMetrics.metrics.gauge.dataPoints.asDouble, vals(end));
+        end
+
+        function testGaugeAddAttributes(testCase)
+            % test names, recorded values and attributes in Gauge
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("bar");
+            g = mt.createGauge("foo");
+
+            % create testing value and dictionary
+            dict1 = dictionary("k1","v1","k2",5);
+            dict2 = dictionary("k1","v2","k2",10);
+            vals = [15 25 35 30 20 10];
+            dict1_keys = keys(dict1);
+            dict1_vals = values(dict1);
+            dict2_vals = values(dict2);
+
+            % record values and attributes
+            for i = 1:length(vals)
+                if rem(i,2) == 1
+                    g.record(vals(i), dict1);
+                else
+                    g.record(vals(i), dict2);
+                end
+            end
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+            dp = results.resourceMetrics.scopeMetrics.metrics.gauge.dataPoints;
+
+            verifyNumElements(testCase, dp, 2);
+
+            % verify attributes
+            resourcekeys = string({dp(1).attributes.key});
+            idx1 = find(resourcekeys == dict1_keys(1));
+            idx2 = find(resourcekeys == dict1_keys(2));
+            verifyNotEmpty(testCase, idx1);
+            verifyNotEmpty(testCase, idx2);
+
+            verifyEqual(testCase, string(dp(2).attributes(idx1).key), dict1_keys(1));
+            verifyEqual(testCase, string(dp(2).attributes(idx2).key), dict1_keys(2));
+
+            if string(dp(1).attributes(idx1).value.stringValue) == dict1_vals(1)
+                verifyEqual(testCase, string(dp(1).attributes(idx2).value.stringValue), dict1_vals(2));
+                verifyEqual(testCase, string(dp(2).attributes(idx1).value.stringValue), dict2_vals(1));
+                verifyEqual(testCase, string(dp(2).attributes(idx2).value.stringValue), dict2_vals(2));
+                % verify gauge values
+                verifyEqual(testCase, dp(1).asDouble, vals(end-1));
+                verifyEqual(testCase, dp(2).asDouble, vals(end));
+            else
+                verifyEqual(testCase, string(dp(1).attributes(idx1).value.stringValue), dict2_vals(1));
+                verifyEqual(testCase, string(dp(1).attributes(idx2).value.stringValue), dict2_vals(2));
+                verifyEqual(testCase, string(dp(2).attributes(idx1).value.stringValue), dict1_vals(1));
+                verifyEqual(testCase, string(dp(2).attributes(idx2).value.stringValue), dict1_vals(2));
+                % verify gauge values
+                verifyEqual(testCase, dp(1).asDouble, vals(end));
+                verifyEqual(testCase, dp(2).asDouble, vals(end-1));
+            end
+        end
 
         function testGetSetMeterProvider(testCase)
             % testGetSetMeterProvider: setting and getting global instance of MeterProvider
