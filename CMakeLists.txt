@@ -444,9 +444,9 @@ else()
            $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_MAJOR_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
            $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX})
         
-        if(WITH_OTLP_GRPC)
-            set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} $<TARGET_FILE:OpenSSL::SSL>) 
-        endif()
+   #if(WITH_OTLP_GRPC)
+   #         set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} $<TARGET_FILE:OpenSSL::SSL>) 
+   #     endif()
     endif()
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
