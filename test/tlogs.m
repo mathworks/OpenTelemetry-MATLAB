@@ -75,7 +75,10 @@ classdef tlogs < matlab.unittest.TestCase
                 tol = seconds(4);
                 verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
                     results.resourceLogs.scopeLogs.logRecords.observedTimeUnixNano))/1e9, ...
-                    "convertFrom", "posixtime", "TimeZone", "UTC") - expectedtimestamp), tol);
+                    "convertFrom", "posixtime", "TimeZone", "UTC") - expectedtimestamp), tol); 
+                % by default, Timestamp and ObservedTimestamp should be identical
+                verifyEqual(testCase, results.resourceLogs.scopeLogs.logRecords.observedTimeUnixNano, ...
+                    results.resourceLogs.scopeLogs.logRecords.timeUnixNano);
 
                 % check resource
                 resourcekeys = string({results.resourceLogs.resource.attributes.key});
