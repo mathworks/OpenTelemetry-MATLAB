@@ -7,7 +7,7 @@ jobs:
     build-ubuntu:
         # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
         # Instead, run on ubuntu-20.04
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
@@ -97,7 +97,7 @@ jobs:
                 path: ${{ github.workspace }}/otel-matlab-${{ matrix.os }}.tar.gz
     package-mltbx:
         name: Package MATLAB Toolbox (MLTBX) Files
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         permissions:
           contents: write
         needs:
