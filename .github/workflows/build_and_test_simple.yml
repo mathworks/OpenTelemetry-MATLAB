@@ -26,8 +26,6 @@ jobs:
               working-directory: opentelemetry-matlab
               run: echo "latest_tag=$(sed -re 's/^v?([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?.*/\1/' <<< $(git describe --tags --abbrev=0))" >> $GITHUB_OUTPUT
     build-and-run-tests-ubuntu:
-        # Running on ubuntu-latest would use a glibc version that is incompatible when using the built mex files on a Debian 11 
-        # Instead, run on ubuntu-20.04
         runs-on: ubuntu-22.04
         needs: get_version
         env:
