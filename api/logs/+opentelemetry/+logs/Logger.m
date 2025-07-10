@@ -1,7 +1,7 @@
 classdef Logger < handle
     % A logger that is used to emit log records
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
         Name    (1,1) string   % Logger name
@@ -38,7 +38,9 @@ classdef Logger < handle
             %    Parameters are:
             %       "Context"   - Span contained in a context object.
             %       "Timestamp" - Timestamp of the log record specified as a
-            %                     datetime. Default is the current time.
+            %                     datetime. Default is the current time. If
+            %                     Timestamp does not have a time zone 
+            %                     specified, it is interpreted as a UTC time.
             %       "Attributes" - Attribute name-value pairs specified as
             %                      a dictionary.
             %

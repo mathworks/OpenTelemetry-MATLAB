@@ -323,8 +323,8 @@ classdef ttrace < matlab.unittest.TestCase
             % testTime: specifying start and end times
             tp = opentelemetry.sdk.trace.TracerProvider();
             tr = getTracer(tp, "tracer");
-            starttime = datetime(2000,1,1,10,0,0);
-            endtime = datetime(2001, 8, 31, 7, 30, 0);
+            starttime = datetime(2000,1,1,10,0,0, "TimeZone", "UTC");
+            endtime = datetime(2001, 8, 31, 7, 30, 0, "TimeZone", "UTC");
             sp = startSpan(tr, "foo", "StartTime", starttime);
             endSpan(sp, endtime);
 
@@ -332,11 +332,11 @@ classdef ttrace < matlab.unittest.TestCase
             results = readJsonResults(testCase);
             verifyEqual(testCase, datetime(double(string(...
                 results{1}.resourceSpans.scopeSpans.spans.startTimeUnixNano))/1e9, ...
-                "convertFrom", "posixtime"), starttime);  % convert from nanoseconds to seconds
+                "convertFrom", "posixtime", "TimeZone", "UTC"), starttime);  % convert from nanoseconds to seconds
             % for end time, use a tolerance
             verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
                 results{1}.resourceSpans.scopeSpans.spans.endTimeUnixNano))/1e9, ...
-                "convertFrom", "posixtime") - endtime), seconds(2));
+                "convertFrom", "posixtime", "TimeZone", "UTC") - endtime), seconds(2));
         end
 
         function testStatus(testCase)
@@ -551,17 +551,24 @@ classdef ttrace < matlab.unittest.TestCase
             nvattributes = {"doublescalar", 5, "int32array", reshape(int32(1:6),2,3), ...
                 "stringscalar", "baz"};
             addEvent(sp, "baz", nvattributes{:});
+            event1time = datetime("now", "TimeZone", "UTC");
             % dictionary
             attributes = dictionary(["doublearray", "int64scalar", "stringarray"], ...
                 {reshape(1:4,1,2,2), int64(350), ["one", "two", "three"; "four", "five","six"]});
             addEvent(sp, "quux", attributes);
+            event2time = datetime("now", "TimeZone", "UTC");
             endSpan(sp);
 
             results = readJsonResults(testCase);
             nvattributesstruct = struct(nvattributes{:});
 
+            tol = seconds(2);  % tolerance for testing times
+
             % event 1
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).name, 'baz');
+            verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+                results{1}.resourceSpans.scopeSpans.spans.events(1).timeUnixNano))/1e9, ...
+                "convertFrom", "posixtime", "TimeZone", "UTC") - event1time), tol);
 
             event1keys = string({results{1}.resourceSpans.scopeSpans.spans.events(1).attributes.key});
 
@@ -587,6 +594,9 @@ classdef ttrace < matlab.unittest.TestCase
 
             % event 2
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(2).name, 'quux');
+            verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+                results{1}.resourceSpans.scopeSpans.spans.events(2).timeUnixNano))/1e9, ...
+                "convertFrom", "posixtime", "TimeZone", "UTC") - event2time), tol);
 
             event2keys = string({results{1}.resourceSpans.scopeSpans.spans.events(2).attributes.key});
 
