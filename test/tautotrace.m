@@ -1,7 +1,7 @@
 classdef tautotrace < matlab.unittest.TestCase
     % tests for AutoTrace
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -153,6 +153,35 @@ classdef tautotrace < matlab.unittest.TestCase
             % check parent children relationship
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{3}.resourceSpans.scopeSpans.spans.spanId);
             verifyEqual(testCase, results{2}.resourceSpans.scopeSpans.spans.parentSpanId, results{3}.resourceSpans.scopeSpans.spans.spanId);
+        end
+
+        function testMultipleIncludeFolders(testCase)
+            % testMultipleIncludeFolders: specify multiple folders in AdditionalFiles
+           
+            % Add example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "two_subfolders_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder, ...
+                "IncludingSubfolders",true));
+
+            % set up AutoTrace, turn off automatic detection and specify 
+            % dependencies using their folder name
+            at = opentelemetry.autoinstrument.AutoTrace(@two_subfolders_example, ...
+                "AutoDetectFiles", false, "AdditionalFiles", fullfile(examplefolder, ["helper1" "helper2"]));
+
+            % run the example
+            [~] = beginTrace(at);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            verifyNumElements(testCase, results, 6);
+
+            % check span names
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "subfolder_helper1_1");
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "subfolder_helper1_2");
+            verifyEqual(testCase, string(results{3}.resourceSpans.scopeSpans.spans.name), "subfolder_helper2_1");
+            verifyEqual(testCase, string(results{4}.resourceSpans.scopeSpans.spans.name), "subfolder_helper2_2");
+            verifyEqual(testCase, string(results{5}.resourceSpans.scopeSpans.spans.name), "subfolder_helper2_3");
+            verifyEqual(testCase, string(results{6}.resourceSpans.scopeSpans.spans.name), "two_subfolders_example");
         end
 
         function testExcludeFolder(testCase)

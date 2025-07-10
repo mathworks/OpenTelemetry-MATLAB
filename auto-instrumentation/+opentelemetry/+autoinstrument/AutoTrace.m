@@ -1,7 +1,7 @@
 classdef AutoTrace < handle
     % Automatic instrumentation with OpenTelemetry tracing.
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties (SetAccess=private)
         StartFunction function_handle   % entry function
@@ -190,7 +190,7 @@ if isfolder(f)
     mfiles = fullfile(string({mfileinfo.folder}), string({mfileinfo.name}));
     mlxfileinfo = dir(fullfile(f, "*.mlx"));
     mlxfiles = fullfile(string({mlxfileinfo.folder}), string({mlxfileinfo.name}));
-    f = [mfiles; mlxfiles];
+    f = [mfiles(:); mlxfiles(:)];
 else
     % file
     f = processFileInput(f);
