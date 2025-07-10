@@ -75,7 +75,10 @@ classdef tlogs < matlab.unittest.TestCase
                 tol = seconds(4);
                 verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
                     results.resourceLogs.scopeLogs.logRecords.observedTimeUnixNano))/1e9, ...
-                    "convertFrom", "posixtime", "TimeZone", "UTC") - expectedtimestamp), tol);
+                    "convertFrom", "posixtime", "TimeZone", "UTC") - expectedtimestamp), tol); 
+                % by default, Timestamp and ObservedTimestamp should be identical
+                verifyEqual(testCase, results.resourceLogs.scopeLogs.logRecords.observedTimeUnixNano, ...
+                    results.resourceLogs.scopeLogs.logRecords.timeUnixNano);
 
                 % check resource
                 resourcekeys = string({results.resourceLogs.resource.attributes.key});
@@ -282,7 +285,7 @@ classdef tlogs < matlab.unittest.TestCase
             % testTimestamp: specifying a timestamp
             lp = opentelemetry.sdk.logs.LoggerProvider();
             lg = getLogger(lp, "foo");
-            timestamp = datetime(2020,3,12,9,45,0);
+            timestamp = datetime(2020,3,12,9,45,0, "TimeZone", "UTC");
             emitLogRecord(lg, "info", "bar", "Timestamp", timestamp);
 
             % perform test comparisons
@@ -290,7 +293,7 @@ classdef tlogs < matlab.unittest.TestCase
             results = readJsonResults(testCase);
             verifyEqual(testCase, datetime(double(string(...
                 results{1}.resourceLogs.scopeLogs.logRecords.timeUnixNano))/1e9, ...
-                "convertFrom", "posixtime"), timestamp);  % convert from nanoseconds to seconds
+                "convertFrom", "posixtime", "TimeZone", "UTC"), timestamp);  % convert from nanoseconds to seconds
         end
 
         function testAttributes(testCase)

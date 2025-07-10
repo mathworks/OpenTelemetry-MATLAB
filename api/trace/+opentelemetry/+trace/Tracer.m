@@ -1,7 +1,7 @@
 classdef Tracer < handle
     % A tracer that is used to create spans.
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
         Name    (1,1) string   % Tracer name
@@ -37,7 +37,9 @@ classdef Tracer < handle
             %       "SpanKind"  - "server", "client", "producer",
             %                     "consumer", or "internal" (default)
             %       "StartTime" - Starting time of span specified as a
-            %                     datetime. Default is the current time.
+            %                     datetime. Default is the current time. If
+            %                     StartTime does not have a time zone 
+            %                     specified, it is interpreted as a UTC time.
             %       "Attributes" - Attribute name-value pairs specified as
             %                      a dictionary.
             %       "Links"     - Link objects that specifies relationships

@@ -9,6 +9,7 @@
 #include "opentelemetry/logs/log_record.h"
 #include "opentelemetry/trace/context.h"
 #include "opentelemetry/context/context.h"
+#include "opentelemetry/common/timestamp.h"
 
 #include "MatlabDataArray.hpp"
 
@@ -39,6 +40,12 @@ void LoggerProxy::emitLogRecord(libmexclass::proxy::method::Context& context) {
     bool array_body = (bodyattrs.Attributes.size() > 1);  
 
     nostd::unique_ptr<logs_api::LogRecord> rec = CppLogger->CreateLogRecord();
+
+    // Do not use the default timestamp, which is set to the start of UNIX epoch. Set both the 
+    // default timestamp and default observed timestamp to the current time
+    auto now = common::SystemTimestamp(std::chrono::system_clock::now());
+    rec->SetTimestamp(now);
+    rec->SetObservedTimestamp(now);
 
     // Add size attribute if body is nonscalar
     if (array_body) {
