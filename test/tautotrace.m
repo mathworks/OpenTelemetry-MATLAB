@@ -256,6 +256,28 @@ classdef tautotrace < matlab.unittest.TestCase
             end
         end
 
+        function testUnsupportedDependentFiles(testCase)
+            % testUnsupportedDependentFiles: Check that File dependencies that are not
+            % .m or .mlx files are ignored. For example, .mat file.
+           
+            % Add example folders to the path
+            examplefolder = fullfile(fileparts(mfilename('fullpath')), "autotrace_examples", "matfile_example");
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(examplefolder));
+
+            % set up AutoTrace
+            at = opentelemetry.autoinstrument.AutoTrace(@matfile_example);
+
+            % run the example
+            [~] = beginTrace(at);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+            
+            % should only return 1 span
+            verifyNumElements(testCase, results, 1);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "matfile_example");
+        end
+
         function testError(testCase)
             % testError: handling error situation
         

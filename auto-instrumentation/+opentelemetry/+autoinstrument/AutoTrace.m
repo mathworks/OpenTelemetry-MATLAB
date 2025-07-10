@@ -71,7 +71,8 @@ classdef AutoTrace < handle
                 if isdeployed
                     % matlab.codetools.requiredFilesAndProducts is not
                     % deployable. Instead instrument all files under CTFROOT
-                    fileinfo = dir(fullfile(ctfroot, "**", "*.m"));
+                    fileinfo = [reshape(dir(fullfile(ctfroot, "**", "*.m")), [], 1); ...
+                        reshape(dir(fullfile(ctfroot, "**", "*.mlx")), [], 1)];
                     files = fullfile(string({fileinfo.folder}), string({fileinfo.name}));
 
                     % filter out internal files in the toolbox directory
@@ -79,6 +80,10 @@ classdef AutoTrace < handle
                 else
                     %#exclude matlab.codetools.requiredFilesAndProducts
                     files = string(matlab.codetools.requiredFilesAndProducts(startfunname));
+                    
+                    % keep only .m and .mlx files. Filter out everything else
+                    [~,~,fext] = fileparts(files);
+                    files = files(ismember(fext, [".m" ".mlx"]));
                 end
             else
                 % only include the input file, not its dependencies
