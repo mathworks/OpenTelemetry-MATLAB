@@ -256,8 +256,8 @@ classdef tautotrace < matlab.unittest.TestCase
             end
         end
 
-        function testUnsupportedDependentFiles(testCase)
-            % testUnsupportedDependentFiles: Check that File dependencies that are not
+        function testIgnoreUnsupportedDependencies(testCase)
+            % testIgnoreUnsupportedDependencies: Check that File dependencies that are not
             % .m or .mlx files are ignored. For example, .mat file.
            
             % Add example folders to the path
