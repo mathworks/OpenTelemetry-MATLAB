@@ -1,7 +1,7 @@
 classdef ttrace_sdk < matlab.unittest.TestCase
     % tests for tracing SDK (span processors, exporters, samplers, resource)
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -19,9 +19,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             testCase.ForceFlushTimeout = seconds(2);
         end
@@ -276,8 +276,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
         function testCleanupApi(testCase)
             % testCleanupApi: shutdown an API tracer provider through the Cleanup class  
             tp = opentelemetry.sdk.trace.TracerProvider();
-            setTracerProvider(tp);
-            clear("tp");
+            testCase.applyFixture(TracerProviderFixture(tp));  % set TracerProvider global instance
             tp_api = opentelemetry.trace.Provider.getTracerProvider();
             tr = getTracer(tp_api, "foo");
 

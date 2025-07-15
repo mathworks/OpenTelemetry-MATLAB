@@ -1,7 +1,7 @@
 classdef Provider
 % Get and set the global instance of meter provider
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2025 The MathWorks, Inc.
 
     methods (Static)
         function p = getMeterProvider()
@@ -19,8 +19,20 @@ classdef Provider
             %    OPENTELEMETRY.METRICS.PROVIDER.GETMETERPROVIDER(MP) sets
             %    MP as the global instance of meter provider.
             %
-            %    See also OPENTELEMETRY.METRICS.PROVIDER.GETMETERPROVIDER
+            %    See also OPENTELEMETRY.METRICS.PROVIDER.GETMETERPROVIDER, 
+            %    OPENTELEMETRY.METRICS.PROVIDER.UNSETMETERPROVIDER
             p.setMeterProvider();
+        end
+
+        function unsetMeterProvider()
+            % Unset the global instance of meter provider, which disables
+            % metrics
+            %    OPENTELEMETRY.METRICS.PROVIDER.UNSETMETERPROVIDER() unsets
+            %    the global instance of meter provider.
+            %
+            %    See also OPENTELEMETRY.METRICS.PROVIDER.SETMETERPROVIDER
+
+            opentelemetry.metrics.internal.NoOpMeterProvider;
         end
     end
 

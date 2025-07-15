@@ -19,9 +19,9 @@ classdef tlogs < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             testCase.ForceFlushTimeout = seconds(2);
         end
@@ -444,14 +444,13 @@ classdef tlogs < matlab.unittest.TestCase
         end
 
         function testGetSetLoggerProvider(testCase)
-            % testGetSetLoggerProvider: setting and getting global instance of LoggerProvider
+            % testGetSetLoggerProvider: setting, getting, and unsetting global instance of LoggerProvider
             customkey = "quux";
             customvalue = 1;
             proc = opentelemetry.sdk.logs.SimpleLogRecordProcessor;
             lp = opentelemetry.sdk.logs.LoggerProvider(proc, ...
                 "Resource", dictionary(customkey, customvalue));  % specify an arbitrary resource as an identifier
-            setLoggerProvider(lp);
-            clear("lp");
+            testCase.applyFixture(LoggerProviderFixture(lp));  % set global instance of logger provider
 
             loggername = "foo";
             logseverity = "warn";
@@ -459,14 +458,21 @@ classdef tlogs < matlab.unittest.TestCase
             lg = opentelemetry.logs.getLogger(loggername);
             emitLogRecord(lg, logseverity, logmessage);
 
+            % unset logger provider and emit more logs
+            opentelemetry.logs.Provider.unsetLoggerProvider;
+            logmessage2 = "quux";
+            lg = opentelemetry.logs.getLogger(loggername);
+            emitLogRecord(lg, logseverity, logmessage2);
+
             % perform test comparisons
             opentelemetry.sdk.common.Cleanup.forceFlush(...
                 opentelemetry.logs.Provider.getLoggerProvider, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
 
             % check log record, and check its resource to identify the
-            % correct LoggerProvider has been used
-            verifyNotEmpty(testCase, results);
+            % correct LoggerProvider has been used. Only one log record
+            % should have been generated
+            verifyNumElements(testCase, results, 1);
 
             verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity));
             verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logmessage);

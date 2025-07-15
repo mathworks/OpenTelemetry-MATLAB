@@ -1,7 +1,7 @@
 classdef Provider
 % Get and set the global instance of tracer provider
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2025 The MathWorks, Inc.
 
     methods (Static)
         function p = getTracerProvider()
@@ -16,12 +16,24 @@ classdef Provider
 
         function setTracerProvider(p)
             % Set the global instance of tracer provider
-            %    OPENTELEMETRY.TRACE.PROVIDER.GETTRACERPROVIDER(TP) sets
+            %    OPENTELEMETRY.TRACE.PROVIDER.SETTRACERPROVIDER(TP) sets
             %    TP as the global instance of tracer provider.
             %
-            %    See also OPENTELEMETRY.TRACE.PROVIDER.GETTRACERPROVIDER
+            %    See also OPENTELEMETRY.TRACE.PROVIDER.GETTRACERPROVIDER, 
+            %    OPENTELEMETRY.TRACE.PROVIDER.UNSETTRACERPROVIDER
 
             p.setTracerProvider();
+        end
+
+        function unsetTracerProvider()
+            % Unset the global instance of tracer provider, which disables
+            % tracing
+            %    OPENTELEMETRY.TRACE.PROVIDER.UNSETTRACERPROVIDER() unsets
+            %    the global instance of tracer provider.
+            %
+            %    See also OPENTELEMETRY.TRACE.PROVIDER.SETTRACERPROVIDER
+
+            opentelemetry.trace.internal.NoOpTracerProvider;
         end
     end
 

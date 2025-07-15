@@ -18,9 +18,9 @@ classdef ttrace < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
         end
     end
@@ -113,13 +113,12 @@ classdef ttrace < matlab.unittest.TestCase
         end
 
         function testGetSetTracerProvider(testCase)
-            % testGetSetTracerProvider: setting and getting global instance of TracerProvider
+            % testGetSetTracerProvider: setting, getting, and unsetting global instance of TracerProvider
             customkey = "quux";
             customvalue = 1;
             tp = opentelemetry.sdk.trace.TracerProvider(opentelemetry.sdk.trace.SimpleSpanProcessor, ...
                 "Resource", dictionary(customkey, customvalue));  % specify an arbitrary resource as an identifier
-            setTracerProvider(tp);
-            clear("tp");
+            testCase.applyFixture(TracerProviderFixture(tp));  % set TracerProvider global instance
 
             tracername = "foo";
             spanname = "bar";
@@ -127,12 +126,19 @@ classdef ttrace < matlab.unittest.TestCase
             sp = startSpan(tr, spanname);
             endSpan(sp);
 
+            % unset the global tracer provider and start another span
+            opentelemetry.trace.Provider.unsetTracerProvider;
+            spanname2 = "quux";
+            tr = opentelemetry.trace.getTracer(tracername);
+            sp = startSpan(tr, spanname2);
+            endSpan(sp);
+
             % perform test comparisons
             results = readJsonResults(testCase);
 
-            % check a span has been created, and check its resource to identify the
+            % check only one span has been created, and check its resource to identify the
             % correct TracerProvider has been used
-            verifyNotEmpty(testCase, results);
+            verifyNumElements(testCase, results, 1);
 
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername);

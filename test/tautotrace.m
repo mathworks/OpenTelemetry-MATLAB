@@ -18,15 +18,15 @@ classdef tautotrace < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
                         
             commonSetupOnce(testCase);
 
             % configure the global tracer provider
             tp = opentelemetry.sdk.trace.TracerProvider();
-            setTracerProvider(tp);
+            testCase.applyFixture(TracerProviderFixture(tp));
         end
     end
 
