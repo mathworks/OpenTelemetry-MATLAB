@@ -1,7 +1,7 @@
 classdef tmetrics_sdk < matlab.unittest.TestCase
     % tests for metrics SDK
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -20,9 +20,9 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             interval = seconds(2);
             timeout = seconds(1);
@@ -521,7 +521,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % Shut down an API meter provider instance
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
-            setMeterProvider(mp);
+            testCase.applyFixture(MeterProviderFixture(mp));  % set MeterProvider global instance
             clear("mp");
             mp_api = opentelemetry.metrics.Provider.getMeterProvider();
 

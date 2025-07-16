@@ -23,14 +23,10 @@ classdef tmetrics < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils, callbacks, and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "callbacks" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
-            
-            % add the callbacks folder to the path
-            callbackfolder = fullfile(fileparts(mfilename('fullpath')), "callbacks");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(callbackfolder));
 
             interval = seconds(2);
             timeout = seconds(1);
@@ -571,13 +567,13 @@ classdef tmetrics < matlab.unittest.TestCase
         end
 
         function testGetSetMeterProvider(testCase)
-            % testGetSetMeterProvider: setting and getting global instance of MeterProvider
-                        
+            % testGetSetMeterProvider: setting, getting, and unsetting global instance of MeterProvider
+
             % suppress internal warning logs about repeated shutdown
             nologs = SuppressInternalLogs; %#ok<NASGU>
 
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
-            setMeterProvider(mp);
+            testCase.applyFixture(MeterProviderFixture(mp));  % set MeterProvider global instance
 
             metername = "foo";
             countername = "bar";
@@ -594,6 +590,13 @@ classdef tmetrics < matlab.unittest.TestCase
 
             %Shutdown the Meter Provider
             verifyTrue(testCase, mp.shutdown());
+            
+            %Unset the global meter provider and generate more metrics
+            opentelemetry.metrics.Provider.unsetMeterProvider;
+            m = opentelemetry.metrics.getMeter(metername);
+            countername2 = "quux";
+            c2 = createCounter(m, countername2);
+            c2.add(val);
 
             % perform test comparisons
             results = readJsonResults(testCase);
@@ -601,6 +604,9 @@ classdef tmetrics < matlab.unittest.TestCase
             % check a counter has been created, and check its resource to identify the
             % correct MeterProvider has been used
             verifyNotEmpty(testCase, results);
+            
+            % check that only one metric is generated
+            verifyNumElements(testCase, results.resourceMetrics.scopeMetrics.metrics, 1);
 
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);

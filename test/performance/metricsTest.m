@@ -18,19 +18,15 @@ classdef metricsTest < matlab.perftest.TestCase
     
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add directory where common setup and teardown code lives
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "..", "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
-           
-            % add the callbacks folder to the path
-            callbackfolder = fullfile(fileparts(mfilename('fullpath')), "..", "callbacks");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(callbackfolder));
+            % add utils, callbacks, and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), "..", ["utils" "callbacks" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
 
             commonSetupOnce(testCase);
 
             % create a global meter provider
             mp = opentelemetry.sdk.metrics.MeterProvider();
-            setMeterProvider(mp);
+            testCase.applyFixture(MeterProviderFixture(mp)); 
         end
     end
 

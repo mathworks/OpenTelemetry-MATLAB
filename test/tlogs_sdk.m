@@ -1,7 +1,7 @@
 classdef tlogs_sdk < matlab.unittest.TestCase
     % tests for logging SDK (log record processors, exporters, resource)
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -19,9 +19,9 @@ classdef tlogs_sdk < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folder to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             testCase.ForceFlushTimeout = seconds(2);
         end
@@ -210,8 +210,7 @@ classdef tlogs_sdk < matlab.unittest.TestCase
         function testCleanupApi(testCase)
             % testCleanupApi: shutdown an API logger provider through the Cleanup class  
             lp = opentelemetry.sdk.logs.LoggerProvider();
-            setLoggerProvider(lp);
-            clear("lp");
+            testCase.applyFixture(LoggerProviderFixture(lp));  % set global instance of logger provider
             lp_api = opentelemetry.logs.Provider.getLoggerProvider();
             lg = getLogger(lp_api, "foo");
 

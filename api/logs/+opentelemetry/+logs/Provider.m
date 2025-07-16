@@ -1,7 +1,7 @@
 classdef Provider
 % Get and set the global instance of logger provider
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2025 The MathWorks, Inc.
 
     methods (Static)
         function p = getLoggerProvider()
@@ -19,9 +19,21 @@ classdef Provider
             %    OPENTELEMETRY.LOGS.PROVIDER.SETLOGGERPROVIDER(LP) sets
             %    LP as the global instance of logger provider.
             %
-            %    See also OPENTELEMETRY.LOGS.PROVIDER.GETTRACERPROVIDER
+            %    See also OPENTELEMETRY.LOGS.PROVIDER.GETLOGGERPROVIDER, 
+            %    OPENTELEMETRY.LOGS.PROVIDER.UNSETLOGGERPROVIDER
 
             p.setLoggerProvider();
+        end
+
+        function unsetLoggerProvider()
+            % Unset the global instance of logger provider, which disables
+            % logging
+            %    OPENTELEMETRY.LOGS.PROVIDER.UNSETLOGGERPROVIDER() unsets
+            %    the global instance of logger provider.
+            %
+            %    See also OPENTELEMETRY.LOGS.PROVIDER.SETLOGGERPROVIDER
+
+            opentelemetry.logs.internal.NoOpLoggerProvider;
         end
     end
 

@@ -1,7 +1,7 @@
 classdef traceTest < matlab.perftest.TestCase
 % performance tests for tracing
 
-% Copyright 2023-2024 The MathWorks, Inc.
+% Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -18,16 +18,16 @@ classdef traceTest < matlab.perftest.TestCase
     
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add directory where common setup and teardown code lives
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "..", "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), "..", ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             
             commonSetupOnce(testCase);
 
             % create a global tracer provider
             import opentelemetry.sdk.trace.*
             tp = TracerProvider(BatchSpanProcessor());
-            setTracerProvider(tp);
+            testCase.applyFixture(TracerProviderFixture(tp)); 
         end
     end
 
