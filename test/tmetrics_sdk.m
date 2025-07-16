@@ -522,6 +522,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
             % Shut down an API meter provider instance
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             testCase.applyFixture(MeterProviderFixture(mp));  % set MeterProvider global instance
+            clear("mp");
             mp_api = opentelemetry.metrics.Provider.getMeterProvider();
 
             % shutdown the API meter provider through the Cleanup class

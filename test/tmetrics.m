@@ -569,6 +569,9 @@ classdef tmetrics < matlab.unittest.TestCase
         function testGetSetMeterProvider(testCase)
             % testGetSetMeterProvider: setting, getting, and unsetting global instance of MeterProvider
 
+            % suppress internal warning logs about repeated shutdown
+            nologs = SuppressInternalLogs; %#ok<NASGU>
+
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             testCase.applyFixture(MeterProviderFixture(mp));  % set MeterProvider global instance
 
@@ -585,6 +588,9 @@ classdef tmetrics < matlab.unittest.TestCase
 
             pause(testCase.WaitTime);
 
+            %Shutdown the Meter Provider
+            verifyTrue(testCase, mp.shutdown());
+            
             %Unset the global meter provider and generate more metrics
             opentelemetry.metrics.Provider.unsetMeterProvider;
             m = opentelemetry.metrics.getMeter(metername);
