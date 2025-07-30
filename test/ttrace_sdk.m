@@ -1,7 +1,7 @@
 classdef ttrace_sdk < matlab.unittest.TestCase
     % tests for tracing SDK (span processors, exporters, samplers, resource)
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -19,9 +19,9 @@ classdef ttrace_sdk < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             testCase.ForceFlushTimeout = seconds(2);
         end
@@ -109,6 +109,54 @@ classdef ttrace_sdk < matlab.unittest.TestCase
             % check span and tracer names
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
+        end
+
+        function testParentBasedSampler(testCase)
+            % testAlwaysOnSampler: should produce all spans
+            tracername = "tracer - AlwaysOnSampler";
+            spanname = "span - AlwaysOnSampler";
+
+            tp = opentelemetry.sdk.trace.TracerProvider( ...
+                "Sampler", opentelemetry.sdk.trace.ParentBasedSampler(opentelemetry.sdk.trace.AlwaysOnSampler));
+            tr = getTracer(tp, tracername);
+            sp = startSpan(tr, spanname);
+            pause(1);
+            endSpan(sp);
+
+            tracername1 = "tracer - AlwaysOffSampler";
+            spanname1 = "span - AlwaysOffSampler";
+            tp = opentelemetry.sdk.trace.TracerProvider( ...
+                "Sampler", opentelemetry.sdk.trace.ParentBasedSampler(opentelemetry.sdk.trace.AlwaysOffSampler));
+            tr = getTracer(tp, tracername1);
+            sp = startSpan(tr, spanname1);
+            pause(1);
+            endSpan(sp);
+
+            tracername2 = "tracer - TraceIdRatioBasedSampler";
+            spanname2 = "span - TraceIdRatioBasedSampler";
+            tp = opentelemetry.sdk.trace.TracerProvider( ...
+                "Sampler", opentelemetry.sdk.trace.ParentBasedSampler(opentelemetry.sdk.trace.TraceIdRatioBasedSampler(1)));
+            tr = getTracer(tp, tracername2);
+            sp = startSpan(tr, spanname2);
+            pause(1);
+            endSpan(sp);
+
+            % perform test comparisons
+            results = readJsonResults(testCase);
+
+            % check span and tracer names of an AlwaysOnSampler
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
+            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername);
+
+            % AlwaysOffSampler should return no results
+
+            % check span and tracer names of an TraceIdRatioBasedSampler
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), spanname2);
+            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.scope.name), tracername2);
+
+            % check ParentBasedSampler doesn't accept other inputs
+            verifyError(testCase, @()  opentelemetry.sdk.trace.TracerProvider( ...
+                "Sampler", opentelemetry.sdk.trace.ParentBasedSampler(opentelemetry.sdk.trace.ParentBasedSampler("not a sampler"))), "MATLAB:validators:mustBeA");
         end
 
         function testTraceIdRatioBasedSampler(testCase)
@@ -276,8 +324,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
         function testCleanupApi(testCase)
             % testCleanupApi: shutdown an API tracer provider through the Cleanup class  
             tp = opentelemetry.sdk.trace.TracerProvider();
-            setTracerProvider(tp);
-            clear("tp");
+            testCase.applyFixture(TracerProviderFixture(tp));  % set TracerProvider global instance
             tp_api = opentelemetry.trace.Provider.getTracerProvider();
             tr = getTracer(tp_api, "foo");
 

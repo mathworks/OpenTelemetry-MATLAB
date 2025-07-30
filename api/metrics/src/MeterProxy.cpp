@@ -1,4 +1,4 @@
-// Copyright 2023-2024 The MathWorks, Inc.
+// Copyright 2023-2025 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/metrics/MeterProxy.h"
 #include "opentelemetry-matlab/metrics/MeasurementFetcher.h"
@@ -44,6 +44,10 @@ void MeterProxy::createUpDownCounter(libmexclass::proxy::method::Context& contex
 
 void MeterProxy::createHistogram(libmexclass::proxy::method::Context& context) {
    createSynchronous(context, SynchronousInstrumentType::Histogram);
+}
+
+void MeterProxy::createGauge(libmexclass::proxy::method::Context& context) {
+   createSynchronous(context, SynchronousInstrumentType::Gauge);
 }
 
 void MeterProxy::createAsynchronous(libmexclass::proxy::method::Context& context, AsynchronousInstrumentType type) {

@@ -1,7 +1,7 @@
 classdef metricsTest < matlab.perftest.TestCase
 % performance tests for metrics
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -18,19 +18,15 @@ classdef metricsTest < matlab.perftest.TestCase
     
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add directory where common setup and teardown code lives
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "..", "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
-           
-            % add the callbacks folder to the path
-            callbackfolder = fullfile(fileparts(mfilename('fullpath')), "..", "callbacks");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(callbackfolder));
+            % add utils, callbacks, and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), "..", ["utils" "callbacks" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
 
             commonSetupOnce(testCase);
 
             % create a global meter provider
             mp = opentelemetry.sdk.metrics.MeterProvider();
-            setMeterProvider(mp);
+            testCase.applyFixture(MeterProviderFixture(mp)); 
         end
     end
 
@@ -75,6 +71,15 @@ classdef metricsTest < matlab.perftest.TestCase
 
             testCase.startMeasuring();
             h = createHistogram(mt, "bar");
+            testCase.stopMeasuring();
+        end
+
+        function testCreateGauge(testCase)
+            % create a gauge
+            mt = opentelemetry.metrics.getMeter("foo");
+
+            testCase.startMeasuring();
+            g = createGauge(mt, "bar");
             testCase.stopMeasuring();
         end
 
@@ -132,6 +137,16 @@ classdef metricsTest < matlab.perftest.TestCase
 
             while(testCase.keepMeasuring)
                 record(h, 111);
+            end
+        end
+
+        function testGaugeRecord(testCase)
+            % record a gauge value
+            mt = opentelemetry.metrics.getMeter("foo");
+            g = createGauge(mt, "bar");
+
+            while(testCase.keepMeasuring)
+                record(g, 55);
             end
         end
 

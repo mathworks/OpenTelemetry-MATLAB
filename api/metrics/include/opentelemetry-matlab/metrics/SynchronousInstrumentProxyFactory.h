@@ -1,4 +1,4 @@
-// Copyright 2023 The MathWorks, Inc.
+// Copyright 2023-2025 The MathWorks, Inc.
 
 #pragma once
 
@@ -11,7 +11,7 @@ namespace nostd = opentelemetry::nostd;
 
 namespace libmexclass::opentelemetry {
 
-enum class SynchronousInstrumentType {Counter, UpDownCounter, Histogram};
+enum class SynchronousInstrumentType {Counter, UpDownCounter, Histogram, Gauge};
 
 class SynchronousInstrumentProxyFactory {
   public:

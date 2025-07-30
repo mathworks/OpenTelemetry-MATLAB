@@ -5,6 +5,8 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
     add_dependencies(${WEBREAD_EXAMPLE_TARGET} ${OTEL_CPP_PROJECT_NAME})
 endif()
 
+# Specify the ABI version, include directories, and libraries of otel-cpp. The C++ code in this example directly calls otel-cpp functions.
+target_compile_definitions(${WEBREAD_EXAMPLE_TARGET} PRIVATE ${OTEL_CPP_ABI_VERSION})
 target_include_directories(${WEBREAD_EXAMPLE_TARGET} PRIVATE ${OTEL_CPP_PREFIX}/include)
 target_link_libraries(${WEBREAD_EXAMPLE_TARGET} PRIVATE ${OPENTELEMETRY_PROXY_LINK_LIBRARIES})
 if(UNIX AND NOT APPLE AND NOT CYGWIN)

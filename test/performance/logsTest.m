@@ -1,7 +1,7 @@
 classdef logsTest < matlab.perftest.TestCase
 % performance tests for logs
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -18,16 +18,16 @@ classdef logsTest < matlab.perftest.TestCase
     
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add directory where common setup and teardown code lives
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "..", "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add utils and fixtures folder to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), "..", ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
 
             commonSetupOnce(testCase);
 
             % create a global logger provider
             import opentelemetry.sdk.logs.*
             lp = LoggerProvider(BatchLogRecordProcessor());
-            setLoggerProvider(lp);
+            testCase.applyFixture(LoggerProviderFixture(lp));
         end
     end
 

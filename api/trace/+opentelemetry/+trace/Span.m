@@ -1,7 +1,7 @@
 classdef Span < handle
 % A span that represents a unit of work within a trace.  
 
-% Copyright 2023-2024 The MathWorks, Inc.
+% Copyright 2023-2025 The MathWorks, Inc.
 
     properties 
         Name  (1,1) string   % Name of span
@@ -41,6 +41,10 @@ classdef Span < handle
         function endSpan(obj, endtime)
             % ENDSPAN  End the span.
             %    ENDSPAN(SP) ends the span SP.
+            %
+            %    ENDSPAN(SP, ENDTIME) also specifies the end time. If
+            %    ENDTIME does not have a time zone specified, it is
+            %    interpreted as a UTC time.
             %
             %    See also OPENTELEMETRY.TRACE.TRACER.STARTSPAN
             if nargin < 2
@@ -99,7 +103,9 @@ classdef Span < handle
             %    ADDEVENT(SP, NAME) records a event with the specified name
             %    at the current time.
             %
-            %    ADDEVENT(SP, NAME, TIME) also specifies a event time.
+            %    ADDEVENT(SP, NAME, TIME) also specifies a event time. If
+            %    TIME does not have a time zone specified, it is
+            %    interpreted as a UTC time.
             %
             %    ADDEVENT(..., ATTRIBUTES) or ADDEVENT(..., ATTRNAME1,
             %    ATTRVALUE1, ATTRNAME2, ATTRVALUE2, ...) specifies
@@ -113,7 +119,7 @@ classdef Span < handle
                 eventtime = posixtime(varargin{1});
                 varargin(1) = [];  % remove the time input from varargin
             else
-                eventtime = posixtime(datetime("now"));
+                eventtime = posixtime(datetime("now", "TimeZone", "UTC"));
             end
 
             eventname = opentelemetry.common.mustBeScalarString(eventname);

@@ -1,7 +1,7 @@
 classdef tmetrics_sdk < matlab.unittest.TestCase
     % tests for metrics SDK
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -20,9 +20,9 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             interval = seconds(2);
             timeout = seconds(1);
@@ -227,6 +227,55 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % verify counter value
             verifyEqual(testCase, dp.asDouble, val);
+        end
+
+        function testViewProperties(testCase)
+            % testViewProperties: check view object changes the name and 
+            % description of output metrics when schema, version, and units
+            view_name = "counter_view";
+            view_description = "view_description";
+            view = opentelemetry.sdk.metrics.View(Name=view_name, ....
+                Description=view_description, InstrumentType="Counter",MeterSchema="http://schema.org",MeterVersion="1.0.0",InstrumentUnit="ms");
+            mp = opentelemetry.sdk.metrics.MeterProvider(...
+                testCase.ShortIntervalReader, View=view); 
+
+            m = getMeter(mp, "mymeter", "1.0.0", "http://schema.org");
+            c = createCounter(m, "mycounter","Counter for meter with view properties","ms");
+
+            m2 = getMeter(mp, "mymeter2", "2.0.0", "http://schema.org");
+            c2 = createCounter(m2, "mycounter","Counter for meter with different version","ms");
+
+            m3 = getMeter(mp, "mymeter3","1.0.0","http://notmyschema.org");
+            c3 = createCounter(m3, "mycounter","Counter for meter with different schema","ms");
+
+            m4 = getMeter(mp, "mymeter4", "1.0.0", "http://schema.org");
+            c4 = createCounter(m4, "mycounter","Counter for meter with view properties different units","s");
+
+            m4 = getMeter(mp, "mymeter5", "1.0.0", "http://schema.org");
+            u = createUpDownCounter(m4, "updowncounter","UpDownCounter for meter with view properties","ms");
+
+            
+
+            % add value and attributes
+            val = 10;
+            c.add(val);
+            c2.add(val);
+            c3.add(val);
+            c4.add(val);
+            u.add(val);
+
+            pause(testCase.WaitTime);
+
+            clear mp;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify view name only on meter with matching properties
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics(1).metrics.name), view_name);
+            verifyNotEqual(testCase, string(results.resourceMetrics.scopeMetrics(2).metrics.name), view_name);
+            verifyNotEqual(testCase, string(results.resourceMetrics.scopeMetrics(3).metrics.name), view_name);
+            verifyNotEqual(testCase, string(results.resourceMetrics.scopeMetrics(4).metrics.name), view_name);
+            verifyNotEqual(testCase, string(results.resourceMetrics.scopeMetrics(5).metrics.name), view_name);
         end
 
         function testViewHistogram(testCase)
@@ -521,7 +570,7 @@ classdef tmetrics_sdk < matlab.unittest.TestCase
 
             % Shut down an API meter provider instance
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
-            setMeterProvider(mp);
+            testCase.applyFixture(MeterProviderFixture(mp));  % set MeterProvider global instance
             clear("mp");
             mp_api = opentelemetry.metrics.Provider.getMeterProvider();
 

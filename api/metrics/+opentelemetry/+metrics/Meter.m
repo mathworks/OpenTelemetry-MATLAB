@@ -2,7 +2,7 @@ classdef Meter < handle
     % A Meter creates metric instruments, capturing measurements about a service at runtime. 
     % Meters are created from Meter Providers.
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties (SetAccess=immutable)
         Name    (1,1) string   % Meter name
@@ -38,7 +38,7 @@ classdef Meter < handle
             %    C = CREATECOUNTER(M, NAME, DESCRIPTION, UNIT) also 
             %    specifies a description and a unit.
             %     
-            %    See also CREATEUPDOWNCOUNTER, CREATEHISTOGRAM,
+            %    See also CREATEUPDOWNCOUNTER, CREATEHISTOGRAM, CREATEGAUGE,
             %    CREATEOBSERVABLECOUNTER
             arguments
                 obj
@@ -64,7 +64,7 @@ classdef Meter < handle
             %    C = CREATEUPDOWNCOUNTER(M, NAME, DESCRIPTION, UNIT) also 
             %    specifies a description and a unit.
             %     
-            %    See also CREATECOUNTER, CREATEHISTOGRAM,
+            %    See also CREATECOUNTER, CREATEHISTOGRAM, CREATEGAUGE, 
             %    CREATEOBSERVABLEUPDOWNCOUNTER
             arguments
                 obj
@@ -91,8 +91,34 @@ classdef Meter < handle
             %    H = CREATEHISTOGRAM(M, NAME, DESCRIPTION, UNIT) also 
             %    specifies a description and a unit.
             %     
-            %    See also CREATECOUNTER, CREATEUPDOWNCOUNTER,
+            %    See also CREATECOUNTER, CREATEUPDOWNCOUNTER, CREATEGAUGE, 
             %    OPENTELEMETRY.SDK.METRICS.VIEW
+            arguments
+                obj
+                name
+                description = ""
+                unit = ""
+            end            
+
+            [name, description, unit] = processSynchronousInputs(name, ...
+                description, unit);
+            id = obj.Proxy.createHistogram(name, description, unit);
+            HistogramProxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.HistogramProxy", "ID", id);
+            histogram = opentelemetry.metrics.Histogram(HistogramProxy, name, description, unit);
+        end
+
+        function gauge = createGauge(obj, name, description, unit)
+            % CREATEGAUGE Create a gauge
+            %    G = CREATEGAUGE(M, NAME) creates a gauge 
+            %    with the specified name. A gauge's value can increase or 
+            %    decrease but it should never be summed in aggregation.
+            %
+            %    G = CREATEGAUGE(M, NAME, DESCRIPTION, UNIT) also 
+            %    specifies a description and a unit.
+            %     
+            %    See also CREATECOUNTER, CREATEUPDOWNCOUNTER, CREATEHISTOGRAM,
+            %    CREATEOBSERVABLEGAUGE
             arguments
                 obj
                 name
@@ -102,10 +128,10 @@ classdef Meter < handle
 
             [name, description, unit] = processSynchronousInputs(name, ...
                 description, unit);
-            id = obj.Proxy.createHistogram(name, description, unit);
-            HistogramProxy = libmexclass.proxy.Proxy("Name", ...
-                "libmexclass.opentelemetry.HistogramProxy", "ID", id);
-            histogram = opentelemetry.metrics.Histogram(HistogramProxy, name, description, unit);
+            id = obj.Proxy.createGauge(name, description, unit);
+            GaugeProxy = libmexclass.proxy.Proxy("Name", ...
+                "libmexclass.opentelemetry.GaugeProxy", "ID", id);
+            gauge = opentelemetry.metrics.Gauge(GaugeProxy, name, description, unit);
         end
 
     	function obscounter = createObservableCounter(obj, callback, name, ...
@@ -205,7 +231,7 @@ classdef Meter < handle
             %    positive duration scalar.
             %
             %    See also OPENTELEMETRY.METRICS.OBSERVABLERESULT, 
-            %    CREATEOBSERVABLECOUNTER, CREATEOBSERVABLEUPDOWNCOUNTER
+            %    CREATEGAUGE, CREATEOBSERVABLECOUNTER, CREATEOBSERVABLEUPDOWNCOUNTER
             arguments
                 obj
                 callback

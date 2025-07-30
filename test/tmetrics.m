@@ -1,7 +1,7 @@
 classdef tmetrics < matlab.unittest.TestCase
     % tests for metrics
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -23,14 +23,10 @@ classdef tmetrics < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils, callbacks, and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "callbacks" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
-            
-            % add the callbacks folder to the path
-            callbackfolder = fullfile(fileparts(mfilename('fullpath')), "callbacks");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(callbackfolder));
 
             interval = seconds(2);
             timeout = seconds(1);
@@ -471,15 +467,113 @@ classdef tmetrics < matlab.unittest.TestCase
             end
         end
 
+        function testGaugeBasic(testCase)
+            % test names and recorded value in Gauge
+
+            metername = "foo";
+            gaugename = "moo";
+
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter(metername);
+            g = mt.createGauge(gaugename);
+
+            % verify MATLAB object properties
+            verifyEqual(testCase, g.Name, gaugename);
+
+            % create testing value 
+            vals = [35 25 16];
+
+            % record values 
+            for i = 1:length(vals)
+                g.record(vals(i));
+            end
+
+            % wait for collector response time 
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+
+            % verify meter and gauge names
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), gaugename);
+            verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
+
+            % verify gauge value is the last recorded value
+            verifyEqual(testCase, results.resourceMetrics.scopeMetrics.metrics.gauge.dataPoints.asDouble, vals(end));
+        end
+
+        function testGaugeAddAttributes(testCase)
+            % test names, recorded values and attributes in Gauge
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("bar");
+            g = mt.createGauge("foo");
+
+            % create testing value and dictionary
+            dict1 = dictionary("k1","v1","k2",5);
+            dict2 = dictionary("k1","v2","k2",10);
+            vals = [15 25 35 30 20 10];
+            dict1_keys = keys(dict1);
+            dict1_vals = values(dict1);
+            dict2_vals = values(dict2);
+
+            % record values and attributes
+            for i = 1:length(vals)
+                if rem(i,2) == 1
+                    g.record(vals(i), dict1);
+                else
+                    g.record(vals(i), dict2);
+                end
+            end
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+            results = results{end};
+            dp = results.resourceMetrics.scopeMetrics.metrics.gauge.dataPoints;
+
+            verifyNumElements(testCase, dp, 2);
+
+            % verify attributes
+            resourcekeys = string({dp(1).attributes.key});
+            idx1 = find(resourcekeys == dict1_keys(1));
+            idx2 = find(resourcekeys == dict1_keys(2));
+            verifyNotEmpty(testCase, idx1);
+            verifyNotEmpty(testCase, idx2);
+
+            verifyEqual(testCase, string(dp(2).attributes(idx1).key), dict1_keys(1));
+            verifyEqual(testCase, string(dp(2).attributes(idx2).key), dict1_keys(2));
+
+            if string(dp(1).attributes(idx1).value.stringValue) == dict1_vals(1)
+                verifyEqual(testCase, string(dp(1).attributes(idx2).value.stringValue), dict1_vals(2));
+                verifyEqual(testCase, string(dp(2).attributes(idx1).value.stringValue), dict2_vals(1));
+                verifyEqual(testCase, string(dp(2).attributes(idx2).value.stringValue), dict2_vals(2));
+                % verify gauge values
+                verifyEqual(testCase, dp(1).asDouble, vals(end-1));
+                verifyEqual(testCase, dp(2).asDouble, vals(end));
+            else
+                verifyEqual(testCase, string(dp(1).attributes(idx1).value.stringValue), dict2_vals(1));
+                verifyEqual(testCase, string(dp(1).attributes(idx2).value.stringValue), dict2_vals(2));
+                verifyEqual(testCase, string(dp(2).attributes(idx1).value.stringValue), dict1_vals(1));
+                verifyEqual(testCase, string(dp(2).attributes(idx2).value.stringValue), dict1_vals(2));
+                % verify gauge values
+                verifyEqual(testCase, dp(1).asDouble, vals(end));
+                verifyEqual(testCase, dp(2).asDouble, vals(end-1));
+            end
+        end
 
         function testGetSetMeterProvider(testCase)
-            % testGetSetMeterProvider: setting and getting global instance of MeterProvider
-                        
+            % testGetSetMeterProvider: setting, getting, and unsetting global instance of MeterProvider
+
             % suppress internal warning logs about repeated shutdown
             nologs = SuppressInternalLogs; %#ok<NASGU>
 
             mp = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
-            setMeterProvider(mp);
+            testCase.applyFixture(MeterProviderFixture(mp));  % set MeterProvider global instance
 
             metername = "foo";
             countername = "bar";
@@ -496,6 +590,13 @@ classdef tmetrics < matlab.unittest.TestCase
 
             %Shutdown the Meter Provider
             verifyTrue(testCase, mp.shutdown());
+            
+            %Unset the global meter provider and generate more metrics
+            opentelemetry.metrics.Provider.unsetMeterProvider;
+            m = opentelemetry.metrics.getMeter(metername);
+            countername2 = "quux";
+            c2 = createCounter(m, countername2);
+            c2.add(val);
 
             % perform test comparisons
             results = readJsonResults(testCase);
@@ -503,6 +604,9 @@ classdef tmetrics < matlab.unittest.TestCase
             % check a counter has been created, and check its resource to identify the
             % correct MeterProvider has been used
             verifyNotEmpty(testCase, results);
+            
+            % check that only one metric is generated
+            verifyNumElements(testCase, results.resourceMetrics.scopeMetrics.metrics, 1);
 
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.metrics.name), countername);
             verifyEqual(testCase, string(results.resourceMetrics.scopeMetrics.scope.name), metername);
@@ -641,6 +745,37 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, dp(idxC).asDouble, 20);
             verifyEqual(testCase, string(dp(idxC).attributes.key), "Level");
             verifyEqual(testCase, string(dp(idxC).attributes.value.stringValue), "C");
+        end
+
+        function testAsynchronousInstrumentDictionaryCallback(testCase, create_async, datapoint_name)
+            % removeCallback method
+            %callback = @callbackNoAttributes3;
+
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            ct = create_async(mt, @callbackWithAttributes3, "bar", "", "", testCase.CallbackTimeout);
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+
+            % verify counter name
+            verifyEqual(testCase, string(results{1}.resourceMetrics.scopeMetrics.metrics.name), "bar");
+
+            % verify counter values and attributes
+            dp = results{1}.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints.attributes;
+            attrvals = arrayfun(@(x)string(x.value.stringValue),dp);
+            idxD = (attrvals == "D");
+            idxE = (attrvals == "E");
+            verifyEqual(testCase, results{1}.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints.asDouble, 30);
+            verifyEqual(testCase, string(dp(idxD).key), "Level1");
+            verifyEqual(testCase, string(dp(idxD).value.stringValue), "D");
+            verifyEqual(testCase, string(dp(idxE).key), "Level2");
+            verifyEqual(testCase, string(dp(idxE).value.stringValue), "E");
+
         end
 
         function testAsynchronousInstrumentRemoveCallback(testCase, create_async)

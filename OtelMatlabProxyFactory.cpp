@@ -1,4 +1,4 @@
-// Copyright 2023-2024 The MathWorks, Inc.
+// Copyright 2023-2025 The MathWorks, Inc.
 
 #include "OtelMatlabProxyFactory.h"
 
@@ -8,7 +8,10 @@
 //#include "opentelemetry-matlab/trace/ScopeProxy.h"
 #include "opentelemetry-matlab/trace/SpanContextProxy.h"
 #include "opentelemetry-matlab/trace/TraceContextPropagatorProxy.h"
+#include "opentelemetry-matlab/trace/NoOpTracerProviderProxy.h"
+#include "opentelemetry-matlab/metrics/NoOpMeterProviderProxy.h"
 #include "opentelemetry-matlab/logs/LoggerProviderProxy.h"
+#include "opentelemetry-matlab/logs/NoOpLoggerProviderProxy.h"
 #include "opentelemetry-matlab/context/propagation/TextMapCarrierProxy.h"
 #include "opentelemetry-matlab/context/propagation/TextMapPropagatorProxy.h"
 #include "opentelemetry-matlab/context/propagation/CompositePropagatorProxy.h"
@@ -57,6 +60,9 @@ OtelMatlabProxyFactory::make_proxy(const libmexclass::proxy::ClassName& class_na
     REGISTER_PROXY(libmexclass.opentelemetry.SpanProxy, libmexclass::opentelemetry::SpanProxy);
     //REGISTER_PROXY(libmexclass.opentelemetry.ScopeProxy, libmexclass::opentelemetry::ScopeProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.SpanContextProxy, libmexclass::opentelemetry::SpanContextProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.NoOpTracerProviderProxy, libmexclass::opentelemetry::NoOpTracerProviderProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.NoOpMeterProviderProxy, libmexclass::opentelemetry::NoOpMeterProviderProxy);
+    REGISTER_PROXY(libmexclass.opentelemetry.NoOpLoggerProviderProxy, libmexclass::opentelemetry::NoOpLoggerProviderProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TextMapCarrierProxy, libmexclass::opentelemetry::TextMapCarrierProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.ContextProxy, libmexclass::opentelemetry::ContextProxy);
     REGISTER_PROXY(libmexclass.opentelemetry.TokenProxy, libmexclass::opentelemetry::TokenProxy);

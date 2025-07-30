@@ -1,4 +1,4 @@
-// Copyright 2023-2024 The MathWorks, Inc.
+// Copyright 2023-2025 The MathWorks, Inc.
 
 #pragma once
 
@@ -8,6 +8,7 @@
 #include "opentelemetry-matlab/metrics/CounterProxy.h"
 #include "opentelemetry-matlab/metrics/HistogramProxy.h"
 #include "opentelemetry-matlab/metrics/UpDownCounterProxy.h"
+#include "opentelemetry-matlab/metrics/GaugeProxy.h"
 #include "opentelemetry-matlab/metrics/ObservableCounterProxy.h"
 #include "opentelemetry-matlab/metrics/ObservableUpDownCounterProxy.h"
 #include "opentelemetry-matlab/metrics/ObservableGaugeProxy.h"
@@ -27,6 +28,7 @@ class MeterProxy : public libmexclass::proxy::Proxy {
         REGISTER_METHOD(MeterProxy, createCounter);
         REGISTER_METHOD(MeterProxy, createUpDownCounter);
         REGISTER_METHOD(MeterProxy, createHistogram);
+        REGISTER_METHOD(MeterProxy, createGauge);
         REGISTER_METHOD(MeterProxy, createObservableCounter);
         REGISTER_METHOD(MeterProxy, createObservableUpDownCounter);
         REGISTER_METHOD(MeterProxy, createObservableGauge);
@@ -37,6 +39,8 @@ class MeterProxy : public libmexclass::proxy::Proxy {
     void createUpDownCounter(libmexclass::proxy::method::Context& context);
 
     void createHistogram(libmexclass::proxy::method::Context& context);
+
+    void createGauge(libmexclass::proxy::method::Context& context);
 
     void createObservableCounter(libmexclass::proxy::method::Context& context);
 

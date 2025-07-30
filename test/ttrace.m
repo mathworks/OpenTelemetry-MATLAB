@@ -1,7 +1,7 @@
 classdef ttrace < matlab.unittest.TestCase
     % tests for traces and spans
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -18,9 +18,9 @@ classdef ttrace < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
         end
     end
@@ -100,16 +100,25 @@ classdef ttrace < matlab.unittest.TestCase
             serviceidx = find(resourcekeys == "service.name");
             verifyNotEmpty(testCase, serviceidx);
             verifyEqual(testCase, results.resourceSpans.resource.attributes(serviceidx).value.stringValue, 'unknown_service');
+
+            runtimeidx = find(resourcekeys == "process.runtime.name");
+            verifyNotEmpty(testCase, runtimeidx);
+            runtime_actual = results.resourceSpans.resource.attributes(runtimeidx).value.stringValue;
+            verifyTrue(testCase, runtime_actual == "MATLAB" || runtime_actual == "MATLAB Runtime");
+
+            runtimeversionidx = find(resourcekeys == "process.runtime.version");
+            verifyNotEmpty(testCase, runtimeversionidx);
+            runtimeversion_actual = results.resourceSpans.resource.attributes(runtimeversionidx).value.stringValue;
+            verifyTrue(testCase, contains(runtimeversion_actual, "R" + digitsPattern + characterListPattern("ab")));
         end
 
         function testGetSetTracerProvider(testCase)
-            % testGetSetTracerProvider: setting and getting global instance of TracerProvider
+            % testGetSetTracerProvider: setting, getting, and unsetting global instance of TracerProvider
             customkey = "quux";
             customvalue = 1;
             tp = opentelemetry.sdk.trace.TracerProvider(opentelemetry.sdk.trace.SimpleSpanProcessor, ...
                 "Resource", dictionary(customkey, customvalue));  % specify an arbitrary resource as an identifier
-            setTracerProvider(tp);
-            clear("tp");
+            testCase.applyFixture(TracerProviderFixture(tp));  % set TracerProvider global instance
 
             tracername = "foo";
             spanname = "bar";
@@ -117,12 +126,19 @@ classdef ttrace < matlab.unittest.TestCase
             sp = startSpan(tr, spanname);
             endSpan(sp);
 
+            % unset the global tracer provider and start another span
+            opentelemetry.trace.Provider.unsetTracerProvider;
+            spanname2 = "quux";
+            tr = opentelemetry.trace.getTracer(tracername);
+            sp = startSpan(tr, spanname2);
+            endSpan(sp);
+
             % perform test comparisons
             results = readJsonResults(testCase);
 
-            % check a span has been created, and check its resource to identify the
+            % check only one span has been created, and check its resource to identify the
             % correct TracerProvider has been used
-            verifyNotEmpty(testCase, results);
+            verifyNumElements(testCase, results, 1);
 
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), spanname);
             verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.scope.name), tracername);
@@ -313,8 +329,8 @@ classdef ttrace < matlab.unittest.TestCase
             % testTime: specifying start and end times
             tp = opentelemetry.sdk.trace.TracerProvider();
             tr = getTracer(tp, "tracer");
-            starttime = datetime(2000,1,1,10,0,0);
-            endtime = datetime(2001, 8, 31, 7, 30, 0);
+            starttime = datetime(2000,1,1,10,0,0, "TimeZone", "UTC");
+            endtime = datetime(2001, 8, 31, 7, 30, 0, "TimeZone", "UTC");
             sp = startSpan(tr, "foo", "StartTime", starttime);
             endSpan(sp, endtime);
 
@@ -322,11 +338,11 @@ classdef ttrace < matlab.unittest.TestCase
             results = readJsonResults(testCase);
             verifyEqual(testCase, datetime(double(string(...
                 results{1}.resourceSpans.scopeSpans.spans.startTimeUnixNano))/1e9, ...
-                "convertFrom", "posixtime"), starttime);  % convert from nanoseconds to seconds
+                "convertFrom", "posixtime", "TimeZone", "UTC"), starttime);  % convert from nanoseconds to seconds
             % for end time, use a tolerance
             verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
                 results{1}.resourceSpans.scopeSpans.spans.endTimeUnixNano))/1e9, ...
-                "convertFrom", "posixtime") - endtime), seconds(2));
+                "convertFrom", "posixtime", "TimeZone", "UTC") - endtime), seconds(2));
         end
 
         function testStatus(testCase)
@@ -541,17 +557,24 @@ classdef ttrace < matlab.unittest.TestCase
             nvattributes = {"doublescalar", 5, "int32array", reshape(int32(1:6),2,3), ...
                 "stringscalar", "baz"};
             addEvent(sp, "baz", nvattributes{:});
+            event1time = datetime("now", "TimeZone", "UTC");
             % dictionary
             attributes = dictionary(["doublearray", "int64scalar", "stringarray"], ...
                 {reshape(1:4,1,2,2), int64(350), ["one", "two", "three"; "four", "five","six"]});
             addEvent(sp, "quux", attributes);
+            event2time = datetime("now", "TimeZone", "UTC");
             endSpan(sp);
 
             results = readJsonResults(testCase);
             nvattributesstruct = struct(nvattributes{:});
 
+            tol = seconds(2);  % tolerance for testing times
+
             % event 1
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(1).name, 'baz');
+            verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+                results{1}.resourceSpans.scopeSpans.spans.events(1).timeUnixNano))/1e9, ...
+                "convertFrom", "posixtime", "TimeZone", "UTC") - event1time), tol);
 
             event1keys = string({results{1}.resourceSpans.scopeSpans.spans.events(1).attributes.key});
 
@@ -577,6 +600,9 @@ classdef ttrace < matlab.unittest.TestCase
 
             % event 2
             verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.events(2).name, 'quux');
+            verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
+                results{1}.resourceSpans.scopeSpans.spans.events(2).timeUnixNano))/1e9, ...
+                "convertFrom", "posixtime", "TimeZone", "UTC") - event2time), tol);
 
             event2keys = string({results{1}.resourceSpans.scopeSpans.spans.events(2).attributes.key});
 

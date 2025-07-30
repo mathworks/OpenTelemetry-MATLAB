@@ -7,7 +7,7 @@ classdef View
     %   * Ignore unwanted instruments
     %   * Ignore unwanted attributes
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties (GetAccess={?opentelemetry.sdk.metrics.MeterProvider})
         Proxy  % Proxy object to interface C++ code
@@ -161,7 +161,7 @@ classdef View
                 obj
                 insttype  {mustBeTextScalar}
             end
-            instrument_types = ["counter", "histogram", "updowncounter", ...
+            instrument_types = ["counter", "histogram", "updowncounter", "gauge", ...
                 "observablecounter", "observableupdowncounter", "observablegauge"];
             insttype = validatestring(insttype, instrument_types);
             obj.Proxy.setInstrumentType(insttype);

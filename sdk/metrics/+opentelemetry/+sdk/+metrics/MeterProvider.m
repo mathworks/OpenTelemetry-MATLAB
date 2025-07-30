@@ -2,7 +2,7 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
     % An SDK implementation of meter provider, which stores a set of configurations used
     % in a metrics system.
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2023-2025 The MathWorks, Inc.
 
     properties(Access=private)
         isShutdown (1,1) logical = false
@@ -165,6 +165,9 @@ classdef MeterProvider < opentelemetry.metrics.MeterProvider & handle
                     viewid = view.Proxy.ID;
                 end
             end
+            
+            [resourcekeys, resourcevalues] = opentelemetry.sdk.common.addDefaultResource(...
+                resourcekeys, resourcevalues);
 
             obj.Proxy = libmexclass.proxy.Proxy("Name", ...
                 "libmexclass.opentelemetry.sdk.MeterProviderProxy", ...

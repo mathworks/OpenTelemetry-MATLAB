@@ -1,7 +1,7 @@
 classdef tlogs < matlab.unittest.TestCase
     % tests for logs
 
-    % Copyright 2024 The MathWorks, Inc.
+    % Copyright 2024-2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -19,9 +19,9 @@ classdef tlogs < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function setupOnce(testCase)
-            % add the utils folder to the path
-            utilsfolder = fullfile(fileparts(mfilename('fullpath')), "utils");
-            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(utilsfolder));
+            % add the utils and fixtures folders to the path
+            folders = fullfile(fileparts(mfilename('fullpath')), ["utils" "fixtures"]);
+            testCase.applyFixture(matlab.unittest.fixtures.PathFixture(folders));
             commonSetupOnce(testCase);
             testCase.ForceFlushTimeout = seconds(2);
         end
@@ -75,7 +75,10 @@ classdef tlogs < matlab.unittest.TestCase
                 tol = seconds(4);
                 verifyLessThanOrEqual(testCase, abs(datetime(double(string(...
                     results.resourceLogs.scopeLogs.logRecords.observedTimeUnixNano))/1e9, ...
-                    "convertFrom", "posixtime", "TimeZone", "UTC") - expectedtimestamp), tol);
+                    "convertFrom", "posixtime", "TimeZone", "UTC") - expectedtimestamp), tol); 
+                % by default, Timestamp and ObservedTimestamp should be identical
+                verifyEqual(testCase, results.resourceLogs.scopeLogs.logRecords.observedTimeUnixNano, ...
+                    results.resourceLogs.scopeLogs.logRecords.timeUnixNano);
 
                 % check resource
                 resourcekeys = string({results.resourceLogs.resource.attributes.key});
@@ -97,6 +100,16 @@ classdef tlogs < matlab.unittest.TestCase
                 serviceidx = find(resourcekeys == "service.name");
                 verifyNotEmpty(testCase, serviceidx);
                 verifyEqual(testCase, results.resourceLogs.resource.attributes(serviceidx).value.stringValue, 'unknown_service');
+
+                runtimeidx = find(resourcekeys == "process.runtime.name");
+                verifyNotEmpty(testCase, runtimeidx);
+                runtime_actual = results.resourceLogs.resource.attributes(runtimeidx).value.stringValue;
+                verifyTrue(testCase, runtime_actual == "MATLAB" || runtime_actual == "MATLAB Runtime");
+
+                runtimeversionidx = find(resourcekeys == "process.runtime.version");
+                verifyNotEmpty(testCase, runtimeversionidx);
+                runtimeversion_actual = results.resourceLogs.resource.attributes(runtimeversionidx).value.stringValue;
+                verifyTrue(testCase, contains(runtimeversion_actual, "R" + digitsPattern + characterListPattern("ab")));
             end
         end
 
@@ -272,7 +285,7 @@ classdef tlogs < matlab.unittest.TestCase
             % testTimestamp: specifying a timestamp
             lp = opentelemetry.sdk.logs.LoggerProvider();
             lg = getLogger(lp, "foo");
-            timestamp = datetime(2020,3,12,9,45,0);
+            timestamp = datetime(2020,3,12,9,45,0, "TimeZone", "UTC");
             emitLogRecord(lg, "info", "bar", "Timestamp", timestamp);
 
             % perform test comparisons
@@ -280,7 +293,7 @@ classdef tlogs < matlab.unittest.TestCase
             results = readJsonResults(testCase);
             verifyEqual(testCase, datetime(double(string(...
                 results{1}.resourceLogs.scopeLogs.logRecords.timeUnixNano))/1e9, ...
-                "convertFrom", "posixtime"), timestamp);  % convert from nanoseconds to seconds
+                "convertFrom", "posixtime", "TimeZone", "UTC"), timestamp);  % convert from nanoseconds to seconds
         end
 
         function testAttributes(testCase)
@@ -431,14 +444,13 @@ classdef tlogs < matlab.unittest.TestCase
         end
 
         function testGetSetLoggerProvider(testCase)
-            % testGetSetLoggerProvider: setting and getting global instance of LoggerProvider
+            % testGetSetLoggerProvider: setting, getting, and unsetting global instance of LoggerProvider
             customkey = "quux";
             customvalue = 1;
             proc = opentelemetry.sdk.logs.SimpleLogRecordProcessor;
             lp = opentelemetry.sdk.logs.LoggerProvider(proc, ...
                 "Resource", dictionary(customkey, customvalue));  % specify an arbitrary resource as an identifier
-            setLoggerProvider(lp);
-            clear("lp");
+            testCase.applyFixture(LoggerProviderFixture(lp));  % set global instance of logger provider
 
             loggername = "foo";
             logseverity = "warn";
@@ -446,14 +458,21 @@ classdef tlogs < matlab.unittest.TestCase
             lg = opentelemetry.logs.getLogger(loggername);
             emitLogRecord(lg, logseverity, logmessage);
 
+            % unset logger provider and emit more logs
+            opentelemetry.logs.Provider.unsetLoggerProvider;
+            logmessage2 = "quux";
+            lg = opentelemetry.logs.getLogger(loggername);
+            emitLogRecord(lg, logseverity, logmessage2);
+
             % perform test comparisons
             opentelemetry.sdk.common.Cleanup.forceFlush(...
                 opentelemetry.logs.Provider.getLoggerProvider, testCase.ForceFlushTimeout);
             results = readJsonResults(testCase);
 
             % check log record, and check its resource to identify the
-            % correct LoggerProvider has been used
-            verifyNotEmpty(testCase, results);
+            % correct LoggerProvider has been used. Only one log record
+            % should have been generated
+            verifyNumElements(testCase, results, 1);
 
             verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity));
             verifyEqual(testCase, string(results{1}.resourceLogs.scopeLogs.logRecords.body.stringValue), logmessage);
