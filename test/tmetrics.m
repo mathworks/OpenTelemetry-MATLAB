@@ -747,6 +747,37 @@ classdef tmetrics < matlab.unittest.TestCase
             verifyEqual(testCase, string(dp(idxC).attributes.value.stringValue), "C");
         end
 
+        function testAsynchronousInstrumentDictionaryCallback(testCase, create_async, datapoint_name)
+            % removeCallback method
+            %callback = @callbackNoAttributes3;
+
+            p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
+            mt = p.getMeter("foo");
+            ct = create_async(mt, @callbackWithAttributes3, "bar", "", "", testCase.CallbackTimeout);
+
+            % wait for collector response
+            pause(testCase.WaitTime);
+
+            % fetch result
+            clear p;
+            results = readJsonResults(testCase);
+
+            % verify counter name
+            verifyEqual(testCase, string(results{1}.resourceMetrics.scopeMetrics.metrics.name), "bar");
+
+            % verify counter values and attributes
+            dp = results{1}.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints.attributes;
+            attrvals = arrayfun(@(x)string(x.value.stringValue),dp);
+            idxD = (attrvals == "D");
+            idxE = (attrvals == "E");
+            verifyEqual(testCase, results{1}.resourceMetrics.scopeMetrics.metrics.(datapoint_name).dataPoints.asDouble, 30);
+            verifyEqual(testCase, string(dp(idxD).key), "Level1");
+            verifyEqual(testCase, string(dp(idxD).value.stringValue), "D");
+            verifyEqual(testCase, string(dp(idxE).key), "Level2");
+            verifyEqual(testCase, string(dp(idxE).value.stringValue), "E");
+
+        end
+
         function testAsynchronousInstrumentRemoveCallback(testCase, create_async)
             % removeCallback method
             callback = @callbackNoAttributes;

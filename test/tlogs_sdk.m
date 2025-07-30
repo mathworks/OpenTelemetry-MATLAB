@@ -76,6 +76,32 @@ classdef tlogs_sdk < matlab.unittest.TestCase
             verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.severityText), upper(logseverity));
             verifyEqual(testCase, string(results.resourceLogs.scopeLogs.logRecords.body.stringValue), logmessage);
         end
+
+        function testHttpExporter(testCase)
+            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpHttpLogRecordExporter", "class")), ...
+                "Otlp HTTP Log record exporter must be installed.");
+
+            processor1 = opentelemetry.sdk.logs.SimpleLogRecordProcessor;
+
+            HttpExporter = processor1.LogRecordExporter;
+
+            HttpExporter.Endpoint = "endpoint";
+            HttpExporter.Format = "JSON";
+            HttpExporter.JsonBytesMapping = "base64";
+            HttpExporter.UseJsonName = 1;
+            HttpExporter.Timeout = seconds(10);
+            HttpExporter.HttpHeaders = dictionary("new","header");
+
+            exp = opentelemetry.exporters.otlp.OtlpHttpLogRecordExporter("Endpoint","endpoint","Format","JSON","JsonBytesMapping","base64","UseJsonName",1,"Timeout",seconds(10),"HttpHeaders",dictionary("new","header"));
+
+            % Validate that set methods create a OtlpHttpLogRecordExporter
+            % with expected properties
+            HttpExporter = rmfield(struct(HttpExporter),"Proxy");
+            exp = rmfield(struct(exp),"Proxy");
+            testCase.verifyEqual(HttpExporter,exp);
+
+
+        end
        
         function testAddLogRecordProcessor(testCase)
             % testAddLogRecordProcessor: addLogRecordProcessor method
