@@ -56,7 +56,11 @@ if(APPLE)
     # use libcurl as a shared library and load the MATLAB version at runtime
     # run uname -m to determine whether arm64 or x86_64
     exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
-    set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
+    if(${MAC_HOST_SYSTEM} STREQUAL "arm64")
+       set(VCPKG_OTEL_TRIPLET "arm64-osx-otel-matlab")
+    elseif(${MAC_HOST_SYSTEM} STREQUAL "x86_64")
+       set(VCPKG_OTEL_TRIPLET "x64-osx-otel-matlab")
+    endif()
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
     set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
     set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
