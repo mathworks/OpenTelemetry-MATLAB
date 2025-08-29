@@ -18,6 +18,7 @@ jobs:
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
+                release: R2025a
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
@@ -46,6 +47,7 @@ jobs:
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
+                release: R2025a
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
@@ -79,6 +81,7 @@ jobs:
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
+                release: R2025a
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
@@ -121,7 +124,9 @@ jobs:
                   tar -xzvf otel-matlab-macos-14.tar.gz
                   tar -xzvf otel-matlab-windows.tar.gz
             - name: Install MATLAB
-              uses: matlab-actions/setup-matlab@v1
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                release: R2025a
             - name: Run commands
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
