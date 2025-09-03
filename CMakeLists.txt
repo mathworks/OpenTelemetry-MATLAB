@@ -423,7 +423,7 @@ if(WIN32)
 
     if(WITH_OTLP_HTTP)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-            $<TARGET_FILE:CURL::libcurl>)
+            $<TARGET_FILE:CURL::libcurl_shared>)
     endif()
 
     if(WITH_OTLP_GRPC)
@@ -432,10 +432,8 @@ if(WIN32)
 	set(OPENSSL_DLL libssl-3-x64.dll)
 	set(OPENSSL_CRYPTO_DLL libcrypto-3-x64.dll)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-	    $<TARGET_FILE:c-ares::cares>
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_DLL}
-	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL}
-	    $<TARGET_FILE:re2::re2>)
+	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL})
     endif()
 else()
     set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
