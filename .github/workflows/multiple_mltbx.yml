@@ -1,6 +1,8 @@
 name: "Create Multiple .mltbx Files"
 on:
-    workflow_dispatch:
+    push:
+      branches:
+        - 'multiple_mltbx'
 jobs:
     http-grpc-ubuntu:
         runs-on: ubuntu-22.04
