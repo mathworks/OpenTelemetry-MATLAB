@@ -10,6 +10,11 @@
 toolboxFolder = string(getenv("OTEL_MATLAB_TOOLBOX_FOLDER"));
 outputFolder = string(getenv("OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER"));
 toolboxVersion = string(getenv("OTEL_MATLAB_TOOLBOX_VERSION"));
+workingFolder = string(getenv("WORKING_FOLDER"));
+toolboxName = string(getenv("OTEL_MATLAB_TOOLBOX_NAME"));
+
+% cd to working folder
+cd(workingFolder);
 
 % Output folder must exist.
 mkdir(outputFolder);
@@ -17,6 +22,7 @@ mkdir(outputFolder);
 disp("Toolbox Folder: " + toolboxFolder);
 disp("Output Folder: " + outputFolder);
 disp("Toolbox Version:" + toolboxVersion);
+disp("Toolbox Name:" + toolboxName);
 
 identifier = "dc2cae2f-4f43-4d2c-b6ed-f1a59f0dfcdf";
 opts = matlab.addons.toolbox.ToolboxOptions(toolboxFolder, identifier);
@@ -33,6 +39,6 @@ opts.SupportedPlatforms.MatlabOnline = true;
 
 opts.MinimumMatlabRelease = "R2022a";
 
-opts.OutputFile = fullfile(outputFolder, "otel-matlab.mltbx");
+opts.OutputFile = fullfile(outputFolder, toolboxName + ".mltbx");
 disp("Output File: " + opts.OutputFile);
 matlab.addons.toolbox.packageToolbox(opts);
