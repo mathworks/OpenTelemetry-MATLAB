@@ -3,7 +3,7 @@ on:
     workflow_dispatch:
     push:
       branches:
-        - 'mac_dependencies'
+        - 'mac_dependencies_2'
 jobs:
     build-macos:
         runs-on: macos-14
