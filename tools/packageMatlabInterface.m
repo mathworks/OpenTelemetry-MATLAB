@@ -5,7 +5,7 @@
 % the resulting .mltbx file location is taken from environment variable
 % OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER.
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2025 The MathWorks, Inc.
 
 toolboxFolder = string(getenv("OTEL_MATLAB_TOOLBOX_FOLDER"));
 outputFolder = string(getenv("OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER"));
