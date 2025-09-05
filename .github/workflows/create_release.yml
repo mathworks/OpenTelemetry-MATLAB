@@ -96,6 +96,98 @@ jobs:
               with: 
                 name: otel-matlab-${{ matrix.os }}.tar.gz
                 path: ${{ github.workspace }}/otel-matlab-${{ matrix.os }}.tar.gz
+    nogrpc-ubuntu:     # without gRPC exporter
+        runs-on: ubuntu-22.04
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: sudo apt-get install ninja-build
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                release: R2025a
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              run: |
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-nogrpc-ubuntu.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with: 
+                name: otel-matlab-nogrpc-ubuntu.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-nogrpc-ubuntu.tar.gz
+    nogrpc-windows:   # without gRPC exporter
+        runs-on: windows-latest
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: choco install ninja
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                release: R2025a
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              shell: cmd
+              run: |
+                  call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-nogrpc-windows.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with: 
+                name: otel-matlab-nogrpc-windows.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-nogrpc-windows.tar.gz
+    nogrpc-macos:    # without gRPC exporter
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [macos-13, macos-14]   # runs on Mac with both Intel (macos-13) and Apple Silicon (macos-14) processors
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with: 
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: brew install ninja
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                release: R2025a
+                products: MATLAB_Compiler
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              run: |
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            - name: Compress into single artifact
+              working-directory: ${{ github.workspace }}
+              run: tar -czf otel-matlab-nogrpc-${{ matrix.os }}.tar.gz otel_matlab_install
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with: 
+                name: otel-matlab-nogrpc-${{ matrix.os }}.tar.gz
+                path: ${{ github.workspace }}/otel-matlab-nogrpc-${{ matrix.os }}.tar.gz
     package-mltbx:
         name: Package MATLAB Toolbox (MLTBX) Files
         runs-on: ubuntu-22.04
@@ -105,6 +197,9 @@ jobs:
             - build-ubuntu
             - build-windows
             - build-macos
+            - nogrpc-ubuntu
+            - nogrpc-windows
+            - nogrpc-macos
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
@@ -118,28 +213,60 @@ jobs:
                 path: artifacts-downloaded
             - name: Decompress Artifacts
               run: |
-                  mv artifacts-downloaded/*/*.tar.gz .
+                  mkdir withgrpc
+                  cd withgrpc
+                  mv ../artifacts-downloaded/*/otel-matlab-ubuntu.tar.gz .
+                  mv ../artifacts-downloaded/*/otel-matlab-macos*.tar.gz .
+                  mv ../artifacts-downloaded/*/otel-matlab-windows.tar.gz .
                   tar -xzvf otel-matlab-ubuntu.tar.gz
                   tar -xzvf otel-matlab-macos-13.tar.gz
                   tar -xzvf otel-matlab-macos-14.tar.gz
                   tar -xzvf otel-matlab-windows.tar.gz
+            - name: Decompress Artifacts without gRPC exporter
+              run: |
+                  mkdir nogrpc
+                  cd nogrpc
+                  mv ../artifacts-downloaded/*/*nogrpc*.tar.gz .
+                  tar -xzvf otel-matlab-nogrpc-ubuntu.tar.gz
+                  tar -xzvf otel-matlab-nogrpc-macos-13.tar.gz
+                  tar -xzvf otel-matlab-nogrpc-macos-14.tar.gz
+                  tar -xzvf otel-matlab-nogrpc-windows.tar.gz
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
                 release: R2025a
-            - name: Run commands
+            - name: Package Toolbox
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
+                WORKING_FOLDER: withgrpc
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
                 OTEL_MATLAB_TOOLBOX_VERSION: ${{ github.ref_name }}
+                OTEL_MATLAB_TOOLBOX_NAME: otel-matlab
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface
+            - name: Package Toolbox without gRPC exporter
+              env:
+                MATLABPATH: OpenTelemetry-Matlab/tools
+                WORKING_FOLDER: nogrpc
+                OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
+                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
+                OTEL_MATLAB_TOOLBOX_VERSION: ${{ github.ref_name }}
+                OTEL_MATLAB_TOOLBOX_NAME: otel-matlab-nogrpc
+              uses: matlab-actions/run-command@v1
+              with:
+                command: packageMatlabInterface
+            - name: Compress Toolbox without gRPC exporter
+              run: tar -czf otel-matlab-nogrpc.mltbx.tar.gz otel-matlab-nogrpc.mltbx
             - name: Create release
               uses: softprops/action-gh-release@v2
+                # Upload toolbox without gRPC exporter in compressed format
+                # This is to avoid multiple .mltbx files, which will cause issues in MATLAB File Exchange
               with:
-                files: ./otel-matlab.mltbx
+                files: |
+                  ./otel-matlab.mltbx
+                  ./otel-matlab-nogrpc.mltbx.tar.gz
                 name: "Version ${{ github.ref_name }}"
                 fail_on_unmatched_files: true
                 generate_release_notes: false
