@@ -23,7 +23,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -52,7 +52,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_FILE=OFF -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -83,7 +83,7 @@ jobs:
               shell: cmd
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -114,7 +114,7 @@ jobs:
               shell: cmd
               run: |
                   call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_FILE=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_FILE=OFF -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -146,7 +146,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -178,7 +178,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_FILE=OFF -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
@@ -219,7 +219,7 @@ jobs:
               run: |
                   mkdir http_grpc
                   cd http_grpc
-                  mv artifacts-downloaded/*/*httpgrpc*.tar.gz .
+                  mv ../artifacts-downloaded/*/*httpgrpc*.tar.gz .
                   tar -xzvf otel-matlab-httpgrpc-ubuntu.tar.gz
                   tar -xzvf otel-matlab-httpgrpc-macos-13.tar.gz
                   tar -xzvf otel-matlab-httpgrpc-macos-14.tar.gz
@@ -239,7 +239,7 @@ jobs:
               run: |
                   mkdir http_only
                   cd http_only
-                  mv artifacts-downloaded/*/*httponly*.tar.gz .
+                  mv ../artifacts-downloaded/*/*httponly*.tar.gz .
                   tar -xzvf otel-matlab-httponly-ubuntu.tar.gz
                   tar -xzvf otel-matlab-httponly-macos-13.tar.gz
                   tar -xzvf otel-matlab-httponly-macos-14.tar.gz
