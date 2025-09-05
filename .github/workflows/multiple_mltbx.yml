@@ -230,7 +230,7 @@ jobs:
                 WORKING_FOLDER: http_grpc
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: ..
-                OTEL_MATLAB_TOOLBOX_VERSION: 00
+                OTEL_MATLAB_TOOLBOX_VERSION: 1.0
                 OTEL_MATLAB_TOOLBOX_NAME: otel-matlab
               uses: matlab-actions/run-command@v1
               with:
@@ -250,7 +250,7 @@ jobs:
                 WORKING_FOLDER: http_only
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
                 OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: ..
-                OTEL_MATLAB_TOOLBOX_VERSION: 00
+                OTEL_MATLAB_TOOLBOX_VERSION: 1.0
                 OTEL_MATLAB_TOOLBOX_NAME: otel-matlab-http-only
               uses: matlab-actions/run-command@v1
               with:
