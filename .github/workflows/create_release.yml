@@ -202,6 +202,8 @@ jobs:
             - nogrpc-macos
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            WITHGRPC_FOLDER: "${{ github.workspace }}/withgrpc"
+            NOGRPC_FOLDER: "${{ github.workspace }}/nogrpc"
         steps:
             - name: Checkout OpenTelemetry-Matlab
               uses: actions/checkout@v3
@@ -213,8 +215,8 @@ jobs:
                 path: artifacts-downloaded
             - name: Decompress Artifacts
               run: |
-                  mkdir withgrpc
-                  cd withgrpc
+                  mkdir ${{ env.WITHGRPC_FOLDER }}
+                  cd ${{ env.WITHGRPC_FOLDER }}
                   mv ../artifacts-downloaded/*/otel-matlab-ubuntu.tar.gz .
                   mv ../artifacts-downloaded/*/otel-matlab-macos*.tar.gz .
                   mv ../artifacts-downloaded/*/otel-matlab-windows.tar.gz .
@@ -224,8 +226,8 @@ jobs:
                   tar -xzvf otel-matlab-windows.tar.gz
             - name: Decompress Artifacts without gRPC exporter
               run: |
-                  mkdir nogrpc
-                  cd nogrpc
+                  mkdir ${{ env.NOGRPC_FOLDER }}
+                  cd ${{ env.NOGRPC_FOLDER }}
                   mv ../artifacts-downloaded/*/*nogrpc*.tar.gz .
                   tar -xzvf otel-matlab-nogrpc-ubuntu.tar.gz
                   tar -xzvf otel-matlab-nogrpc-macos-13.tar.gz
@@ -238,9 +240,9 @@ jobs:
             - name: Package Toolbox
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
-                WORKING_FOLDER: withgrpc
+                WORKING_FOLDER: ${{ env.WITHGRPC_FOLDER }}
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
-                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
+                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: ${{ env.WITHGRPC_FOLDER }}
                 OTEL_MATLAB_TOOLBOX_VERSION: ${{ github.ref_name }}
                 OTEL_MATLAB_TOOLBOX_NAME: otel-matlab
               uses: matlab-actions/run-command@v1
@@ -249,15 +251,16 @@ jobs:
             - name: Package Toolbox without gRPC exporter
               env:
                 MATLABPATH: OpenTelemetry-Matlab/tools
-                WORKING_FOLDER: nogrpc
+                WORKING_FOLDER: ${{ env.NOGRPC_FOLDER }}
                 OTEL_MATLAB_TOOLBOX_FOLDER: otel_matlab_install
-                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: 
+                OTEL_MATLAB_TOOLBOX_OUTPUT_FOLDER: ${{ env.NOGRPC_FOLDER }}
                 OTEL_MATLAB_TOOLBOX_VERSION: ${{ github.ref_name }}
                 OTEL_MATLAB_TOOLBOX_NAME: otel-matlab-nogrpc
               uses: matlab-actions/run-command@v1
               with:
                 command: packageMatlabInterface
             - name: Compress Toolbox without gRPC exporter
+              working-directory: ${{ env.NOGRPC_FOLDER }}
               run: tar -czf otel-matlab-nogrpc.mltbx.tar.gz otel-matlab-nogrpc.mltbx
             - name: Create release
               uses: softprops/action-gh-release@v2
@@ -265,8 +268,8 @@ jobs:
                 # This is to avoid multiple .mltbx files, which will cause issues in MATLAB File Exchange
               with:
                 files: |
-                  ./otel-matlab.mltbx
-                  ./otel-matlab-nogrpc.mltbx.tar.gz
+                  ${{ env.WITHGRPC_FOLDER }}/otel-matlab.mltbx
+                  ${{ env.NOGRPC_FOLDER }}/otel-matlab-nogrpc.mltbx.tar.gz
                 name: "Version ${{ github.ref_name }}"
                 fail_on_unmatched_files: true
                 generate_release_notes: false
