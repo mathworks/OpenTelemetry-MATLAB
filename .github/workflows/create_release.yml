@@ -215,8 +215,8 @@ jobs:
                 path: artifacts-downloaded
             - name: Decompress Artifacts
               run: |
-                  mkdir ${{ env.WITHGRPC_FOLDER }}
-                  cd ${{ env.WITHGRPC_FOLDER }}
+                  mkdir $WITHGRPC_FOLDER
+                  cd $WITHGRPC_FOLDER
                   mv ../artifacts-downloaded/*/otel-matlab-ubuntu.tar.gz .
                   mv ../artifacts-downloaded/*/otel-matlab-macos*.tar.gz .
                   mv ../artifacts-downloaded/*/otel-matlab-windows.tar.gz .
@@ -226,8 +226,8 @@ jobs:
                   tar -xzvf otel-matlab-windows.tar.gz
             - name: Decompress Artifacts without gRPC exporter
               run: |
-                  mkdir ${{ env.NOGRPC_FOLDER }}
-                  cd ${{ env.NOGRPC_FOLDER }}
+                  mkdir $NOGRPC_FOLDER
+                  cd $NOGRPC_FOLDER
                   mv ../artifacts-downloaded/*/*nogrpc*.tar.gz .
                   tar -xzvf otel-matlab-nogrpc-ubuntu.tar.gz
                   tar -xzvf otel-matlab-nogrpc-macos-13.tar.gz
