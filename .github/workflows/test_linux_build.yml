@@ -6,24 +6,19 @@ on:
 jobs:
     build-ubuntu:
         runs-on: ubuntu-22.04
-        container:
-          image: ubuntu:20.04
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
-            DEBIAN_FRONTEND: noninteractive
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
-            - name: Install ninja-build and cmake
-              run: |
-                apt-get update -y
-                apt-get install -y ninja-build cmake git build-essential
+            - name: Install ninja-build 
+              run: apt-get install ninja-build
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
-                release: R2025a
+                release: R2023b
                 products: MATLAB_Compiler
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
