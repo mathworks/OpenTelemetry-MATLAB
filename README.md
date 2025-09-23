@@ -4,8 +4,13 @@
 MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), based on the [OpenTelemetry Specification](https://opentelemetry.io/docs/specs/otel/). OpenTelemetry is an observability framework for creating and managing telemetry data, such as traces, metrics, and logs. This data can then be sent to an observability back-end for monitoring, alerts, and analysis. 
 
 ### Status
-- Tracing, metrics, and logs are all fully supported. 
-- Supported and tested on Windows&reg;, Linux&reg;, and macOS.
+1. Tracing, metrics, and logs are all fully supported and tested on Windows&reg;, Linux&reg;, and macOS.
+2. On Linux, when running MATLAB R2025a or newer releases, the gRPC library used in the gRPC exporter in this package may conflict with the same library in MATLAB, causing MATLAB to crash. To avoid this issue, install otel-matlab-nogrpc.mltbx in [version 1.10.2](https://github.com/mathworks/OpenTelemetry-MATLAB/releases/tag/1.10.2), which excludes the gRPC exporter.
+3. If you are using [version 1.10.2](https://github.com/mathworks/OpenTelemetry-MATLAB/releases/tag/1.10.2) on Linux with MATLAB R2024a or older, you may run into an "Invalid MEX file" error due to an incompatible libstdc++ library. Define the environment variable LD_PRELOAD to point to the system libstdc++.so. For example, use the following command in a Bash shell on Ubuntu or Debian Linux.
+```
+export LD_PRELOAD="/lib/x86_64-linux-gnu/libstdc++.so.6"
+```
+4. OpenTelemetry currently does not support non-ASCII characters. Defining names or attributes with non-ASCII characters will cause the telemetry data to become invalid and fail to export.
 
 ### MathWorks Products (https://www.mathworks.com)
 
