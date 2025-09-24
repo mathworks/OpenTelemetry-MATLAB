@@ -20,7 +20,10 @@
         "abseil",
         "c-ares",
         "re2",
-        "openssl",
+	{
+	  "name": "openssl",
+	  "version>=": "3.5.0"
+	},
         "upb"
       ]
     }
