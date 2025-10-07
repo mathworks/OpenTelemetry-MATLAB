@@ -748,9 +748,7 @@ classdef tmetrics < matlab.unittest.TestCase
         end
 
         function testAsynchronousInstrumentDictionaryCallback(testCase, create_async, datapoint_name)
-            % removeCallback method
-            %callback = @callbackNoAttributes3;
-
+            % Test for attributes in a dictionary
             p = opentelemetry.sdk.metrics.MeterProvider(testCase.ShortIntervalReader);
             mt = p.getMeter("foo");
             ct = create_async(mt, @callbackWithAttributes3, "bar", "", "", testCase.CallbackTimeout);

@@ -1,7 +1,8 @@
 function result = callbackWithAttributes3()
 % Test callback function for asynchronous instruments that uses attributes
+% in a dictionary
 %
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2025 The MathWorks, Inc.
 
 value = 30;
 result = opentelemetry.metrics.ObservableResult;
