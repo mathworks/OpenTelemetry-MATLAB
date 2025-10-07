@@ -148,6 +148,8 @@ jobs:
                 products: MATLAB_Compiler MATLAB_Compiler_SDK
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
+              env:
+                 CMAKE_POLICY_VERSION_MINIMUM: 3.5   # required by upb because its cmake requirement is not compatible with cmake 4 
               run: |
                   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DWITH_OTLP_GRPC=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.outputs.version }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
