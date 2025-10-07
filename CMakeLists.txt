@@ -28,7 +28,7 @@ else()
 
    set(VCPKG_FETCH_CONTENT_NAME vcpkg)
    set(VCPKG_GIT_REPOSITORY "https://github.com/microsoft/vcpkg.git")
-   set(VCPKG_GIT_TAG "f7423ee")
+   set(VCPKG_GIT_TAG "ce613c4")
    FetchContent_Declare(
        ${VCPKG_FETCH_CONTENT_NAME}
        GIT_REPOSITORY ${VCPKG_GIT_REPOSITORY}
@@ -56,7 +56,11 @@ if(APPLE)
     # use libcurl as a shared library and load the MATLAB version at runtime
     # run uname -m to determine whether arm64 or x86_64
     exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
-    set(VCPKG_OTEL_TRIPLET ${MAC_HOST_SYSTEM}-osx-otel-matlab)
+    if(${MAC_HOST_SYSTEM} STREQUAL "arm64")
+       set(VCPKG_OTEL_TRIPLET "arm64-osx-otel-matlab")
+    elseif(${MAC_HOST_SYSTEM} STREQUAL "x86_64")
+       set(VCPKG_OTEL_TRIPLET "x64-osx-otel-matlab")
+    endif()
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_SOURCE_DIR}/cmake/vcpkg_triplets)
     set(VCPKG_TARGET_TRIPLET ${VCPKG_OTEL_TRIPLET})
     set(TRIPLET_DEFINITIONS -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET})
@@ -117,7 +121,7 @@ set(LIBMEXCLASS_FETCH_CONTENT_NAME libmexclass)
 
 set(LIBMEXCLASS_FETCH_CONTENT_GIT_REPOSITORY "https://github.com/mathworks/libmexclass.git")
 
-set(LIBMEXCLASS_FETCH_CONTENT_GIT_TAG "bc2b9f2") 
+set(LIBMEXCLASS_FETCH_CONTENT_GIT_TAG "3a3b581") 
 
 set(LIBMEXCLASS_FETCH_CONTENT_SOURCE_SUBDIR "libmexclass/cpp")
 
@@ -419,7 +423,7 @@ if(WIN32)
 
     if(WITH_OTLP_HTTP)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-            $<TARGET_FILE:CURL::libcurl>)
+            $<TARGET_FILE:CURL::libcurl_shared>)
     endif()
 
     if(WITH_OTLP_GRPC)
@@ -428,10 +432,8 @@ if(WIN32)
 	set(OPENSSL_DLL libssl-3-x64.dll)
 	set(OPENSSL_CRYPTO_DLL libcrypto-3-x64.dll)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
-	    $<TARGET_FILE:c-ares::cares>
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_DLL}
-	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL}
-	    $<TARGET_FILE:re2::re2>)
+	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL})
     endif()
 else()
     set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -544,3 +546,4 @@ install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${LIBMEXCLASS
 if(WITH_EXAMPLES)
    add_subdirectory(examples)
 endif()
+

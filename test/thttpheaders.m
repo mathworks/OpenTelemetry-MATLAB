@@ -1,7 +1,7 @@
 classdef thttpheaders < matlab.unittest.TestCase
     % tests for setting HTTPHeaders in the exporter
 
-    % Copyright 2023-2024 The MathWorks, Inc.
+    % Copyright 2025 The MathWorks, Inc.
 
     properties
         OtelConfigFile

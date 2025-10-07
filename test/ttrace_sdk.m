@@ -112,7 +112,7 @@ classdef ttrace_sdk < matlab.unittest.TestCase
         end
 
         function testParentBasedSampler(testCase)
-            % testAlwaysOnSampler: should produce all spans
+            % testParentBasedSampler: should produce all spans
             tracername = "tracer - AlwaysOnSampler";
             spanname = "span - AlwaysOnSampler";
 
