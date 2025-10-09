@@ -546,3 +546,4 @@ install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${LIBMEXCLASS
 if(WITH_EXAMPLES)
    add_subdirectory(examples)
 endif()
+
