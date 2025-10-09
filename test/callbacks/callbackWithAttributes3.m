@@ -6,4 +6,4 @@ function result = callbackWithAttributes3()
 
 value = 30;
 result = opentelemetry.metrics.ObservableResult;
-result = result.observe(value, dictionary({"Level1"}, {"D"},{"Level2"},{"E"}));
+result = result.observe(value, dictionary("Level1", "D","Level2","E"));

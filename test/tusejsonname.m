@@ -27,8 +27,7 @@ classdef tusejsonname < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function setup(testCase)
-            config = fullfile(fileparts(mfilename("fullpath")), "config", "otelcol_config.yml");
-            commonSetup(testCase, config);
+            commonSetup(testCase);
         end
     end
 
