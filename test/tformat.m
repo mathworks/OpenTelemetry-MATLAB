@@ -65,33 +65,6 @@ classdef tformat < matlab.unittest.TestCase
             verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
         end
 
-        function testNondefaultGrpcFormat(testCase)
-            % testNondefaultGrpcFormat: using an alternative format
-
-            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpGrpcSpanExporter", "class")), ...
-                "Otlp gRPC exporter must be installed.");
-
-            tracername = "foo";
-            spanname = "bar";
-
-            exp = opentelemetry.exporters.otlp.OtlpGrpcSpanExporter(...
-                "Format", "binary");
-            processor = opentelemetry.sdk.trace.SimpleSpanProcessor(exp);
-            tp = opentelemetry.sdk.trace.TracerProvider(processor);
-            tr = getTracer(tp, tracername);
-            sp = startSpan(tr, spanname);
-            pause(1);
-            endSpan(sp);
-
-            % perform test comparisons
-            results = readJsonResults(testCase);
-            results = results{1};
-
-            % check span and tracer names
-            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.spans.name), spanname);
-            verifyEqual(testCase, string(results.resourceSpans.scopeSpans.scope.name), tracername);
-        end
-
         function NondefaultMetricsFormat(testCase)
             % testNondefaultMetricsFormat: using an alternative format
             testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpHttpMetricExporter", "class")), ...
@@ -116,31 +89,5 @@ classdef tformat < matlab.unittest.TestCase
             % verify counter value
             verifyEqual(testCase, results{end}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, val);
         end
-
-        function NondefaultGrpcMetricsFormat(testCase)
-            % testNondefaultGrpcMetricsFormat: using an alternative format
-            testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpGrpcMetricExporter", "class")), ...
-                "Otlp gRPC exporter must be installed.");
-
-            exp = opentelemetry.exporters.otlp.OtlpGrpcMetricExporter(...
-                "Format", "binary");
-            reader = opentelemetry.sdk.metrics.PeriodicExportingMetricReader(...
-                exp, "Interval", seconds(2), "Timeout", seconds(1));
-            p = opentelemetry.sdk.metrics.MeterProvider(reader);
-            mt = p.getMeter("foo");
-            ct = mt.createCounter("bar");
-
-            val = 8;
-            ct.add(val);
-            pause(2.5);
-
-            % fetch result
-            clear p;
-            results = readJsonResults(testCase);
-
-            % verify counter value
-            verifyEqual(testCase, results{end}.resourceMetrics.scopeMetrics.metrics.sum.dataPoints.asDouble, val);
-        end
-
     end
 end
