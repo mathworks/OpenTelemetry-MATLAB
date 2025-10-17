@@ -17,7 +17,7 @@ jobs:
               with: 
                 path: opentelemetry-matlab
             - name: Install compiler, cmake, and Git
-              run: apt update && apt install -y build-essential cmake git curl
+              run: apt update && apt install -y build-essential cmake git curl pkg-config
             - name: Install ninja-build
               run: apt-get install ninja-build
             - name: Install MATLAB
@@ -34,7 +34,7 @@ jobs:
               uses: actions/upload-artifact@v4
               if: always()
               with:
-                name: vcpkg-bootrap.log
+                name: vcpkg-manifest-install.log
                 path: /__w/OpenTelemetry-MATLAB/OpenTelemetry-MATLAB/opentelemetry-matlab/build
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
