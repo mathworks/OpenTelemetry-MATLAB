@@ -10,7 +10,7 @@ jobs:
           image: ubuntu:20.04
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
-            DEBIAN_FRONTENT: "noninteractive"
+            DEBIAN_FRONTEND: "noninteractive"
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
