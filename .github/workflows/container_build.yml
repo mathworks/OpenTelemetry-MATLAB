@@ -30,6 +30,12 @@ jobs:
               run: |
                   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=1.0.0 -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
+            - name: Upload log
+              uses: actions/upload-artfact@v4
+              if: always()
+              with:
+                name: vcpkg-bootrap.log
+                path: /__w/OpenTelemetry-MATLAB/OpenTelemetry-MATLAB/opentelemetry-matlab/build
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
