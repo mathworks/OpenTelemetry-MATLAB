@@ -1,8 +1,8 @@
 name: "Experiment with building in a Linux container"
 on:
     push:
-      tags:
-        - '[0-9]+.[0-9]+.[0-9]+'
+      branches:
+        - 'container'
 jobs:
     build-ubuntu:
         runs-on: ubuntu-22.04
