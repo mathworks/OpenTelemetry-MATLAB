@@ -16,10 +16,13 @@ jobs:
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
-            - name: Install compiler, cmake, and Git
+            - name: Install compiler, and Git
               run: apt update && apt install -y build-essential cmake git curl pkg-config zip python3
-            - name: Install ninja-build
-              run: apt-get install ninja-build
+            - name: Install cmake and ninja
+              uses: lukka/get-cmake@latest
+              with:
+                cmakeVersion: 3.22.1
+                ninjaVersion: 1.11.1
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:

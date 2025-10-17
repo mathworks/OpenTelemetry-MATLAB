@@ -135,15 +135,6 @@ FetchContent_MakeAvailable(
     ${LIBMEXCLASS_FETCH_CONTENT_NAME}
 )
 
-# FIXME: debug code
-FetchContent_GetProperties(${LIBMEXCLASS_FETCH_CONTENT_NAME})
-if(${LIBMEXCLASS_FETCH_CONTENT_NAME}_POPULATED)
-	message(STATUS "Already loaded.")
-else()
-	message(STATUS "Not loaded.")
-endif()
-
-
 # ###########################
 # OpenTelemetry-cpp 
 # ###########################
