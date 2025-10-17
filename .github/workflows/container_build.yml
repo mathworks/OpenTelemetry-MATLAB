@@ -17,7 +17,7 @@ jobs:
               with: 
                 path: opentelemetry-matlab
             - name: Install compiler, cmake, and Git
-              run: apt update && apt install -y build-essential cmake git curl pkg-config
+              run: apt update && apt install -y build-essential cmake git curl pkg-config zip
             - name: Install ninja-build
               run: apt-get install ninja-build
             - name: Install MATLAB
