@@ -21,8 +21,8 @@ jobs:
             - name: Install cmake and ninja
               uses: lukka/get-cmake@latest
               with:
-                cmakeVersion: 3.22.1
-                ninjaVersion: 1.11.1
+                cmakeVersion: latest
+                ninjaVersion: latest
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
@@ -31,7 +31,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=1.0.0 -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --trace -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=1.0.0 -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
                   cmake --build build --config Release --target install
             - name: Upload log
               uses: actions/upload-artifact@v4
