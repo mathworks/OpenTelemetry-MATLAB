@@ -87,7 +87,7 @@ jobs:
               env:
                 MY_CMAKE_VERSION: 4.1.2
               run: |
-                 curl -LO https://github.com/Kitware/CMake/releases/download/v$MY_CMAKE_VERSION/cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
+                curl -LO https://github.com/Kitware/CMake/releases/download/v$MY_CMAKE_VERSION/cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
                 tar -xvzf cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
                 echo "$GITHUB_WORKSPACE/cmake-$MY_CMAKE_VERSION-linux-x86_64/bin" >> "$GITHUB_PATH"
             - name: Install MATLAB

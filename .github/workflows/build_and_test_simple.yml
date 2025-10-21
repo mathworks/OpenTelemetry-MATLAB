@@ -63,7 +63,7 @@ jobs:
               env:
                  # Add the installation directory to the MATLAB Search Path by
                  # setting the MATLABPATH environment variable.
-                 MATLABPATH: ${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                 MATLABPATH: ${{ env.GITHUB_WORKSPACE }}/${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
               uses: matlab-actions/run-tests@v2
               with:
                  select-by-folder: opentelemetry-matlab/test
