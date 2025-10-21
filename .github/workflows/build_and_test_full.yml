@@ -38,6 +38,8 @@ jobs:
               with: 
                 path: opentelemetry-matlab
             - name: Install compiler and other tools
+              env:
+                DEBIAN_FRONTEND: "noninteractive"
               run: apt update && apt install -y build-essential git curl pkg-config zip python3 ninja-build
             - name: Install CMake
               env:
@@ -78,6 +80,8 @@ jobs:
               with: 
                 path: opentelemetry-matlab
             - name: Install compiler and other tools
+              env:
+                DEBIAN_FRONTEND: "noninteractive"
               run: apt update && apt install -y build-essential git curl pkg-config zip python3 ninja-build
             - name: Install CMake
               env:
