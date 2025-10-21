@@ -17,11 +17,13 @@ jobs:
               with: 
                 path: opentelemetry-matlab
             - name: Install compiler and other tools
-              run: apt update && apt install -y build-essential git curl pkg-config zip python3 ninja
+              run: apt update && apt install -y build-essential git curl pkg-config zip python3
             - name: Install CMake 4.1.2
               run: |
                 curl -LO https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz
                 echo "cmake-4.1.2-linux-x86_64/bin" >> $GITHUB_PATH
+            - name: Install ninja-build
+              run: sudo apt-get install ninja-build
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
