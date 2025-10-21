@@ -21,6 +21,7 @@ jobs:
             - name: Install CMake 4.1.2
               run: |
                 curl -LO https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz
+                tar -xvzf cmake-4.1.2-linux-x86_64.tar.gz
                 echo "$GITHUB_WORKSPACE/cmake-4.1.2-linux-x86_64/bin" >> "$GITHUB_PATH"
                 ls
                 cmake-4.1.2-linux-x86_64/bin/cmake --version
