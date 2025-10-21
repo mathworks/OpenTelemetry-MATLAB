@@ -59,12 +59,11 @@ jobs:
               run: |
                   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.outputs.version }} -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER
                   cmake --build build --config Release --target install
+            - name: Set up environment for testing
+              run: |
+                echo "MATLABPATH=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER" >> $GITHUB_ENV
+                echo "OPENTELEMETRY_MATLAB_INSTALL=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER" >> $GITHUB_ENV
             - name: Run tests
-              env:
-                 # Add the installation directory to the MATLAB Search Path by
-                 # setting the MATLABPATH environment variable.
-                 MATLABPATH: ${{ env.GITHUB_WORKSPACE }}/${{ env.OPENTELEMETRY_MATLAB_INSTALL_FOLDER }}
-                 OPENTELEMETRY_MATLAB_INSTALL: ${{ env.GITHUB_WORKSPACE }}/${{ env.OPENTELEMETRY_MATLAB_INSTALL_FOLDER }}
               uses: matlab-actions/run-tests@v2
               with:
                  select-by-folder: opentelemetry-matlab/test
