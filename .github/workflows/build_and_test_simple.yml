@@ -31,7 +31,7 @@ jobs:
           image: ubuntu:20.04
         needs: get_version
         env:
-            OPENTELEMETRY_MATLAB_INSTALL: "$GITHUB_WORKSPACE/otel_matlab_install"
+            OPENTELEMETRY_MATLAB_INSTALL: "otel_matlab_install"
             SYSTEM_LIBSTDCPP_PATH: "/usr/lib/x86_64-linux-gnu/libstdc++.so.6"
         steps:
             - name: Download OpenTelemetry-Matlab source
@@ -57,7 +57,7 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.outputs.version }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_EXAMPLES=ON -DUSE_BATCH_FOR_MCC=ON -DOTEL_MATLAB_VERSION=${{ needs.get_version.outputs.version }} -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL
                   cmake --build build --config Release --target install
             - name: Run tests
               env:

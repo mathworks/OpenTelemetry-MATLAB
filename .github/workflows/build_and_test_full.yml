@@ -159,7 +159,7 @@ jobs:
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
-              with: 
+              with:
                 path: opentelemetry-matlab
             - name: Install ninja-build
               run: brew install ninja
