@@ -39,7 +39,7 @@ if ispc
    testCase.Sigterm = @(id)"taskkill /F /pid " + id;
 elseif isunix && ~ismac
    testCase.ListPid = @(name)"ps -C " + name;
-   testCase.ReadPidList = @readtable;
+   testCase.ReadPidList = @(file)readtable(file, "ReadVariableNames", true, "VariableNamesLine", 1);
    testCase.ExtractPid = @(table)table.PID;
    testCase.Sigint = @(id)"kill " + id;  % kill sends a SIGTERM instead of SIGINT but turns out this is sufficient to terminate OTEL collector on Linux
    testCase.Sigterm = @(id)"kill " + id;
