@@ -8,11 +8,7 @@ if nargin < 3
 end
 
 system(testCase.ListPid(process) + " > " + testCase.PidFile);
-type(testCase.PidFile);
 tbl = testCase.ReadPidList(testCase.PidFile);
-if isa(tbl, "table")
-   tbl.Properties.VariableNames
-end
 pid = testCase.ExtractPid(tbl);
 retry = 0;
 % sometimes kill will fail with a RuntimeError: windows-kill-library: ctrl-routine:findAddress:checkAddressIsNotNull 
@@ -24,11 +20,7 @@ while ~isempty(pid) && retry < 4
     end
     pause(2);  % give a little time for the collector to shut down
     system(testCase.ListPid(process) + " > " + testCase.PidFile);
-    type(testCase.PidFile);
     tbl = testCase.ReadPidList(testCase.PidFile);
-    if isa(tbl, "table")
-      tbl.Properties.VariableNames
-    end
     pid = testCase.ExtractPid(tbl);
     retry = retry + 1;
 end
