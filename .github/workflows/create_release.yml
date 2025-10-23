@@ -5,16 +5,27 @@ on:
         - '[0-9]+.[0-9]+.[0-9]+'
 jobs:
     build-ubuntu:
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-latest
+        container:
+          image: ubuntu:20.04
         env:
-            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            OPENTELEMETRY_MATLAB_INSTALL_FOLDER: "otel_matlab_install"   # not including the context github.workspace since it doesn't work inside a container due to a bug
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
-            - name: Install ninja-build
-              run: sudo apt-get install ninja-build
+            - name: Install compiler and other tools
+              env:
+                DEBIAN_FRONTEND: "noninteractive"
+              run: apt update && apt install -y build-essential git curl pkg-config zip python3 ninja-build
+            - name: Install CMake
+              env:
+                MY_CMAKE_VERSION: 4.1.2
+              run: |
+                curl -LO https://github.com/Kitware/CMake/releases/download/v$MY_CMAKE_VERSION/cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
+                tar -xvzf cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
+                echo "$GITHUB_WORKSPACE/cmake-$MY_CMAKE_VERSION-linux-x86_64/bin" >> "$GITHUB_PATH"
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
@@ -23,16 +34,15 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
-              working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
               with: 
                 name: otel-matlab-ubuntu.tar.gz
-                path: ${{ github.workspace }}/otel-matlab-ubuntu.tar.gz
+                path: ./otel-matlab-ubuntu.tar.gz
     build-windows:
         runs-on: windows-latest
         env:
@@ -99,16 +109,27 @@ jobs:
                 name: otel-matlab-${{ matrix.os }}.tar.gz
                 path: ${{ github.workspace }}/otel-matlab-${{ matrix.os }}.tar.gz
     nogrpc-ubuntu:     # without gRPC exporter
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-latest
+        container:
+          image: ubuntu:20.04
         env:
-            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            OPENTELEMETRY_MATLAB_INSTALL_FOLDER: "otel_matlab_install"   # not including the context github.workspace since it doesn't work inside a container due to a bug
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
               with: 
                 path: opentelemetry-matlab
-            - name: Install ninja-build
-              run: sudo apt-get install ninja-build
+            - name: Install compiler and other tools
+              env:
+                DEBIAN_FRONTEND: "noninteractive"
+              run: apt update && apt install -y build-essential git curl pkg-config zip python3 ninja-build
+            - name: Install CMake
+              env:
+                MY_CMAKE_VERSION: 4.1.2
+              run: |
+                curl -LO https://github.com/Kitware/CMake/releases/download/v$MY_CMAKE_VERSION/cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
+                tar -xvzf cmake-$MY_CMAKE_VERSION-linux-x86_64.tar.gz
+                echo "$GITHUB_WORKSPACE/cmake-$MY_CMAKE_VERSION-linux-x86_64/bin" >> "$GITHUB_PATH"
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
@@ -117,16 +138,15 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=ON -DOTEL_MATLAB_VERSION=${{ github.ref_name }} -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER
                   cmake --build build --config Release --target install
             - name: Compress into single artifact
-              working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-nogrpc-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
               with: 
                 name: otel-matlab-nogrpc-ubuntu.tar.gz
-                path: ${{ github.workspace }}/otel-matlab-nogrpc-ubuntu.tar.gz
+                path: ./otel-matlab-nogrpc-ubuntu.tar.gz
     nogrpc-windows:   # without gRPC exporter
         runs-on: windows-latest
         env:
