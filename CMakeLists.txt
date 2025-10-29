@@ -131,10 +131,15 @@ if(WITH_OTLP_GRPC)
    set(GRPC_INSTALL_LIB_DIR ${GRPC_INSTALL_DIR}/lib)
 
    set(PATCHES_DIR ${CMAKE_SOURCE_DIR}/patches)
-   if(APPLE)
-       set(patch_command git apply ${PATCHES_DIR}/grpc-mac.patch)
-   else()
-       set(patch_command "")
+   if(WIN32)
+       set(GRPC_PATCH_CMD "")
+       set(GRPC_SHARED "-DBUILD_SHARED_LIBS=OFF")
+   elseif(APPLE)
+       set(GRPC_PATCH_CMD git apply ${PATCHES_DIR}/grpc-mac.patch)
+       set(GRPC_SHARED "-DBUILD_SHARED_LIBS=ON")
+   else()    # Linux
+       set(GRPC_PATCH_CMD "")
+       set(GRPC_SHARED "-DBUILD_SHARED_LIBS=ON")
    endif()
 
    include(ExternalProject)
@@ -144,18 +149,39 @@ if(WITH_OTLP_GRPC)
        GIT_TAG ${GRPC_GIT_TAG}
        PREFIX ${GRPC_PREFIX}
        UPDATE_DISCONNECTED 1
-       PATCH_COMMAND ${patch_command}
-       CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH} -DBUILD_SHARED_LIBS=ON -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_CROSSCOMPILING=OFF -DgRPC_ZLIB_PROVIDER=package -DgRPC_ABSL_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DgRPC_CARES_PROVIDER=package -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF -DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
+       PATCH_COMMAND ${GRPC_PATCH_CMD}
+       CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH} ${GRPC_SHARED} -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_CROSSCOMPILING=OFF -DgRPC_ZLIB_PROVIDER=package -DgRPC_ABSL_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DgRPC_CARES_PROVIDER=package -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF -DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
        INSTALL_DIR ${GRPC_INSTALL_DIR}
        INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${GRPC_INSTALL_DIR} --config $<CONFIG>
    )
 
    if(UNIX AND NOT APPLE AND NOT CYGWIN)
        # needed for running protoc as part of the opentelemetry-cpp build
-       set(GRPC_LD_LIBRARY_PATH_ENV "LD_LIBRARY_PATH=${GRPC_INSTALL_LIB_DIR}")
+       set(GRPC_LD_LIBRARY_PATH_ENV "-E env LD_LIBRARY_PATH=${GRPC_INSTALL_LIB_DIR}")
    endif()
 
-   set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/libgrpc++${CMAKE_SHARED_LIBRARY_SUFFIX})
+   if(WIN32)
+       set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/address_sorting.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/gpr.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc++.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc++_alts.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc++_error_details.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc++_reflection.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc++_unsecure.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc_authorization_provider.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc_plugin_support.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpc_unsecure.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/grpcpp_channelz.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/upb_base_lib.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/upb_json_lib.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/upb_mem_lib.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/upb_message_lib.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/upb_textformat_lib.lib
+	                   ${GRPC_INSTALL_LIB_DIR}/utf8_range_lib.lib)
+    else()
+       set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/libgrpc++${CMAKE_SHARED_LIBRARY_SUFFIX})
+    endif()
 endif()
 
 # ######################################
@@ -249,34 +275,55 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
 
    set(PATCHES_DIR ${CMAKE_SOURCE_DIR}/patches)
    if(SKIP_OTEL_CPP_PATCH)
-       set(patch_comand "")
+       set(OTEL_CPP_PATCH_CMD "")
    elseif(WIN32)
        # Windows patch to add a preprocessor definition _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
        # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
-       set(patch_command git apply ${PATCHES_DIR}/otel-cpp-windows.patch)
+       set(OTEL_CPP_PATCH_CMD git apply ${PATCHES_DIR}/otel-cpp-windows.patch)
    elseif(APPLE)
        # Mac patch to fix a linker issue when including gRPC exporter 
-       set(patch_command git apply ${PATCHES_DIR}/otel-cpp-mac.patch)
+       set(OTEL_CPP_PATCH_CMD git apply ${PATCHES_DIR}/otel-cpp-mac.patch)
    else()
-       set(patch_command "")
+       set(OTEL_CPP_PATCH_CMD "")
    endif()
 
-   # Note: examples are temporarily turned off (-DWITH_EXAMPLES=OFF) due to a build issue that is now fixed in #3284
-   # Renable examples after pulling in the fix
-   ExternalProject_Add(
-       ${OTEL_CPP_PROJECT_NAME}
-       GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
-       GIT_TAG ${OTEL_CPP_GIT_TAG}
-       PREFIX ${OTEL_CPP_PREFIX}
-       UPDATE_DISCONNECTED 1
-       PATCH_COMMAND ${patch_command}
-       CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH} -DgRPC_DIR=${GRPC_INSTALL_LIB_DIR}/cmake/grpc -DWITH_ABI_VERSION_1=OFF -DWITH_ABI_VERSION_2=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DWITH_OTLP_FILE=${WITH_OTLP_FILE} -DWITH_EXAMPLES=OFF -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
-       BUILD_COMMAND ${CMAKE_COMMAND} -E env ${GRPC_LD_LIBRARY_PATH_ENV} ${CMAKE_MAKE_PROGRAM}
-       BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
-       INSTALL_DIR ${OTEL_CPP_PREFIX}
-       INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
-   )
+   if(WIN32)
+       # Windows use the default build command
+       # Note: examples are temporarily turned off (-DWITH_EXAMPLES=OFF) due to a build issue that is now fixed in #3284
+       # Renable examples after pulling in the fix
+       ExternalProject_Add(
+           ${OTEL_CPP_PROJECT_NAME}
+           GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
+           GIT_TAG ${OTEL_CPP_GIT_TAG}
+           PREFIX ${OTEL_CPP_PREFIX}
+           UPDATE_DISCONNECTED 1
+           PATCH_COMMAND ${OTEL_CPP_PATCH_CMD}
+           CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH} -DgRPC_DIR=${GRPC_INSTALL_LIB_DIR}/cmake/grpc -DWITH_ABI_VERSION_1=OFF -DWITH_ABI_VERSION_2=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DWITH_OTLP_FILE=${WITH_OTLP_FILE} -DWITH_EXAMPLES=OFF -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
+           BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
+           INSTALL_DIR ${OTEL_CPP_PREFIX}
+           INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
+       )
+   else()
+       # Non-Windows use a custom build command
+       # Note: examples are temporarily turned off (-DWITH_EXAMPLES=OFF) due to a build issue that is now fixed in #3284
+       # Renable examples after pulling in the fix
+       ExternalProject_Add(
+           ${OTEL_CPP_PROJECT_NAME}
+           GIT_REPOSITORY ${OTEL_CPP_GIT_REPOSITORY}
+           GIT_TAG ${OTEL_CPP_GIT_TAG}
+           PREFIX ${OTEL_CPP_PREFIX}
+           UPDATE_DISCONNECTED 1
+           PATCH_COMMAND ${OTEL_CPP_PATCH_CMD}
+           CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH} -DgRPC_DIR=${GRPC_INSTALL_LIB_DIR}/cmake/grpc -DWITH_ABI_VERSION_1=OFF -DWITH_ABI_VERSION_2=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DWITH_OTLP_FILE=${WITH_OTLP_FILE} -DWITH_EXAMPLES=OFF -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
+           BUILD_COMMAND ${CMAKE_COMMAND} ${GRPC_LD_LIBRARY_PATH_ENV} ${CMAKE_MAKE_PROGRAM}
+           BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
+           INSTALL_DIR ${OTEL_CPP_PREFIX}
+           INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
+       )
+   endif()
+
 endif()
+
 
 # ###########################
 # OpenTelemetry Proxy Library
@@ -428,12 +475,13 @@ if(WIN32)
 endif()
 
 # link against OpenTelemetry-cpp libraries and their dependencies
-set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OTEL_CPP_LIBRARIES} ${Protobuf_LIBRARIES} ${Matlab_MEX_LIBRARY})
+set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OTEL_CPP_LIBRARIES} protobuf::libprotobuf ${Matlab_MEX_LIBRARY})
 if(WITH_OTLP_HTTP)
     set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OPENTELEMETRY_PROXY_LINK_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 if(WITH_OTLP_GRPC)
-    set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OPENTELEMETRY_PROXY_LINK_LIBRARIES} ${GRPC_LINK_LIBRARIES} absl::synchronization)
+    set(OPENTELEMETRY_PROXY_LINK_LIBRARIES ${OPENTELEMETRY_PROXY_LINK_LIBRARIES} ${GRPC_LINK_LIBRARIES} absl::synchronization
+	    absl::random_random ZLIB::ZLIB re2::re2 c-ares::cares OpenSSL::SSL OpenSSL::Crypto)
 endif()
 
 target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_LIBRARIES})
@@ -458,10 +506,8 @@ if(WIN32)
     # runtime dependent libraries
     # The TARGET_FILE generator command is somehow returning the .lib file instead of .dll for Protobuf and Zlib. 
     # As a result, we have to hardcode those library names instead.
-    set(PROTOBUF_DLL $<$<CONFIG:Debug>:libprotobufd.dll>$<$<CONFIG:Release>:libprotobuf.dll>)
     set(ZLIB_DLL $<$<CONFIG:Debug>:zlibd1.dll>$<$<CONFIG:Release>:zlib1.dll>)
-    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES $<TARGET_FILE_DIR:protobuf::libprotobuf>/../bin/${PROTOBUF_DLL}
-	    $<TARGET_FILE_DIR:ZLIB::ZLIB>/../bin/${ZLIB_DLL})
+    set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES $<TARGET_FILE_DIR:ZLIB::ZLIB>/../bin/${ZLIB_DLL})
 
     if(WITH_OTLP_HTTP)
 	set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES}
