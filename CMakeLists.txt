@@ -157,7 +157,7 @@ if(WITH_OTLP_GRPC)
 
    if(UNIX AND NOT APPLE AND NOT CYGWIN)
        # needed for running protoc as part of the opentelemetry-cpp build
-       set(GRPC_LD_LIBRARY_PATH_ENV "-E env LD_LIBRARY_PATH=${GRPC_INSTALL_LIB_DIR}")
+       set(GRPC_LD_LIBRARY_PATH_ENV "LD_LIBRARY_PATH=${GRPC_INSTALL_LIB_DIR}")
    endif()
 
    if(WIN32)
@@ -287,8 +287,8 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
        set(OTEL_CPP_PATCH_CMD "")
    endif()
 
-   if(WIN32)
-       # Windows use the default build command
+   if(WIN32 OR APPLE)
+       # Windows and Mac use the default build command
        # Note: examples are temporarily turned off (-DWITH_EXAMPLES=OFF) due to a build issue that is now fixed in #3284
        # Renable examples after pulling in the fix
        ExternalProject_Add(
@@ -304,7 +304,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
            INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
        )
    else()
-       # Non-Windows use a custom build command
+       # Linux use a custom build command
        # Note: examples are temporarily turned off (-DWITH_EXAMPLES=OFF) due to a build issue that is now fixed in #3284
        # Renable examples after pulling in the fix
        ExternalProject_Add(
@@ -315,7 +315,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
            UPDATE_DISCONNECTED 1
            PATCH_COMMAND ${OTEL_CPP_PATCH_CMD}
            CMAKE_ARGS -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH} -DgRPC_DIR=${GRPC_INSTALL_LIB_DIR}/cmake/grpc -DWITH_ABI_VERSION_1=OFF -DWITH_ABI_VERSION_2=ON -DWITH_OTLP_HTTP=${WITH_OTLP_HTTP} -DWITH_OTLP_GRPC=${WITH_OTLP_GRPC} -DWITH_OTLP_FILE=${WITH_OTLP_FILE} -DWITH_EXAMPLES=OFF -DBUILD_TESTING=OFF -DWITH_BENCHMARK=OFF -DOPENTELEMETRY_INSTALL=ON -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} -DCMAKE_CXX_STANDARD=${OTEL_CPP_CXX_STANDARD} -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR} ${TRIPLET_DEFINITIONS}
-           BUILD_COMMAND ${CMAKE_COMMAND} ${GRPC_LD_LIBRARY_PATH_ENV} ${CMAKE_MAKE_PROGRAM}
+           BUILD_COMMAND ${CMAKE_COMMAND} -E env ${GRPC_LD_LIBRARY_PATH_ENV} ${CMAKE_MAKE_PROGRAM}
            BUILD_BYPRODUCTS ${OTEL_CPP_LIBRARIES}
            INSTALL_DIR ${OTEL_CPP_PREFIX}
            INSTALL_COMMAND ${CMAKE_COMMAND} --install . --prefix ${OTEL_CPP_PREFIX} --config $<CONFIG>
@@ -347,9 +347,7 @@ if(WITH_OTLP_GRPC)
     find_package(absl REQUIRED)
     find_package(c-ares REQUIRED)
     find_package(re2 REQUIRED)
-    if(WIN32)
-        find_package(openssl REQUIRED)
-    endif()
+    find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
 endif()
 
 set(TRACE_API_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/api/trace/include)
