@@ -500,9 +500,10 @@ endif()
 # Use C++17 
 target_compile_features(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE cxx_std_17)
 
+# runtime dependent libraries
+# gRPC runtime libraries for non-Windows are listed further below in the installation section
 if(WIN32)
-    # runtime dependent libraries
-    # The TARGET_FILE generator command is somehow returning the .lib file instead of .dll for Protobuf and Zlib. 
+    # The TARGET_FILE generator command is somehow returning the .lib file instead of .dll for Zlib. 
     # As a result, we have to hardcode those library names instead.
     set(ZLIB_DLL $<$<CONFIG:Debug>:zlibd1.dll>$<$<CONFIG:Release>:zlib1.dll>)
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES $<TARGET_FILE_DIR:ZLIB::ZLIB>/../bin/${ZLIB_DLL})
@@ -625,7 +626,7 @@ install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 # Install dependent runtime libraries
 set(LIBMEXCLASS_PROXY_INSTALLED_DIR +libmexclass/+proxy)
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${LIBMEXCLASS_PROXY_INSTALLED_DIR})
-if(WITH_OTLP_GRPC)
+if(UNIX AND WITH_OTLP_GRPC)
         install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${LIBMEXCLASS_PROXY_INSTALLED_DIR}
                 FILES_MATCHING 
                 PATTERN "*.*"
