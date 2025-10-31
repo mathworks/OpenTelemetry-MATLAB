@@ -1,0 +1,119 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0627429f49..60a86853ba 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -3588,13 +3588,13 @@ target_include_directories(upb_base_lib
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+     ${_gRPC_ADDRESS_SORTING_INCLUDE_DIR}
+-    ${_gRPC_RE2_INCLUDE_DIR}
+-    ${_gRPC_SSL_INCLUDE_DIR}
+     ${_gRPC_UPB_GENERATED_DIR}
+     ${_gRPC_UPB_GRPC_GENERATED_DIR}
+     ${_gRPC_UPB_INCLUDE_DIR}
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
++    ${_gRPC_RE2_INCLUDE_DIR}    # RE2 and SSL bring in all header files in vcpkg and can shadow other header files. Move them to the end 
++    ${_gRPC_SSL_INCLUDE_DIR}
+ )
+ target_link_libraries(upb_base_lib
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+@@ -3651,6 +3651,11 @@ add_library(upb_json_lib ${_gRPC_STATIC_WIN32}
+ 
+ target_compile_features(upb_json_lib PUBLIC cxx_std_14)
+ 
++# allow undefined symbols in link step, as these symbols can be resolved later
++if(APPLE)
++  target_link_options(upb_json_lib PRIVATE -Wl,-undefined,dynamic_lookup)
++endif()
++
+ set_target_properties(upb_json_lib PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+@@ -3672,13 +3677,13 @@ target_include_directories(upb_json_lib
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+     ${_gRPC_ADDRESS_SORTING_INCLUDE_DIR}
+-    ${_gRPC_RE2_INCLUDE_DIR}
+-    ${_gRPC_SSL_INCLUDE_DIR}
+     ${_gRPC_UPB_GENERATED_DIR}
+     ${_gRPC_UPB_GRPC_GENERATED_DIR}
+     ${_gRPC_UPB_INCLUDE_DIR}
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
++    ${_gRPC_RE2_INCLUDE_DIR}   # RE2 and SSL bring in all header files in vcpkg and can shadow other header files. Move them to the end 
++    ${_gRPC_SSL_INCLUDE_DIR}
+ )
+ target_link_libraries(upb_json_lib
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+@@ -3726,13 +3731,13 @@ target_include_directories(upb_mem_lib
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+     ${_gRPC_ADDRESS_SORTING_INCLUDE_DIR}
+-    ${_gRPC_RE2_INCLUDE_DIR}
+-    ${_gRPC_SSL_INCLUDE_DIR}
+     ${_gRPC_UPB_GENERATED_DIR}
+     ${_gRPC_UPB_GRPC_GENERATED_DIR}
+     ${_gRPC_UPB_INCLUDE_DIR}
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
++    ${_gRPC_RE2_INCLUDE_DIR}     # RE2 and SSL bring in all header files in vcpkg and can shadow other header files. Move them to the end 
++    ${_gRPC_SSL_INCLUDE_DIR}
+ )
+ target_link_libraries(upb_mem_lib
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+@@ -3788,13 +3793,13 @@ target_include_directories(upb_message_lib
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+     ${_gRPC_ADDRESS_SORTING_INCLUDE_DIR}
+-    ${_gRPC_RE2_INCLUDE_DIR}
+-    ${_gRPC_SSL_INCLUDE_DIR}
+     ${_gRPC_UPB_GENERATED_DIR}
+     ${_gRPC_UPB_GRPC_GENERATED_DIR}
+     ${_gRPC_UPB_INCLUDE_DIR}
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
++    ${_gRPC_RE2_INCLUDE_DIR}     # RE2 and SSL bring in all header files in vcpkg and can shadow other header files. Move them to the end 
++    ${_gRPC_SSL_INCLUDE_DIR}
+ )
+ target_link_libraries(upb_message_lib
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+@@ -3852,6 +3857,11 @@ add_library(upb_textformat_lib ${_gRPC_STATIC_WIN32}
+ 
+ target_compile_features(upb_textformat_lib PUBLIC cxx_std_14)
+ 
++# allow undefined symbols in link step, as these symbols can be resolved later
++if(APPLE)
++  target_link_options(upb_textformat_lib PRIVATE -Wl,-undefined,dynamic_lookup)
++endif()
++
+ set_target_properties(upb_textformat_lib PROPERTIES
+   VERSION ${gRPC_CORE_VERSION}
+   SOVERSION ${gRPC_CORE_SOVERSION}
+@@ -3873,13 +3883,13 @@ target_include_directories(upb_textformat_lib
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}
+     ${_gRPC_ADDRESS_SORTING_INCLUDE_DIR}
+-    ${_gRPC_RE2_INCLUDE_DIR}
+-    ${_gRPC_SSL_INCLUDE_DIR}
+     ${_gRPC_UPB_GENERATED_DIR}
+     ${_gRPC_UPB_GRPC_GENERATED_DIR}
+     ${_gRPC_UPB_INCLUDE_DIR}
+     ${_gRPC_XXHASH_INCLUDE_DIR}
+     ${_gRPC_ZLIB_INCLUDE_DIR}
++    ${_gRPC_RE2_INCLUDE_DIR}      # RE2 and SSL bring in all header files in vcpkg and can shadow other header files. Move them to the end 
++    ${_gRPC_SSL_INCLUDE_DIR}
+ )
+ target_link_libraries(upb_textformat_lib
+   ${_gRPC_ALLTARGETS_LIBRARIES}
+@@ -15420,6 +15430,10 @@ target_link_libraries(grpc_cpp_plugin
+   grpc_plugin_support
+ )
+ 
++# enable protoc to find plugin on Mac
++set_target_properties(grpc_cpp_plugin PROPERTIES
++  INSTALL_RPATH "@loader_path/../lib"
++)
+ 
+ 
+ if(gRPC_INSTALL)
