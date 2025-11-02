@@ -6,6 +6,7 @@ on:
       branches-ignore:
         - 'main'
         - '[0-9]+.[0-9]+.[0-9]+'
+        - 'grpc'
 env:
   MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
 jobs:
