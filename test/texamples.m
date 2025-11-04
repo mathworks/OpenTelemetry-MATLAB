@@ -268,8 +268,7 @@ classdef texamples < matlab.unittest.TestCase
 
             % start the C++ server
             testCase.applyFixture(CppServerFixture(server, testCase));
-            pause(6);       % wait for server to start up. On Mac, 3 seconds is not enough 
-	                    % and this test often fails. Double the wait time to 6 seconds.
+            pause(3);       % wait for server to start up
 
             % run the example
             webread_example();
