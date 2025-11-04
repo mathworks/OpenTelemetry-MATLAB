@@ -5,8 +5,7 @@ MATLAB&reg; interface to [OpenTelemetry&trade;](https://opentelemetry.io/), base
 
 ### Status
 1. Tracing, metrics, and logs are all fully supported and tested on Windows&reg;, Linux&reg;, and macOS.
-2. On Linux, when running MATLAB R2025a or newer releases, the gRPC library used in the gRPC exporter in this package may conflict with the same library in MATLAB, causing MATLAB to crash. To avoid this issue, install otel-matlab-nogrpc.mltbx in [version 1.10.2](https://github.com/mathworks/OpenTelemetry-MATLAB/releases/tag/1.10.2), which excludes the gRPC exporter.
-3. OpenTelemetry currently does not support non-ASCII characters. Defining names or attributes with non-ASCII characters will cause the telemetry data to become invalid and fail to export.
+2. OpenTelemetry currently does not support non-ASCII characters. Defining names or attributes with non-ASCII characters will cause the telemetry data to become invalid and fail to export.
 
 ### MathWorks Products (https://www.mathworks.com)
 

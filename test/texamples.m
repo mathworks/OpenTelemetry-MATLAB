@@ -268,7 +268,7 @@ classdef texamples < matlab.unittest.TestCase
 
             % start the C++ server
             testCase.applyFixture(CppServerFixture(server, testCase));
-            pause(3);       % wait a little for server to start up
+            pause(3);       % wait for server to start up
 
             % run the example
             webread_example();

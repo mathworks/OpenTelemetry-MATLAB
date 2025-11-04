@@ -2,6 +2,20 @@ cmake_minimum_required(VERSION 3.9.0)
 
 cmake_policy(SET CMP0074 NEW)
 
+# set a platform name variable, needed to create separate directories for storing dependent libraries
+if(WIN32)
+   set(PLATFORM_NAME win64)
+elseif(APPLE)
+   # run uname -m to determine whether arm64 or x86_64
+   exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
+   if(${MAC_HOST_SYSTEM} STREQUAL "arm64")
+      set(PLATFORM_NAME maca64)
+   elseif(${MAC_HOST_SYSTEM} STREQUAL "x86_64")
+      set(PLATFORM_NAME maci64)
+   endif()
+else() # Linux
+   set(PLATFORM_NAME glnxa64)
+endif()
 
 # ###########################
 # vcpkg
@@ -54,8 +68,6 @@ endif()
 if(APPLE)
     # On Mac, there is a conflict between libcurl and the version in MATLAB, so 
     # use libcurl as a shared library and load the MATLAB version at runtime
-    # run uname -m to determine whether arm64 or x86_64
-    exec_program(uname ARGS -m OUTPUT_VARIABLE MAC_HOST_SYSTEM)
     if(${MAC_HOST_SYSTEM} STREQUAL "arm64")
        set(VCPKG_OTEL_TRIPLET "arm64-osx-otel-matlab")
     elseif(${MAC_HOST_SYSTEM} STREQUAL "x86_64")
@@ -113,6 +125,7 @@ endif()
 
 project(${CLIENT_PROJECT_NAME} VERSION ${OTEL_MATLAB_VERSION} LANGUAGES CXX C)
 
+# set RPATH to enable libraries to find their dependencies
 if(APPLE)
    set(CMAKE_INSTALL_RPATH @loader_path)
 elseif(UNIX)
@@ -502,8 +515,6 @@ if(UNIX AND NOT APPLE AND NOT CYGWIN)
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_otlp_recordable.a"
         ${ABSL_LIBRARIES} -Wl,--no-whole-archive)
     target_link_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_OPTIONS})
-elseif(APPLE)
-    set_target_properties(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PROPERTIES INSTALL_RPATH "@executable_path")
 endif()
 
 # Use C++17 
@@ -559,6 +570,12 @@ libmexclass_client_add_mex_gateway(
     CLIENT_PROXY_LIBRARY_NAME ${OPENTELEMETRY_PROXY_LIBRARY_NAME}
     SOURCES ${OPENTELEMETRY_MEX_GATEWAY_SOURCES}
 )
+
+if(APPLE)
+    set_target_properties(${OPENTELEMETRY_MEX_GATEWAY_NAME} PROPERTIES INSTALL_RPATH "@loader_path;@loader_path/../../lib/${PLATFORM_NAME}")
+elseif(UNIX)
+    set_target_properties(${OPENTELEMETRY_MEX_GATEWAY_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../../lib/${PLATFORM_NAME}")
+endif()
 
 # ###############################
 # libmexclass Client Installation
@@ -633,14 +650,31 @@ endif()
 install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 
 # Install dependent runtime libraries
-set(LIBMEXCLASS_PROXY_INSTALLED_DIR +libmexclass/+proxy)
-install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${LIBMEXCLASS_PROXY_INSTALLED_DIR})
-if(UNIX AND WITH_OTLP_GRPC)
-        install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${LIBMEXCLASS_PROXY_INSTALLED_DIR}
+set(LIBMEXCLASS_PACKAGE_DIRECTORY +libmexclass/+proxy)
+if(WIN32)
+    # On Windows, install all libraries in the same directory because of the lack of a settable rpath
+    set(DEPENDENT_RUNTIME_INSTALLED_DIR ${LIBMEXCLASS_PACKAGE_DIRECTORY})
+else()
+    # On non-Windows platform, install dependent libraries in a platform specific directory so that
+    # they won't get overwritten when packaged
+    set(DEPENDENT_RUNTIME_INSTALLED_DIR lib/${PLATFORM_NAME})
+endif()
+install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR})
+if(UNIX)
+    if(WITH_OTLP_GRPC)
+        install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR}
                 FILES_MATCHING 
                 PATTERN "*.*"
                 PATTERN "cmake" EXCLUDE
                 PATTERN "pkgconfig" EXCLUDE)
+    endif()
+
+    # Move any shared libraries to platform specific directories, so that they won't overwrite each other
+    set(LIBMEXCLASS_LIBRARY_NAME mexclass)
+    set(LIBMEXCLASS_LIBRARY ${LIBMEXCLASS_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(OPENTELEMETRY_PROXY_LIBRARY ${OPENTELEMETRY_PROXY_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/${LIBMEXCLASS_PACKAGE_DIRECTORY}/lib${LIBMEXCLASS_LIBRARY}\" \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/lib${LIBMEXCLASS_LIBRARY}\")")
+    install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/${LIBMEXCLASS_PACKAGE_DIRECTORY}/lib${OPENTELEMETRY_PROXY_LIBRARY}\" \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/lib${OPENTELEMETRY_PROXY_LIBRARY}\")")
 endif()
 
 # ##############################
