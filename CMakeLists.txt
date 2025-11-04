@@ -507,7 +507,6 @@ endif()
 target_link_libraries(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_LIBRARIES})
 
 # On Linux, when linking with certain static libraries, need to force include entire archive to avoid the linker mistakenly leaving out symbols
-# Also, set INSTALLED_RPATH such that dependencies can be found in platform specific directories
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
     set(OPENTELEMETRY_PROXY_LINK_OPTIONS -Wl,--whole-archive 
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_trace.a"
@@ -516,9 +515,6 @@ if(UNIX AND NOT APPLE AND NOT CYGWIN)
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_otlp_recordable.a"
         ${ABSL_LIBRARIES} -Wl,--no-whole-archive)
     target_link_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_OPTIONS})
-    set_target_properties(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/../../lib/${PLATFORM_NAME}")
-elseif(APPLE)
-    set_target_properties(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PROPERTIES INSTALL_RPATH "@loader_path;@loader_path/../../lib/${PLATFORM_NAME}")
 endif()
 
 # Use C++17 
@@ -654,27 +650,33 @@ endif()
 install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 
 # Install dependent runtime libraries
+set(LIBMEXCLASS_PACKAGE_DIRECTORY +libmexclass/+proxy)
 if(WIN32)
     # On Windows, install all libraries in the same directory because of the lack of a settable rpath
-    set(DEPENDENT_RUNTIME_INSTALLED_DIR +libmexclass/+proxy)
+    set(DEPENDENT_RUNTIME_INSTALLED_DIR ${LIBMEXCLASS_PACKAGE_DIRECTORY})
 else()
     # On non-Windows platform, install dependent libraries in a platform specific directory so that
     # they won't get overwritten when packaged
     set(DEPENDENT_RUNTIME_INSTALLED_DIR lib/${PLATFORM_NAME})
 endif()
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR})
-if(UNIX AND WITH_OTLP_GRPC)
-	install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR}
+if(UNIX)
+    if(WITH_OTLP_GRPC)
+        install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR}
                 FILES_MATCHING 
                 PATTERN "*.*"
                 PATTERN "cmake" EXCLUDE
                 PATTERN "pkgconfig" EXCLUDE)
+    endif()
+
+    # Move any shared libraries to platform specific directories, so that they won't overwrite each other
+    set(LIBMEXCLASS_LIBRARY_NAME mexclass)
+    set(LIBMEXCLASS_LIBRARY ${LIBMEXCLASS_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(OPENTELEMETRY_PROXY_LIBRARY ${OPENTELEMETRY_PROXY_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/${LIBMEXCLASS_PACKAGE_DIRECTORY}/lib${LIBMEXCLASS_LIBRARY}\" \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/lib${LIBMEXCLASS_LIBRARY}\")")
+    install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/${LIBMEXCLASS_PACKAGE_DIRECTORY}/lib${OPENTELEMETRY_PROXY_LIBRARY}\" \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/lib${OPENTELEMETRY_PROXY_LIBRARY}\")")
 endif()
 
-if(UNIX)
-	install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/+libmexclass/+proxy/libmexclass${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${CMAKE_INSTALL_PREFIX}/lib/${PLATFORM_NAME}/libmexclass${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-	install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/+libmexclass/+proxy/libOtelMatlabProxy${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"${CMAKE_INSTALL_PREFIX}/lib/${PLATFORM_NAME}/libOtelMatlabProxy${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-")
 # ##############################
 # Subdirectories
 # ##############################
