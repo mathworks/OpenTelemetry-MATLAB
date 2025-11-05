@@ -1,5 +1,7 @@
 # Full build-and-test with gRPC exporter on all Matlab Versions
 name: "Build and Run Tests Supported Versions"
+on: 
+    workflow_dispatch:
 env:
   MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
 jobs:
