@@ -1,4 +1,4 @@
-name: "Create Release"
+name: "Test packaging"
 on:
     push:
       branches:
@@ -131,9 +131,10 @@ jobs:
               with:
                 path: artifacts-downloaded
             - name: Decompress Artifacts
+              shell: cmd
               run: |
-                  mkdir $WITHGRPC_FOLDER
-                  cd $WITHGRPC_FOLDER
+                  mkdir %WITHGRPC_FOLDER%
+                  cd %WITHGRPC_FOLDER%
                   move ../artifacts-downloaded/*/otel-matlab-ubuntu.tar.gz .
                   move ../artifacts-downloaded/*/otel-matlab-macos*.tar.gz .
                   move ../artifacts-downloaded/*/otel-matlab-windows.tar.gz .
