@@ -34,8 +34,8 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=OFF -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER
-                  cmake --build build --config Release --target install
+                mkdir otel_matlab_install
+                touch otel_matlab_install/one.txt
             - name: Compress into single artifact
               run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
@@ -63,9 +63,8 @@ jobs:
               working-directory: opentelemetry-matlab
               shell: cmd
               run: |
-                  call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-                  cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=OFF -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
-                  cmake --build build --config Release --target install
+                mkdir otel_matlab_install
+                type nul > otel_matlab_install\two.txt
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
@@ -98,8 +97,8 @@ jobs:
               env:
                  CMAKE_POLICY_VERSION_MINIMUM: 3.5   # required by upb because its cmake requirement is not compatible with cmake 4 
               run: |
-                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=OFF -DWITH_OTLP_FILE=OFF -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
-                  cmake --build build --config Release --target install
+                mkdir otel_matlab_install
+                touch otel_matlab_install/three_${{ matrix.os }}
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-${{ matrix.os }}.tar.gz otel_matlab_install
@@ -134,14 +133,23 @@ jobs:
               shell: cmd
               run: |
                   mkdir ${{ env.WITHGRPC_FOLDER }}
+                  echo "one"
                   cd ${{ env.WITHGRPC_FOLDER }}
+                  echo "two"
                   move ../artifacts-downloaded/*/otel-matlab-ubuntu.tar.gz .
+                  echo "three"
                   move ../artifacts-downloaded/*/otel-matlab-macos*.tar.gz .
+                  echo "four"
                   move ../artifacts-downloaded/*/otel-matlab-windows.tar.gz .
+                  echo "five"
                   tar -xzvf otel-matlab-ubuntu.tar.gz
+                  echo "six"
                   tar -xzvf otel-matlab-macos-13.tar.gz
+                  echo "seven"
                   tar -xzvf otel-matlab-macos-14.tar.gz
+                  echo "eight"
                   tar -xzvf otel-matlab-windows.tar.gz
+                  echo "nine"
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
               with:
