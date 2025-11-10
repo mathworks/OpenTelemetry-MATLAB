@@ -34,8 +34,8 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                mkdir ../otel_matlab_install
-                touch ../otel_matlab_install/one.txt
+                cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/$OPENTELEMETRY_MATLAB_INSTALL_FOLDER
+                cmake --build build --config Release --target install
             - name: Compress into single artifact
               run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
@@ -63,8 +63,9 @@ jobs:
               working-directory: opentelemetry-matlab
               shell: cmd
               run: |
-                mkdir ..\otel_matlab_install
-                type nul > ..\otel_matlab_install\two.txt
+                call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+                cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER="cl.exe" -DCMAKE_C_COMPILER="cl.exe" -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DFETCH_VCPKG=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
@@ -97,8 +98,8 @@ jobs:
               env:
                  CMAKE_POLICY_VERSION_MINIMUM: 3.5   # required by upb because its cmake requirement is not compatible with cmake 4 
               run: |
-                mkdir ../otel_matlab_install
-                touch ../otel_matlab_install/three_${{ matrix.os }}
+                cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DWITH_OTLP_GRPC=ON -DWITH_OTLP_FILE=ON -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                cmake --build build --config Release --target install
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-${{ matrix.os }}.tar.gz otel_matlab_install
