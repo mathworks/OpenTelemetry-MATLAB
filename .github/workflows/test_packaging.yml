@@ -134,10 +134,7 @@ jobs:
               run: |
                   mkdir ${{ env.WITHGRPC_FOLDER }}
                   cd ${{ env.WITHGRPC_FOLDER }}
-                  move ..\artifacts-downloaded\otel-matlab-ubuntu.tar.gz .
-                  move ..\artifacts-downloaded\otel-matlab-macos-13.tar.gz .
-                  move ..\artifacts-downloaded\otel-matlab-macos-14.tar.gz .
-                  move ..\artifacts-downloaded\otel-matlab-windows.tar.gz .
+                  move ..\artifacts-downloaded\otel-matlab-*.tar.gz .
                   tar -xzf otel-matlab-ubuntu.tar.gz
                   tar -xzf otel-matlab-macos-13.tar.gz
                   tar -xzf otel-matlab-macos-14.tar.gz
