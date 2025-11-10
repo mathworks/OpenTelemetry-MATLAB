@@ -34,8 +34,8 @@ jobs:
             - name: Build OpenTelemetry-Matlab
               working-directory: opentelemetry-matlab
               run: |
-                mkdir otel_matlab_install
-                touch otel_matlab_install/one.txt
+                mkdir ../otel_matlab_install
+                touch ../otel_matlab_install/one.txt
             - name: Compress into single artifact
               run: tar -czf otel-matlab-ubuntu.tar.gz otel_matlab_install
             - name: Upload artifacts
@@ -63,8 +63,8 @@ jobs:
               working-directory: opentelemetry-matlab
               shell: cmd
               run: |
-                mkdir otel_matlab_install
-                type nul > otel_matlab_install\two.txt
+                mkdir ..\otel_matlab_install
+                type nul > ..\otel_matlab_install\two.txt
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-windows.tar.gz otel_matlab_install
@@ -97,8 +97,8 @@ jobs:
               env:
                  CMAKE_POLICY_VERSION_MINIMUM: 3.5   # required by upb because its cmake requirement is not compatible with cmake 4 
               run: |
-                mkdir otel_matlab_install
-                touch otel_matlab_install/three_${{ matrix.os }}
+                mkdir ../otel_matlab_install
+                touch ../otel_matlab_install/three_${{ matrix.os }}
             - name: Compress into single artifact
               working-directory: ${{ github.workspace }}
               run: tar -czf otel-matlab-${{ matrix.os }}.tar.gz otel_matlab_install
