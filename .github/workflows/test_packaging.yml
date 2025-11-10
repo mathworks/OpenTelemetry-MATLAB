@@ -117,8 +117,8 @@ jobs:
             - build-windows
             - build-macos
         env:
-            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}\otel_matlab_install"
-            WITHGRPC_FOLDER: "${{ github.workspace }}\withgrpc"
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}\\otel_matlab_install"
+            WITHGRPC_FOLDER: "${{ github.workspace }}\\withgrpc"
         steps:
             - name: Checkout OpenTelemetry-Matlab
               uses: actions/checkout@v3
@@ -135,11 +135,11 @@ jobs:
                   echo "one"
                   cd ${{ env.WITHGRPC_FOLDER }}
                   echo "two"
-                  move ..\artifacts-downloaded\*\otel-matlab-ubuntu.tar.gz .
+                  move ..\\artifacts-downloaded\\*\\otel-matlab-ubuntu.tar.gz .
                   echo "three"
-                  move ..\artifacts-downloaded\*\otel-matlab-macos*.tar.gz .
+                  move ..\\artifacts-downloaded\\*\\otel-matlab-macos*.tar.gz .
                   echo "four"
-                  move ..\artifacts-downloaded\*\otel-matlab-windows.tar.gz .
+                  move ..\\artifacts-downloaded\\*\\otel-matlab-windows.tar.gz .
                   echo "five"
                   tar -xzvf otel-matlab-ubuntu.tar.gz
                   echo "six"
