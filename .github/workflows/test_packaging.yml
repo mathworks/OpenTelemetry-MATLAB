@@ -137,17 +137,18 @@ jobs:
                   echo "two"
                   move ..\artifacts-downloaded\otel-matlab-ubuntu.tar.gz .
                   echo "three"
-                  move ..\artifacts-downloaded\otel-matlab-macos*.tar.gz .
+                  move ..\artifacts-downloaded\otel-matlab-macos-13.tar.gz .
+                  move ..\artifacts-downloaded\otel-matlab-macos-14.tar.gz .
                   echo "four"
                   move ..\artifacts-downloaded\otel-matlab-windows.tar.gz .
                   echo "five"
-                  tar -xzvf otel-matlab-ubuntu.tar.gz
+                  tar -xzf otel-matlab-ubuntu.tar.gz
                   echo "six"
-                  tar -xzvf otel-matlab-macos-13.tar.gz
+                  tar -xzf otel-matlab-macos-13.tar.gz
                   echo "seven"
-                  tar -xzvf otel-matlab-macos-14.tar.gz
+                  tar -xzf otel-matlab-macos-14.tar.gz
                   echo "eight"
-                  tar -xzvf otel-matlab-windows.tar.gz
+                  tar -xzf otel-matlab-windows.tar.gz
                   echo "nine"
             - name: Install MATLAB
               uses: matlab-actions/setup-matlab@v2
