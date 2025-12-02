@@ -682,11 +682,11 @@ install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_R
 if(UNIX)
     if(WITH_OTLP_GRPC)
         # Uniform version numbers for most files
-        set(FULL_VERSION "41.0.0")
-        set(SHORT_VERSION "41")
+        set(GRPC_FULL_VERSION "41.0.0")
+        set(GRPC_SHORT_VERSION "41")
 
         # Loop through all base names (no version numbers here)
-        foreach(base IN ITEMS
+        foreach(grpcfile IN ITEMS
             libaddress_sorting
             libgpr
             libgrpc
@@ -698,13 +698,18 @@ if(UNIX)
             libupb_textformat_lib
             libutf8_range_lib
         )
-            install_and_shorten_version(${base} ${FULL_VERSION} ${SHORT_VERSION})
+            install_and_shorten_version(${grpcfile} ${GRPC_FULL_VERSION} ${GRPC_SHORT_VERSION})
         endforeach()
 
         # Handle libgrpc++ separately (different version scheme)
         set(GRPCPP_FULL_VERSION "1.64.2")
         set(GRPCPP_SHORT_VERSION "1.64")
-	install_and_shorten_version(libgrpc++ ${GRPCPP_FULL_VERSION} ${GRPCPP_SHORT_VERSION})
+        foreach(grpcppfile IN ITEMS
+            libgrpc++
+            libgrpc++_unsecure
+        )
+            install_and_shorten_version(${grpcppfile} ${GRPCPP_FULL_VERSION} ${GRPCPP_SHORT_VERSION})
+        endforeach()
     endif()
 
     # Move any shared libraries to platform specific directories, so that they won't overwrite each other
