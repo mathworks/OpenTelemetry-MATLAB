@@ -649,6 +649,25 @@ endif()
 # toolbox path into MATLAB path. This issue is fixed in R2024a
 install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 
+# Macro: accepts base name, full version, and short version
+macro(install_and_shorten_version base full_version short_version)
+    if(APPLE)
+        # macOS: version before extension
+        set(SRC_FILE "${base}.${full_version}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        set(DEST_FILE "${base}.${short_version}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+        # Linux: version after extension
+        set(SRC_FILE "${base}${CMAKE_SHARED_LIBRARY_SUFFIX}.${full_version}")
+        set(DEST_FILE "${base}${CMAKE_SHARED_LIBRARY_SUFFIX}.${short_version}")
+    endif()
+
+    # Install the original file
+    install(FILES "${GRPC_INSTALL_LIB_DIR}/${SRC_FILE}" DESTINATION "${DEPENDENT_RUNTIME_INSTALLED_DIR}")
+
+    # Rename after installation
+    install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/${SRC_FILE}\" \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/${DEST_FILE}\")")
+endmacro()
+
 # Install dependent runtime libraries
 set(LIBMEXCLASS_PACKAGE_DIRECTORY +libmexclass/+proxy)
 if(WIN32)
@@ -662,11 +681,30 @@ endif()
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR})
 if(UNIX)
     if(WITH_OTLP_GRPC)
-        install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR}
-                FILES_MATCHING 
-                PATTERN "*.*"
-                PATTERN "cmake" EXCLUDE
-                PATTERN "pkgconfig" EXCLUDE)
+        # Uniform version numbers for most files
+        set(FULL_VERSION "41.0.0")
+        set(SHORT_VERSION "41")
+
+        # Loop through all base names (no version numbers here)
+        foreach(base IN ITEMS
+            libaddress_sorting
+            libgpr
+            libgrpc
+            libgrpc_unsecure
+            libupb_base_lib
+            libupb_json_lib
+            libupb_mem_lib
+            libupb_message_lib
+            libupb_textformat_lib
+            libutf8_range_lib
+        )
+            install_and_shorten_version(${base} ${FULL_VERSION} ${SHORT_VERSION})
+        endforeach()
+
+        # Handle libgrpc++ separately (different version scheme)
+        set(GRPCPP_FULL_VERSION "1.64.2")
+        set(GRPCPP_SHORT_VERSION "1.64")
+	install_and_shorten_version(libgrpc++ ${GRPCPP_FULL_VERSION} ${GRPCPP_SHORT_VERSION})
     endif()
 
     # Move any shared libraries to platform specific directories, so that they won't overwrite each other
@@ -683,4 +721,5 @@ endif()
 if(WITH_EXAMPLES)
    add_subdirectory(examples)
 endif()
+
 
