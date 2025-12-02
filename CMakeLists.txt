@@ -649,7 +649,11 @@ endif()
 # toolbox path into MATLAB path. This issue is fixed in R2024a
 install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 
-# Macro: accepts base name, full version, and short version
+# Macro to install a library and then rename it to shorten its version. The renaming is intended to 
+# work around an issue in matlab.addons.toolbox.packagetoolbox that omits symlinks from the resulting 
+# mltbx package. Many libraries ship symlinks with shortened version numbers. The renaming here 
+# effectively converts symlinks into their targets.
+# Accepts base name, full version, and short version
 macro(install_and_shorten_version base full_version short_version)
     if(APPLE)
         # macOS: version before extension
@@ -681,11 +685,11 @@ endif()
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR})
 if(UNIX)
     if(WITH_OTLP_GRPC)
-        # Uniform version numbers for most files
+        # Install gRPC shared libraries
+
+	# Loop through gRPC and dependent libraries
         set(GRPC_FULL_VERSION "41.0.0")
         set(GRPC_SHORT_VERSION "41")
-
-        # Loop through all base names (no version numbers here)
         foreach(grpcfile IN ITEMS
             libaddress_sorting
             libgpr
@@ -701,7 +705,7 @@ if(UNIX)
             install_and_shorten_version(${grpcfile} ${GRPC_FULL_VERSION} ${GRPC_SHORT_VERSION})
         endforeach()
 
-        # Handle libgrpc++ separately (different version scheme)
+	# Loop through libgrpc++ libraries (different version scheme)
         set(GRPCPP_FULL_VERSION "1.64.2")
         set(GRPCPP_SHORT_VERSION "1.64")
         foreach(grpcppfile IN ITEMS
