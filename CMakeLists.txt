@@ -649,6 +649,29 @@ endif()
 # toolbox path into MATLAB path. This issue is fixed in R2024a
 install(FILES ${OTLP_MISC_FILES} DESTINATION .)
 
+# Macro to install a library and then rename it to shorten its version. The renaming is intended to 
+# work around an issue in matlab.addons.toolbox.packagetoolbox that omits symlinks from the resulting 
+# mltbx package. Many libraries ship symlinks with shortened version numbers. The renaming here 
+# effectively converts symlinks into their targets.
+# Accepts base name, full version, and short version
+macro(install_and_shorten_version base full_version short_version)
+    if(APPLE)
+        # macOS: version before extension
+        set(SRC_FILE "${base}.${full_version}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        set(DEST_FILE "${base}.${short_version}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+        # Linux: version after extension
+        set(SRC_FILE "${base}${CMAKE_SHARED_LIBRARY_SUFFIX}.${full_version}")
+        set(DEST_FILE "${base}${CMAKE_SHARED_LIBRARY_SUFFIX}.${short_version}")
+    endif()
+
+    # Install the original file
+    install(FILES "${GRPC_INSTALL_LIB_DIR}/${SRC_FILE}" DESTINATION "${DEPENDENT_RUNTIME_INSTALLED_DIR}")
+
+    # Rename after installation
+    install(CODE "file(RENAME \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/${SRC_FILE}\" \"${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR}/${DEST_FILE}\")")
+endmacro()
+
 # Install dependent runtime libraries
 set(LIBMEXCLASS_PACKAGE_DIRECTORY +libmexclass/+proxy)
 if(WIN32)
@@ -662,11 +685,35 @@ endif()
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR})
 if(UNIX)
     if(WITH_OTLP_GRPC)
-        install(DIRECTORY ${GRPC_INSTALL_LIB_DIR}/ DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR}
-                FILES_MATCHING 
-                PATTERN "*.*"
-                PATTERN "cmake" EXCLUDE
-                PATTERN "pkgconfig" EXCLUDE)
+        # Install gRPC shared libraries
+
+	# Loop through gRPC and dependent libraries
+        set(GRPC_FULL_VERSION "41.0.0")
+        set(GRPC_SHORT_VERSION "41")
+        foreach(grpcfile IN ITEMS
+            libaddress_sorting
+            libgpr
+            libgrpc
+            libgrpc_unsecure
+            libupb_base_lib
+            libupb_json_lib
+            libupb_mem_lib
+            libupb_message_lib
+            libupb_textformat_lib
+            libutf8_range_lib
+        )
+            install_and_shorten_version(${grpcfile} ${GRPC_FULL_VERSION} ${GRPC_SHORT_VERSION})
+        endforeach()
+
+	# Loop through libgrpc++ libraries (different version scheme)
+        set(GRPCPP_FULL_VERSION "1.64.2")
+        set(GRPCPP_SHORT_VERSION "1.64")
+        foreach(grpcppfile IN ITEMS
+            libgrpc++
+            libgrpc++_unsecure
+        )
+            install_and_shorten_version(${grpcppfile} ${GRPCPP_FULL_VERSION} ${GRPCPP_SHORT_VERSION})
+        endforeach()
     endif()
 
     # Move any shared libraries to platform specific directories, so that they won't overwrite each other
@@ -683,4 +730,5 @@ endif()
 if(WITH_EXAMPLES)
    add_subdirectory(examples)
 endif()
+
 
