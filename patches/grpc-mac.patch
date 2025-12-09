@@ -118,7 +118,7 @@ index 0627429f49..60a86853ba 100644
  
  if(gRPC_INSTALL)
 diff --git a/src/core/lib/promise/detail/basic_seq.h b/src/core/lib/promise/detail/basic_seq.h
-index 663609d419..226e8579ca 100644
+index 663609d419..d5e56019e3 100644
 --- a/src/core/lib/promise/detail/basic_seq.h
 +++ b/src/core/lib/promise/detail/basic_seq.h
 @@ -100,7 +100,7 @@ class BasicSeqIter {
@@ -126,7 +126,7 @@ index 663609d419..226e8579ca 100644
            state_.~State();
            Construct(&state_,
 -                    Traits::template CallSeqFactory(f_, *cur_, std::move(arg)));
-+                    Traits::template CallSeqFactory<>(f_, *cur_, std::move(arg)));
++                    Traits::template CallSeqFactory<>(f_, *cur_, std::move(arg))); // add angle brackets to avoid compiler error on MacOS 15
            return PollNonEmpty();
          });
    }
