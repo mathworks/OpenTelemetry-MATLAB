@@ -1,10 +1,10 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index cc085b1a..6c4dc0ae 100644
+index 6da525dc..07592866 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -15,6 +15,12 @@ endif()
- 
- project(opentelemetry-cpp)
+@@ -21,6 +21,12 @@ project(
+   VERSION "${OPENTELEMETRY_VERSION_NUMBER}"
+   LANGUAGES CXX)
  
 +if(WIN32)
 +  # Add a preprocessor macro _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR to work around an invalid MEX file issue

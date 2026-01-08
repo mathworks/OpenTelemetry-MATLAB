@@ -1,4 +1,4 @@
-// Copyright 2023-2024 The MathWorks, Inc.
+// Copyright 2023-2026 The MathWorks, Inc.
 
 #pragma once
 
@@ -18,9 +18,6 @@
 #include "opentelemetry/nostd/string_view.h"
 #include "opentelemetry/sdk/metrics/view/meter_selector.h"
 #include "opentelemetry/sdk/metrics/view/meter_selector_factory.h"
-
-
-#include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 
 namespace metrics_sdk = opentelemetry::sdk::metrics;
 namespace nostd = opentelemetry::nostd;
@@ -87,7 +84,7 @@ private:
     std::string Description;
     metrics_sdk::AggregationType Aggregation;
     std::vector<double> HistogramBinEdges;
-    std::unordered_map<std::string, bool> AllowedAttributes;
+    metrics_sdk::FilterAttributeMap AllowedAttributes;
     bool FilterAttributes;
 };
 }

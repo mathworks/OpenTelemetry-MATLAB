@@ -1,8 +1,9 @@
-// Copyright 2023-2024 The MathWorks, Inc.
+// Copyright 2023-2026 The MathWorks, Inc.
 
 #include "opentelemetry/ext/http/client/http_client_factory.h"
 #include "opentelemetry/ext/http/common/url_parser.h"
-#include "opentelemetry/trace/semantic_conventions.h"
+#include "opentelemetry/semconv/url_attributes.h"
+#include "opentelemetry/semconv/http_attributes.h"
 #include "HttpTextMapCarrier.h"
 
 #include "opentelemetry/exporters/otlp/otlp_http_exporter_factory.h"
@@ -26,6 +27,7 @@ using namespace opentelemetry::trace;
 namespace http_client = opentelemetry::ext::http::client;
 namespace context     = opentelemetry::context;
 namespace nostd       = opentelemetry::nostd;
+namespace semconv     = opentelemetry::semconv;
 
 void InitTracer()
 {
@@ -71,9 +73,9 @@ void sendRequest(const std::string &url)
   std::string span_name = url_parser.path_;
   auto span             = get_tracer("http-client")
                   ->StartSpan(span_name,
-                              {{SemanticConventions::kUrlFull, url_parser.url_},
-                               {SemanticConventions::kUrlScheme, url_parser.scheme_},
-                               {SemanticConventions::kHttpRequestMethod, "POST"}},
+                              {{semconv::url::kUrlFull, url_parser.url_},
+                               {semconv::url::kUrlScheme, url_parser.scheme_},
+                               {semconv::http::kHttpRequestMethod, "POST"}},
                               options);
   auto scope = get_tracer("http-client")->WithActiveSpan(span);
 
@@ -89,7 +91,7 @@ void sendRequest(const std::string &url)
   {
     // set span attributes
     auto status_code = result.GetResponse().GetStatusCode();
-    span->SetAttribute(SemanticConventions::kHttpResponseStatusCode, status_code);
+    span->SetAttribute(semconv::http::kHttpResponseStatusCode, status_code);
     result.GetResponse().ForEachHeader(
         [&span](nostd::string_view header_name, nostd::string_view header_value) {
           span->SetAttribute("http.header." + std::string(header_name.data()), header_value);
