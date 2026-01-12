@@ -98,9 +98,6 @@ option(WITH_OTLP_FILE "Whether to include the OTLP file exporter" OFF)
 if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC AND NOT WITH_OTLP_FILE)
     message(FATAL_ERROR "At least one of WITH_OTLP_HTTP, WITH_OTLP_GRPC, or WITH_OTLP_FILE must be ON")
 endif()
-if(APPLE)
-    option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
-endif()
 option(WITH_EXAMPLES "Whether to build examples" OFF)
 
 # set vcpkg features depending on specified options
@@ -174,6 +171,19 @@ if(WITH_OTLP_GRPC)
 	                   ${GRPC_INSTALL_LIB_DIR}/upb_message_lib.lib
 	                   ${GRPC_INSTALL_LIB_DIR}/upb_textformat_lib.lib
 	                   ${GRPC_INSTALL_LIB_DIR}/utf8_range_lib.lib)
+    elseif(APPLE)
+       set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/libaddress_sorting.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgpr.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc++.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc++_unsecure.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc_unsecure.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_base_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_json_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_mem_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_message_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_textformat_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libutf8_range_lib.dylib)
     else()
        set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/libgrpc++${CMAKE_SHARED_LIBRARY_SUFFIX})
     endif()
@@ -284,17 +294,11 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    set(OTEL_CPP_ABI_VERSION OPENTELEMETRY_ABI_VERSION_NO=2)
 
    set(PATCHES_DIR ${CMAKE_SOURCE_DIR}/patches)
-   if(SKIP_OTEL_CPP_PATCH)
-       set(OTEL_CPP_PATCH_CMD "")
-   elseif(WIN32)
+   set(OTEL_CPP_PATCH_CMD "")
+   if(WIN32 AND NOT SKIP_OTEL_CPP_PATCH)
        # Windows patch to add a preprocessor definition _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
        # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
        set(OTEL_CPP_PATCH_CMD git apply ${PATCHES_DIR}/otel-cpp-windows.patch)
-   elseif(APPLE)
-       # Mac patch to fix a linker issue when including gRPC exporter 
-       set(OTEL_CPP_PATCH_CMD git apply ${PATCHES_DIR}/otel-cpp-mac.patch)
-   else()
-       set(OTEL_CPP_PATCH_CMD "")
    endif()
 
    if(WITH_OTLP_GRPC)
