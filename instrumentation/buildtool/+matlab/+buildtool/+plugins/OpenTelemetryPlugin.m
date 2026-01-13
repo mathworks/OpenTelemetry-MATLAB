@@ -132,6 +132,12 @@ end
 
 % Use the same configuration as PADV
 function extcontextscope = configureOTel()
+
+% Skip configuration if NO_MBT_OTEL_CONFIG set
+if (getenv("NO_MBT_OTEL_CONFIG"))
+    return;
+end
+
 % populate resource attributes
 otelservicename = "buildtool";
 otelresource = dictionary("service.name", otelservicename);
@@ -173,6 +179,11 @@ end
 
 % Use the same cleanup as PADV
 function cleanupOTel(span)
+
+% Skip cleanup if NO_MBT_OTEL_CONFIG set
+if (getenv("NO_MBT_OTEL_CONFIG"))
+    return;
+end
 
 timeout = 5;
 
