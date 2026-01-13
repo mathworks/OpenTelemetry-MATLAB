@@ -98,9 +98,6 @@ option(WITH_OTLP_FILE "Whether to include the OTLP file exporter" OFF)
 if(NOT WITH_OTLP_HTTP AND NOT WITH_OTLP_GRPC AND NOT WITH_OTLP_FILE)
     message(FATAL_ERROR "At least one of WITH_OTLP_HTTP, WITH_OTLP_GRPC, or WITH_OTLP_FILE must be ON")
 endif()
-if(APPLE)
-    option(SKIP_OTEL_CPP_PATCH "Whether to skip patching OpenTelemetry-cpp" OFF)
-endif()
 option(WITH_EXAMPLES "Whether to build examples" OFF)
 
 # set vcpkg features depending on specified options
@@ -174,6 +171,19 @@ if(WITH_OTLP_GRPC)
 	                   ${GRPC_INSTALL_LIB_DIR}/upb_message_lib.lib
 	                   ${GRPC_INSTALL_LIB_DIR}/upb_textformat_lib.lib
 	                   ${GRPC_INSTALL_LIB_DIR}/utf8_range_lib.lib)
+    elseif(APPLE)
+       set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/libaddress_sorting.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgpr.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc++.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc++_unsecure.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libgrpc_unsecure.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_base_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_json_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_mem_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_message_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libupb_textformat_lib.dylib
+	                   ${GRPC_INSTALL_LIB_DIR}/libutf8_range_lib.dylib)
     else()
        set(GRPC_LINK_LIBRARIES ${GRPC_INSTALL_LIB_DIR}/libgrpc++${CMAKE_SHARED_LIBRARY_SUFFIX})
     endif()
@@ -242,15 +252,9 @@ else()
      set(OTEL_CPP_PREFIX ${CMAKE_BINARY_DIR}/otel-cpp)
 endif()
 
-if(WIN32)
-    set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
-else()
-    set(OTEL_PROTO_LIBRARY_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
-endif()
-
 set(OTEL_CPP_LIBRARIES ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_common${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_otlp_recordable${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto${OTEL_PROTO_LIBRARY_SUFFIX}
+        ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_resources${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_trace${CMAKE_STATIC_LIBRARY_SUFFIX}
 	${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_version${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -268,7 +272,7 @@ if(WITH_OTLP_GRPC)
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_client${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_metrics${CMAKE_STATIC_LIBRARY_SUFFIX}
 	    ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_grpc_log${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${OTEL_PROTO_LIBRARY_SUFFIX})
+            ${OTEL_CPP_PREFIX}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}opentelemetry_proto_grpc${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 if(WITH_OTLP_FILE)
     set(OTEL_CPP_LIBRARIES ${OTEL_CPP_LIBRARIES} ${OTEL_CPP_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}opentelemetry_exporter_otlp_file${CMAKE_STATIC_LIBRARY_SUFFIX}
@@ -282,7 +286,7 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    include(ExternalProject)
    set(OTEL_CPP_PROJECT_NAME opentelemetry-cpp)
    set(OTEL_CPP_GIT_REPOSITORY "https://github.com/open-telemetry/opentelemetry-cpp.git")
-   set(OTEL_CPP_GIT_TAG "955a807")
+   set(OTEL_CPP_GIT_TAG "a7b1008")
 
    set(OTEL_CPP_CXX_STANDARD 14)
 
@@ -290,17 +294,11 @@ if(NOT DEFINED OTEL_CPP_INSTALLED_DIR)
    set(OTEL_CPP_ABI_VERSION OPENTELEMETRY_ABI_VERSION_NO=2)
 
    set(PATCHES_DIR ${CMAKE_SOURCE_DIR}/patches)
-   if(SKIP_OTEL_CPP_PATCH)
-       set(OTEL_CPP_PATCH_CMD "")
-   elseif(WIN32)
+   set(OTEL_CPP_PATCH_CMD "")
+   if(WIN32 AND NOT SKIP_OTEL_CPP_PATCH)
        # Windows patch to add a preprocessor definition _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
        # See https://github.com/mathworks/OpenTelemetry-Matlab/issues/130
        set(OTEL_CPP_PATCH_CMD git apply ${PATCHES_DIR}/otel-cpp-windows.patch)
-   elseif(APPLE)
-       # Mac patch to fix a linker issue when including gRPC exporter 
-       set(OTEL_CPP_PATCH_CMD git apply ${PATCHES_DIR}/otel-cpp-mac.patch)
-   else()
-       set(OTEL_CPP_PATCH_CMD "")
    endif()
 
    if(WITH_OTLP_GRPC)
@@ -513,6 +511,7 @@ if(UNIX AND NOT APPLE AND NOT CYGWIN)
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_logs.a"
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_common.a"
 	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_otlp_recordable.a"
+	"${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto.a"
         ${ABSL_LIBRARIES} -Wl,--no-whole-archive)
     target_link_options(${OPENTELEMETRY_PROXY_LIBRARY_NAME} PRIVATE ${OPENTELEMETRY_PROXY_LINK_OPTIONS})
 endif()
@@ -542,17 +541,10 @@ if(WIN32)
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_DLL}
 	    $<TARGET_FILE_DIR:OpenSSL::SSL>/../bin/${OPENSSL_CRYPTO_DLL})
     endif()
-else()
-    set(OTEL_CPP_RUNTIME ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto${CMAKE_SHARED_LIBRARY_SUFFIX})
-    if(WITH_OTLP_GRPC)
-        set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME}
-                             ${OTEL_CPP_PREFIX}/lib/libopentelemetry_proto_grpc${CMAKE_SHARED_LIBRARY_SUFFIX})
-    endif()
-    if(APPLE)
-        set(OTEL_CPP_RUNTIME ${OTEL_CPP_RUNTIME} $<TARGET_FILE:ZLIB::ZLIB> 
-           $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_MAJOR_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
-           $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX})
-    endif()
+elseif(APPLE)
+    set(OTEL_CPP_RUNTIME $<TARGET_FILE:ZLIB::ZLIB> 
+        $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_MAJOR_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}
+        $<TARGET_FILE_DIR:ZLIB::ZLIB>/libz.${ZLIB_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX})
     set(OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES ${OTEL_CPP_RUNTIME})
 endif()
 
@@ -682,6 +674,7 @@ else()
     # they won't get overwritten when packaged
     set(DEPENDENT_RUNTIME_INSTALLED_DIR lib/${PLATFORM_NAME})
 endif()
+install(CODE "file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${DEPENDENT_RUNTIME_INSTALLED_DIR})")
 install(FILES ${OPENTELEMETRY_PROXY_RUNTIME_LIBRARIES} DESTINATION ${DEPENDENT_RUNTIME_INSTALLED_DIR})
 if(UNIX)
     if(WITH_OTLP_GRPC)

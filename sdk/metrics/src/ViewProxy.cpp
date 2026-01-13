@@ -1,4 +1,4 @@
-// Copyright 2023-2025 The MathWorks, Inc.
+// Copyright 2023-2026 The MathWorks, Inc.
 
 #include "opentelemetry-matlab/sdk/metrics/ViewProxy.h"
 
@@ -117,14 +117,18 @@ std::unique_ptr<metrics_sdk::View> ViewProxy::getView(){
     }
     
     // HistogramAggregationConfig
-    auto aggregation_config = std::shared_ptr<metrics_sdk::HistogramAggregationConfig>(new metrics_sdk::HistogramAggregationConfig());
+    std::shared_ptr<metrics_sdk::AggregationConfig> aggregation_config;
     if(Aggregation == metrics_sdk::AggregationType::kHistogram ||
 		    (Aggregation == metrics_sdk::AggregationType::kDefault && InstrumentType == metrics_sdk::InstrumentType::kHistogram)){
-        aggregation_config->boundaries_ = HistogramBinEdges;
+	auto histogram_aggregation_config = std::make_shared<metrics_sdk::HistogramAggregationConfig>();
+        histogram_aggregation_config->boundaries_ = HistogramBinEdges;
+	aggregation_config = histogram_aggregation_config;
+    } else {
+	aggregation_config = std::make_shared<metrics_sdk::AggregationConfig>();
     }
 
     // View
-    return metrics_sdk::ViewFactory::Create(Name, Description, "", Aggregation, aggregation_config, std::move(attributes_processor));
+    return metrics_sdk::ViewFactory::Create(Name, Description, Aggregation, aggregation_config, std::move(attributes_processor));
 }
 
 std::unique_ptr<metrics_sdk::InstrumentSelector> ViewProxy::getInstrumentSelector(){
