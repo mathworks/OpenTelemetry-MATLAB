@@ -87,42 +87,33 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(buildSpan.status.code, 1);
 
             % Build span attributes
-            att1.key = 'otel.library.name';
-            att1.value.stringValue = 'buildtool';
+            att1.key = 'buildtool.tasks';
+            att1.value.doubleValue = 1;
 
-            att2.key = 'span.kind';
-            att2.value.stringValue = 'internal';
+            att2.key = 'buildtool.tasks.successful';
+            att2.value.stringValue = 'task';
 
-            att3.key = 'internal.span.format';
-            att3.value.stringValue = 'proto';
-
-            att4.key = 'buildtool.tasks';
-            att4.value.doubleValue = 1;
-
-            att5.key = 'buildtool.tasks.successful';
-            att5.value.stringValue = 'task';
-
-            att6.key = 'buildtool.tasks.failed';
-            att6.value.arrayValue = struct();
+            att3.key = 'buildtool.tasks.failed';
+            att3.value.arrayValue = struct();
 
             sizeZero.doubleValue = 0;
-            att7.key = 'buildtool.tasks.failed.size';
-            att7.value.arrayValue.values = [sizeZero; sizeZero];
+            att4.key = 'buildtool.tasks.failed.size';
+            att4.value.arrayValue.values = [sizeZero; sizeZero];
 
-            att8.key = 'buildtool.tasks.skipped';
-            att8.value.arrayValue = struct();
+            att5.key = 'buildtool.tasks.skipped';
+            att5.value.arrayValue = struct();
 
-            att9.key = 'buildtool.tasks.skipped.size';
-            att9.value.arrayValue.values = [sizeZero; sizeZero];
+            att6.key = 'buildtool.tasks.skipped.size';
+            att6.value.arrayValue.values = [sizeZero; sizeZero];
 
-            att10.key = 'buildtool.build.successes';
-            att10.value.doubleValue = 1;
+            att7.key = 'buildtool.build.successes';
+            att7.value.doubleValue = 1;
 
-            att11.key = 'buildtool.build.failures';
-            att11.value.doubleValue = 0;
+            att8.key = 'buildtool.build.failures';
+            att8.value.doubleValue = 0;
 
-            att12.key = 'buildtool.build.skips';
-            att12.value.doubleValue = 0;
+            att9.key = 'buildtool.build.skips';
+            att9.value.doubleValue = 0;
 
             expected = [ ...
                 att1, ...
@@ -134,9 +125,6 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
                 att7, ...
                 att8, ...
                 att9, ...
-                att10, ...
-                att11, ...
-                att12, ...
             ]';
             
             testCase.verifyEqual(buildSpan.attributes, expected);
@@ -149,39 +137,27 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(taskSpan.parentSpanId, buildSpan.spanId);
 
             % Task span attributes
-            tAtt1.key = 'otel.library.name';
+            tAtt1.key = 'buildtool.task.name';
             tAtt1.value.stringValue = 'task';
 
-            tAtt2.key = 'span.kind';
-            tAtt2.value.stringValue = 'internal';
+            tAtt2.key = 'buildtool.task.description';
+            tAtt2.value.stringValue = '';
 
-            tAtt3.key = 'internal.span.format';
-            tAtt3.value.stringValue = 'proto';
+            tAtt3.key = 'buildtool.task.successful';
+            tAtt3.value.boolValue = true;
 
-            tAtt4.key = 'buildtool.task.name';
-            tAtt4.value.stringValue = 'task';
+            tAtt4.key = 'buildtool.task.failed';
+            tAtt4.value.boolValue = false;
 
-            tAtt5.key = 'buildtool.task.description';
-            tAtt5.value.stringValue = '';
-
-            tAtt6.key = 'buildtool.task.successful';
-            tAtt6.value.boolValue = true;
-
-            tAtt7.key = 'buildtool.task.failed';
-            tAtt7.value.boolValue = false;
-
-            tAtt8.key = 'buildtool.task.skipped';
-            tAtt8.value.boolValue = false;
+            tAtt5.key = 'buildtool.task.skipped';
+            tAtt5.value.boolValue = false;
 
             expected = [ ...
                 tAtt1, ...
                 tAtt2, ...
                 tAtt3, ...
                 tAtt4, ...
-                tAtt5, ...
-                tAtt6, ...
-                tAtt7, ...
-                tAtt8, ...                
+                tAtt5, ...                
             ]';
 
             testCase.verifyEqual(taskSpan.attributes, expected);
@@ -247,47 +223,38 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(buildSpan.status.code, 2); % Build should fail
 
             % Build span attributes
-            att1.key = 'otel.library.name';
-            att1.value.stringValue = 'buildtool';
-
-            att2.key = 'span.kind';
-            att2.value.stringValue = 'internal';
-
-            att3.key = 'internal.span.format';
-            att3.value.stringValue = 'proto';
-
-            att4.key = 'buildtool.tasks';
-            att4.value.doubleValue = 4;
+            att1.key = 'buildtool.tasks';
+            att1.value.doubleValue = 4;
 
             val1.stringValue = 't1';
             val2.stringValue = 't2';
             val3.stringValue = 't3';
-            att5.key = 'buildtool.tasks.successful';
-            att5.value.arrayValue.values = [val1; val2; val3];
+            att2.key = 'buildtool.tasks.successful';
+            att2.value.arrayValue.values = [val1; val2; val3];
             
             size1.doubleValue = 1;
             size3.doubleValue = 3;
-            att6.key = 'buildtool.tasks.successful.size';
-            att6.value.arrayValue.values = [size1; size3];
+            att3.key = 'buildtool.tasks.successful.size';
+            att3.value.arrayValue.values = [size1; size3];
 
-            att7.key = 'buildtool.tasks.failed';
-            att7.value.stringValue = 'error';
+            att4.key = 'buildtool.tasks.failed';
+            att4.value.stringValue = 'error';
 
-            att8.key = 'buildtool.tasks.skipped';
-            att8.value.arrayValue = struct();
+            att5.key = 'buildtool.tasks.skipped';
+            att5.value.arrayValue = struct();
 
             sizeZero.doubleValue = 0;
-            att9.key = 'buildtool.tasks.skipped.size';
-            att9.value.arrayValue.values = [sizeZero; sizeZero];
+            att6.key = 'buildtool.tasks.skipped.size';
+            att6.value.arrayValue.values = [sizeZero; sizeZero];
 
-            att10.key = 'buildtool.build.successes';
-            att10.value.doubleValue = 3;
+            att7.key = 'buildtool.build.successes';
+            att7.value.doubleValue = 3;
 
-            att11.key = 'buildtool.build.failures';
-            att11.value.doubleValue = 1;
+            att8.key = 'buildtool.build.failures';
+            att8.value.doubleValue = 1;
 
-            att12.key = 'buildtool.build.skips';
-            att12.value.doubleValue = 0;
+            att9.key = 'buildtool.build.skips';
+            att9.value.doubleValue = 0;
 
             expected = [ ...
                 att1, ...
@@ -299,9 +266,6 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
                 att7, ...
                 att8, ...
                 att9, ...
-                att10, ...
-                att11, ...
-                att12, ...
             ]';
 
             testCase.verifyEqual(buildSpan.attributes, expected);
@@ -314,39 +278,27 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(taskSpan.parentSpanId, buildSpan.spanId);
 
             % Task span attributes
-            tAtt1.key = 'otel.library.name';
+            tAtt1.key = 'buildtool.task.name';
             tAtt1.value.stringValue = 't1';
 
-            tAtt2.key = 'span.kind';
-            tAtt2.value.stringValue = 'internal';
+            tAtt2.key = 'buildtool.task.description';
+            tAtt2.value.stringValue = '';
 
-            tAtt3.key = 'internal.span.format';
-            tAtt3.value.stringValue = 'proto';
+            tAtt3.key = 'buildtool.task.successful';
+            tAtt3.value.boolValue = true;
 
-            tAtt4.key = 'buildtool.task.name';
-            tAtt4.value.stringValue = 't1';
+            tAtt4.key = 'buildtool.task.failed';
+            tAtt4.value.boolValue = false;
 
-            tAtt5.key = 'buildtool.task.description';
-            tAtt5.value.stringValue = '';
-
-            tAtt6.key = 'buildtool.task.successful';
-            tAtt6.value.boolValue = true;
-
-            tAtt7.key = 'buildtool.task.failed';
-            tAtt7.value.boolValue = false;
-
-            tAtt8.key = 'buildtool.task.skipped';
-            tAtt8.value.boolValue = false;
+            tAtt5.key = 'buildtool.task.skipped';
+            tAtt5.value.boolValue = false;
 
             expected = [ ...
                 tAtt1, ...
                 tAtt2, ...
                 tAtt3, ...
                 tAtt4, ...
-                tAtt5, ...
-                tAtt6, ...
-                tAtt7, ...
-                tAtt8, ...                
+                tAtt5, ...                
                 ]';
 
             testCase.verifyEqual(taskSpan.attributes, expected);
@@ -359,39 +311,27 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(taskSpan.parentSpanId, buildSpan.spanId);
 
             % Task span attributes
-            tAtt1.key = 'otel.library.name';
+            tAtt1.key = 'buildtool.task.name';
             tAtt1.value.stringValue = 't2';
 
-            tAtt2.key = 'span.kind';
-            tAtt2.value.stringValue = 'internal';
+            tAtt2.key = 'buildtool.task.description';
+            tAtt2.value.stringValue = '';
 
-            tAtt3.key = 'internal.span.format';
-            tAtt3.value.stringValue = 'proto';
+            tAtt3.key = 'buildtool.task.successful';
+            tAtt3.value.boolValue = true;
 
-            tAtt4.key = 'buildtool.task.name';
-            tAtt4.value.stringValue = 't2';
+            tAtt4.key = 'buildtool.task.failed';
+            tAtt4.value.boolValue = false;
 
-            tAtt5.key = 'buildtool.task.description';
-            tAtt5.value.stringValue = '';
-
-            tAtt6.key = 'buildtool.task.successful';
-            tAtt6.value.boolValue = true;
-
-            tAtt7.key = 'buildtool.task.failed';
-            tAtt7.value.boolValue = false;
-
-            tAtt8.key = 'buildtool.task.skipped';
-            tAtt8.value.boolValue = false;
+            tAtt5.key = 'buildtool.task.skipped';
+            tAtt5.value.boolValue = false;
 
             expected = [ ...
                 tAtt1, ...
                 tAtt2, ...
                 tAtt3, ...
                 tAtt4, ...
-                tAtt5, ...
-                tAtt6, ...
-                tAtt7, ...
-                tAtt8, ...                
+                tAtt5, ...                
                 ]';
 
             testCase.verifyEqual(taskSpan.attributes, expected);
@@ -404,39 +344,27 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(taskSpan.parentSpanId, buildSpan.spanId);
 
             % Task span attributes
-            tAtt1.key = 'otel.library.name';
+            tAtt1.key = 'buildtool.task.name';
             tAtt1.value.stringValue = 't3';
 
-            tAtt2.key = 'span.kind';
-            tAtt2.value.stringValue = 'internal';
+            tAtt2.key = 'buildtool.task.description';
+            tAtt2.value.stringValue = '';
 
-            tAtt3.key = 'internal.span.format';
-            tAtt3.value.stringValue = 'proto';
+            tAtt3.key = 'buildtool.task.successful';
+            tAtt3.value.boolValue = true;
 
-            tAtt4.key = 'buildtool.task.name';
-            tAtt4.value.stringValue = 't3';
+            tAtt4.key = 'buildtool.task.failed';
+            tAtt4.value.boolValue = false;
 
-            tAtt5.key = 'buildtool.task.description';
-            tAtt5.value.stringValue = '';
-
-            tAtt6.key = 'buildtool.task.successful';
-            tAtt6.value.boolValue = true;
-
-            tAtt7.key = 'buildtool.task.failed';
-            tAtt7.value.boolValue = false;
-
-            tAtt8.key = 'buildtool.task.skipped';
-            tAtt8.value.boolValue = false;
+            tAtt5.key = 'buildtool.task.skipped';
+            tAtt5.value.boolValue = false;
 
             expected = [ ...
                 tAtt1, ...
                 tAtt2, ...
                 tAtt3, ...
                 tAtt4, ...
-                tAtt5, ...
-                tAtt6, ...
-                tAtt7, ...
-                tAtt8, ...                
+                tAtt5, ...                
                 ]';
 
             testCase.verifyEqual(taskSpan.attributes, expected);
@@ -449,39 +377,27 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(taskSpan.parentSpanId, buildSpan.spanId);
 
             % Task span attributes
-            tAtt1.key = 'otel.library.name';
+            tAtt1.key = 'buildtool.task.name';
             tAtt1.value.stringValue = 'error';
 
-            tAtt2.key = 'span.kind';
-            tAtt2.value.stringValue = 'internal';
+            tAtt2.key = 'buildtool.task.description';
+            tAtt2.value.stringValue = '';
 
-            tAtt3.key = 'internal.span.format';
-            tAtt3.value.stringValue = 'proto';
+            tAtt3.key = 'buildtool.task.successful';
+            tAtt3.value.boolValue = false;
 
-            tAtt4.key = 'buildtool.task.name';
-            tAtt4.value.stringValue = 'error';
+            tAtt4.key = 'buildtool.task.failed';
+            tAtt4.value.boolValue = true;
 
-            tAtt5.key = 'buildtool.task.description';
-            tAtt5.value.stringValue = '';
-
-            tAtt6.key = 'buildtool.task.successful';
-            tAtt6.value.boolValue = false;
-
-            tAtt7.key = 'buildtool.task.failed';
-            tAtt7.value.boolValue = true;
-
-            tAtt8.key = 'buildtool.task.skipped';
-            tAtt8.value.boolValue = false;
+            tAtt5.key = 'buildtool.task.skipped';
+            tAtt5.value.boolValue = false;
 
             expected = [ ...
                 tAtt1, ...
                 tAtt2, ...
                 tAtt3, ...
                 tAtt4, ...
-                tAtt5, ...
-                tAtt6, ...
-                tAtt7, ...
-                tAtt8, ...                
+                tAtt5, ...                
                 ]';
 
             testCase.verifyEqual(taskSpan.attributes, expected);
