@@ -522,6 +522,29 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
             testCase.verifyEqual(metrics(5).name, 'buildtool.tasks.successful');
             testCase.verifyEqual(metrics(5).sum.dataPoints.asDouble, 3);
         end
+
+        function buildToolDoesNotConfigureOTelWhenEnvVariableSet(testCase)
+            testCase.assumeFalse(isMATLABReleaseOlderThan("R2026a"));
+
+            % Restore environment variable
+            testCase.addTeardown(@()setenv("NO_MBT_OTEL_CONFIG", ""));
+
+            % Set environment variable
+            setenv("NO_MBT_OTEL_CONFIG", "1");
+
+            % Create plan with 1 successful task
+            plan = buildplan();
+            plan("task") = matlab.buildtool.Task();
+
+            % Run build
+            testCase.BuildRunner.run(plan, "task");
+
+            % Get results
+            results = readJsonResults(testCase);
+
+            % Verify results are empty since we never set up any providers
+            testCase.verifyEmpty(results);
+        end
     end
 end
 
