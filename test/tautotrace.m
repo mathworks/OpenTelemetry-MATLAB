@@ -289,24 +289,51 @@ classdef tautotrace < matlab.unittest.TestCase
             at = opentelemetry.autoinstrument.AutoTrace(@linearfit_example);
 
             % run the example with an invalid input, check for error
-            verifyError(testCase, @()beginTrace(at, "invalid"), "autotrace_examples:linearfit_example:generate_data:InvalidN");
+            errorid_expected = "autotrace_examples:linearfit_example:generate_data:InvalidN";
+            errormsg_expected = "Input must be a numeric scalar";
+            verifyError(testCase, @()beginTrace(at, "invalid"), errorid_expected);
 
             % perform test comparisons
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, 2);
 
             % check span names
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "generate_data");
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "linearfit_example");
+            spannames = cellfun(@(x)string(x.resourceSpans.scopeSpans.spans.name), results);
+            spannames_expected = ["generate_data" "linearfit_example"];
+            [lia, locb] = ismember(spannames_expected, spannames);
+            verifyTrue(testCase, all(lia));
+            generatedata = results{locb(1)};
+            linearfitexample = results{locb(2)};
 
             % check parent children relationship
-            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
+            verifyEqual(testCase, generatedata.resourceSpans.scopeSpans.spans.parentSpanId, linearfitexample.resourceSpans.scopeSpans.spans.spanId);
 
             % check error status
-            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 2);  % error 
-            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.message, ...
-                'Input must be a numeric scalar');  
-            verifyEmpty(testCase, fieldnames(results{2}.resourceSpans.scopeSpans.spans.status));  % ok, no error
+            verifyEqual(testCase, generatedata.resourceSpans.scopeSpans.spans.status.code, 2);  % error 
+            verifyEqual(testCase, string(generatedata.resourceSpans.scopeSpans.spans.status.message), ...
+                errormsg_expected);  
+            verifyEmpty(testCase, fieldnames(linearfitexample.resourceSpans.scopeSpans.spans.status));  % ok, no error
+
+            % check exception event
+            verifyTrue(testCase, isfield(generatedata.resourceSpans.scopeSpans.spans, "events"));   % exception event in "generate_data" span
+            exception = generatedata.resourceSpans.scopeSpans.spans.events;
+            verifyEqual(testCase, string(exception.name), "exception");
+            % exception attributes
+            exception_attrkeys = string({exception.attributes.key});
+            identifieridx = find(exception_attrkeys == "exception.identifier");
+            verifyNotEmpty(testCase, identifieridx);
+            verifyEqual(testCase, string(exception.attributes(identifieridx).value.stringValue), errorid_expected);
+            messageidx = find(exception_attrkeys == "exception.message");
+            verifyNotEmpty(testCase, messageidx);
+            verifyEqual(testCase, string(exception.attributes(messageidx).value.stringValue), errormsg_expected);
+            causeidx = find(exception_attrkeys == "exception.cause");
+            verifyNotEmpty(testCase, causeidx);
+            verifyEqual(testCase, string(exception.attributes(causeidx).value.stringValue), "[]");
+            stacktraceidx = find(exception_attrkeys == "exception.stacktrace");
+            verifyNotEmpty(testCase, stacktraceidx);
+            verifyTrue(testCase, contains(string(exception.attributes(stacktraceidx).value.stringValue), "generate_data.m"));
+
+            verifyFalse(testCase, isfield(linearfitexample.resourceSpans.scopeSpans.spans, "events"));  % no exception event in "linearfit_example" span
         end
 
         function testHandleError(testCase)
@@ -324,25 +351,52 @@ classdef tautotrace < matlab.unittest.TestCase
 
             % call example directly instead of calling beginTrace, and pass
             % in an invalid input
+            errorid_expected = "autotrace_examples:linearfit_example:generate_data:InvalidN";
+            errormsg_expected = "Input must be a numeric scalar";
             verifyError(testCase, @()linearfit_example_trycatch(at, "invalid"), ...
-                "autotrace_examples:linearfit_example:generate_data:InvalidN");
+                errorid_expected);
 
             % perform test comparisons
             results = readJsonResults(testCase);
             verifyNumElements(testCase, results, 2);
 
             % check span names
-            verifyEqual(testCase, string(results{1}.resourceSpans.scopeSpans.spans.name), "generate_data");
-            verifyEqual(testCase, string(results{2}.resourceSpans.scopeSpans.spans.name), "linearfit_example_trycatch");
+            spannames = cellfun(@(x)string(x.resourceSpans.scopeSpans.spans.name), results);
+            spannames_expected = ["generate_data" "linearfit_example_trycatch"];
+            [lia, locb] = ismember(spannames_expected, spannames);
+            verifyTrue(testCase, all(lia));
+            generatedata = results{locb(1)};
+            linearfitexample = results{locb(2)};
 
             % check parent children relationship
-            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.parentSpanId, results{2}.resourceSpans.scopeSpans.spans.spanId);
+            verifyEqual(testCase, generatedata.resourceSpans.scopeSpans.spans.parentSpanId, linearfitexample.resourceSpans.scopeSpans.spans.spanId);
 
             % check error status
-            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.code, 2);  % error
-            verifyEqual(testCase, results{1}.resourceSpans.scopeSpans.spans.status.message, ...
-                'Input must be a numeric scalar');  
-            verifyEmpty(testCase, fieldnames(results{2}.resourceSpans.scopeSpans.spans.status));  % ok, no error
+            verifyEqual(testCase, generatedata.resourceSpans.scopeSpans.spans.status.code, 2);  % error
+            verifyEqual(testCase, string(generatedata.resourceSpans.scopeSpans.spans.status.message), ...
+                errormsg_expected);  
+            verifyEmpty(testCase, fieldnames(linearfitexample.resourceSpans.scopeSpans.spans.status));  % ok, no error
+
+            % check exception event
+            verifyTrue(testCase, isfield(generatedata.resourceSpans.scopeSpans.spans, "events"));   % exception event in "generate_data" span
+            exception = generatedata.resourceSpans.scopeSpans.spans.events;
+            verifyEqual(testCase, string(exception.name), "exception");
+            % exception attributes
+            exception_attrkeys = string({exception.attributes.key});
+            identifieridx = find(exception_attrkeys == "exception.identifier");
+            verifyNotEmpty(testCase, identifieridx);
+            verifyEqual(testCase, string(exception.attributes(identifieridx).value.stringValue), errorid_expected);
+            messageidx = find(exception_attrkeys == "exception.message");
+            verifyNotEmpty(testCase, messageidx);
+            verifyEqual(testCase, string(exception.attributes(messageidx).value.stringValue), errormsg_expected);
+            causeidx = find(exception_attrkeys == "exception.cause");
+            verifyNotEmpty(testCase, causeidx);
+            verifyEqual(testCase, string(exception.attributes(causeidx).value.stringValue), "[]");
+            stacktraceidx = find(exception_attrkeys == "exception.stacktrace");
+            verifyNotEmpty(testCase, stacktraceidx);
+            verifyTrue(testCase, contains(string(exception.attributes(stacktraceidx).value.stringValue), "generate_data.m"));
+
+            verifyFalse(testCase, isfield(linearfitexample.resourceSpans.scopeSpans.spans, "events"));  % no exception event in "linearfit_example_trycatch" span
         end
 
         function testMultipleInstances(testCase)

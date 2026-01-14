@@ -1,7 +1,7 @@
 classdef AutoTrace < handle
     % Automatic instrumentation with OpenTelemetry tracing.
 
-    % Copyright 2024-2025 The MathWorks, Inc.
+    % Copyright 2024-2026 The MathWorks, Inc.
 
     properties (SetAccess=private)
         StartFunction function_handle   % entry function
@@ -155,7 +155,9 @@ classdef AutoTrace < handle
             %    spans and their corresponding scopes. Rethrow the
             %    exception ME.
             if ~isempty(obj.Instrumentor.Spans)
-                setStatus(obj.Instrumentor.Spans(end), "Error", ME.message);
+                errorspan = obj.Instrumentor.Spans(end); 
+                setStatus(errorspan, "Error", ME.message);
+                recordException(errorspan, ME);
                 for i = length(obj.Instrumentor.Spans):-1:1
                     obj.Instrumentor.Spans(i) = [];
                     obj.Instrumentor.Scopes(i) = [];
