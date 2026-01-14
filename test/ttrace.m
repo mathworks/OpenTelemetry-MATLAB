@@ -1,7 +1,7 @@
 classdef ttrace < matlab.unittest.TestCase
     % tests for traces and spans
 
-    % Copyright 2023-2025 The MathWorks, Inc.
+    % Copyright 2023-2026 The MathWorks, Inc.
 
     properties
         OtelConfigFile
@@ -632,6 +632,79 @@ classdef ttrace < matlab.unittest.TestCase
                 size(attributes{"stringarray"}));
 
         end
+
+        function testRecordException(testCase)
+            % Test recording a simple exception
+
+            % Define exception properties
+            errid = "TestID:SimpleError";
+            errmsg = "This is a test error message";
+
+            % Create tracer and span
+            tp = opentelemetry.sdk.trace.TracerProvider();
+            tracer = getTracer(tp, "test_tracer");
+            span = startSpan(tracer, "test_span");
+
+            % Generate exception
+            except = generateException(errid, errmsg);
+            % add a cause
+            causeid = "TestID:CauseError";
+            causemsg = "This is the cause";
+            cause = generateException(causeid, causemsg);
+            except = addCause(except, cause);
+
+            % record exception with an extra attribute
+            attr1name = "foo";
+            attr1val = "bar";
+            recordException(span, except, attr1name, attr1val);
+
+            endSpan(span);
+
+            % Get results
+            results = readJsonResults(testCase);
+
+            % Verify event exists and has correct name
+            events = results{1}.resourceSpans.scopeSpans.spans.events;
+            verifyEqual(testCase, length(events), 1);
+            verifyEqual(testCase, events(1).name, 'exception');
+
+            % Get all attribute keys
+            eventAttrs = events(1).attributes;
+            attrKeys = string({eventAttrs.key});
+
+            % Verify exception.identifier
+            idIdx = find(attrKeys == "exception.identifier");
+            verifyNotEmpty(testCase, idIdx);
+            verifyEqual(testCase, string(eventAttrs(idIdx).value.stringValue), errid);
+
+            % Verify exception.message
+            msgIdx = find(attrKeys == "exception.message");
+            verifyNotEmpty(testCase, msgIdx);
+            verifyEqual(testCase, string(eventAttrs(msgIdx).value.stringValue), errmsg);
+
+            % Verify exception.stacktrace
+            stackIdx = find(attrKeys == "exception.stacktrace");
+            verifyNotEmpty(testCase, stackIdx);
+            stack = jsondecode(string(eventAttrs(stackIdx).value.stringValue));
+            verifyNotEmpty(testCase, stack);  % Should have stack frames now
+            verifyEqual(testCase, stack, except.stack);
+
+            % Verify exception.cause
+            causeIdx = find(attrKeys == "exception.cause");
+            verifyNotEmpty(testCase, causeIdx);
+            causeAttr = jsondecode(string(eventAttrs(causeIdx).value.stringValue));
+            verifyEqual(testCase, causeAttr.identifier, cause.identifier);
+            verifyEqual(testCase, causeAttr.message, cause.message);
+            verifyEqual(testCase, causeAttr.stack, cause.stack);
+            verifyEmpty(testCase, causeAttr.cause);
+            verifyEmpty(testCase, causeAttr.Correction);
+
+            % Verify extra attribute
+            attrIdx = find(attrKeys == attr1name);
+            verifyNotEmpty(testCase, attrIdx);
+            verifyEqual(testCase, string(eventAttrs(attrIdx).value.stringValue), attr1val);
+        end
+
 
         function testLinks(testCase)
             % testLinks: specifying links between spans

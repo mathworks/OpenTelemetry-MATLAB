@@ -1,7 +1,7 @@
 classdef Span < handle
 % A span that represents a unit of work within a trace.  
 
-% Copyright 2023-2025 The MathWorks, Inc.
+% Copyright 2023-2026 The MathWorks, Inc.
 
     properties 
         Name  (1,1) string   % Name of span
@@ -129,14 +129,76 @@ classdef Span < handle
                 attrs{1,i} = attrnames(i);
                 attrs(2,i) = attrvalues(i);
             end
-            obj.Proxy.addEvent(eventname, eventtime, attrs{:});        
+            obj.Proxy.addEvent(eventname, eventtime, attrs{:});
         end
 
-    	function setStatus(obj, status, description)
+        function recordException(obj, exception, varargin)
+            % RECORDEXCEPTION  Record an exception as an event.
+            %    RECORDEXCEPTION(SP, EXCEPTION) records a MATLAB exception
+            %    (MException object) as an event at the current time.
+            %
+            %    RECORDEXCEPTION(SP, EXCEPTION, TIME) also specifies the event
+            %    time. If TIME does not have a time zone specified, it is
+            %    interpreted as a UTC time.
+            %
+            %    RECORDEXCEPTION(..., ATTRIBUTES) or RECORDEXCEPTION(..., ATTRNAME1,
+            %    ATTRVALUE1, ATTRNAME2, ATTRVALUE2, ...) specifies additional
+            %    attribute name/value pairs for the event, either as a
+            %    dictionary or as trailing inputs.
+            %
+            %    See also ADDEVENT, SETSTATUS
+
+            arguments
+                obj
+                exception (1,1) MException
+            end
+            arguments (Repeating)
+                varargin
+            end
+
+            % Process event time input first
+            eventtime = [];
+            remainingArgs = varargin;
+            if ~isempty(remainingArgs) && isdatetime(remainingArgs{1})
+                eventtime = remainingArgs{1};
+                remainingArgs(1) = [];  % remove the time input
+            end
+
+            % Process any additional user-provided attributes
+            [userAttrNames, userAttrValues] = opentelemetry.common.processAttributes(remainingArgs);
+
+            % Build the exception attributes
+            exceptionAttrs = dictionary();
+
+            % Standard exception attributes
+            exceptionAttrs("exception.identifier") = string(exception.identifier);
+            exceptionAttrs("exception.message") = string(exception.message);
+            exceptionAttrs("exception.stacktrace") = jsonencode(exception.stack);
+            exceptionAttrs("exception.cause") = jsonencode(exception.cause);
+
+            % Merge user attributes with exception attributes
+            % User attributes should not override the standard exception attributes
+            for i = 1:length(userAttrNames)
+                attrName = userAttrNames(i);
+                if ~isKey(exceptionAttrs, attrName)
+                    exceptionAttrs(attrName) = userAttrValues{i};
+                end
+                % Silently ignore conflicting attributes
+            end
+
+            % Call addEvent with the exception attributes
+            if isempty(eventtime)
+                obj.addEvent("exception", exceptionAttrs);
+            else
+                obj.addEvent("exception", eventtime, exceptionAttrs);
+            end
+        end
+
+        function setStatus(obj, status, description)
             % SETSTATUS  Set the span status.
             %    SETSTATUS(SP, STATUS) sets the span status as "Ok" or
             %    "Error".
-            % 
+            %
             %    SETSTATUS(SP, STATUS, DESC) also specifies a description.
             %    Description is only recorded if status is "Error".
             try
