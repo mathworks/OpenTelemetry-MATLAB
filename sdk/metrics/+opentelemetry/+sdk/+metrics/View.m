@@ -1,4 +1,4 @@
-classdef View
+classdef View < handle
     % View enables customization of output metrics. Supported customization
     % includes:
     %   * Metric name
@@ -7,7 +7,7 @@ classdef View
     %   * Ignore unwanted instruments
     %   * Ignore unwanted attributes
 
-    % Copyright 2023-2025 The MathWorks, Inc.
+    % Copyright 2023-2026 The MathWorks, Inc.
 
     properties (GetAccess={?opentelemetry.sdk.metrics.MeterProvider})
         Proxy  % Proxy object to interface C++ code

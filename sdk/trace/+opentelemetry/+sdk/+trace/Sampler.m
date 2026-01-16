@@ -1,7 +1,7 @@
-classdef Sampler
+classdef Sampler < handle
 % Base class for samplers.
 
-% Copyright 2023 The MathWorks, Inc.
+% Copyright 2023-2026 The MathWorks, Inc.
 
     properties (GetAccess={?opentelemetry.sdk.trace.TracerProvider,...
             ?opentelemetry.sdk.trace.ParentBasedSampler, ...

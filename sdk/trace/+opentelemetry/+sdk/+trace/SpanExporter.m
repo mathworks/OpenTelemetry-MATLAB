@@ -1,7 +1,7 @@
-classdef SpanExporter
+classdef SpanExporter < handle
 % Base class of span exporters
 
-% Copyright 2023-2024 The MathWorks, Inc.
+% Copyright 2023-2026 The MathWorks, Inc.
 
     properties (Hidden, GetAccess={?opentelemetry.sdk.trace.SpanProcessor, ...
             ?opentelemetry.exporters.otlp.OtlpHttpSpanExporter, ...
