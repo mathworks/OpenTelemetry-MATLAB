@@ -12,3 +12,4 @@ fixes:
     - "\\+opentelemetry/\\+exporters/\\+otlp/::exporters/otlp/+opentelemetry/+exporters/+otlp/"
     - "\\+opentelemetry/\\+sdk/\\+logs::sdk/logs/+opentelemetry/+sdk/+logs/"
     - "\\+opentelemetry/\\+logs/::api/logs/+opentelemetry/+logs/"
+    - "\\+matlab/\\+buildtool/::instrumentation/buildtool/+matlab/+buildtool/"
