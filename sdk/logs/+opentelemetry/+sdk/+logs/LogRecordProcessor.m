@@ -1,7 +1,7 @@
-classdef LogRecordProcessor < matlab.mixin.Heterogeneous
+classdef LogRecordProcessor < matlab.mixin.Heterogeneous & handle
 % Base class of log record processors
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2026 The MathWorks, Inc.
 
     properties (GetAccess={?opentelemetry.sdk.logs.LoggerProvider,...
 		    ?opentelemetry.sdk.logs.BatchLogRecordProcessor})

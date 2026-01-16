@@ -1,7 +1,7 @@
-classdef MetricExporter
+classdef MetricExporter < handle
 % Base class of metric exporters
 
-% Copyright 2023-2024 The MathWorks, Inc.
+% Copyright 2023-2026 The MathWorks, Inc.
 
     properties
         PreferredAggregationTemporality (1,1) string = "cumulative"   % Preferred Aggregation Temporality

@@ -1,8 +1,8 @@
-classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous
+classdef PeriodicExportingMetricReader < matlab.mixin.Heterogeneous & handle
 % Periodic exporting metric reader passes collected metrics to an exporter
 % periodically at a fixed time interval.
 
-% Copyright 2023-2024 The MathWorks, Inc.
+% Copyright 2023-2026 The MathWorks, Inc.
 
     properties (GetAccess=?opentelemetry.sdk.metrics.MeterProvider)
         Proxy  % Proxy object to interface C++ code

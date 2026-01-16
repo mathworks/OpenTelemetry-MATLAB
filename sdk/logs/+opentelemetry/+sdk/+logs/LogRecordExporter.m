@@ -1,7 +1,7 @@
-classdef LogRecordExporter
+classdef LogRecordExporter < handle
 % Base class of log record exporters
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2024-2026 The MathWorks, Inc.
 
     properties (GetAccess={?opentelemetry.sdk.logs.LogRecordProcessor, ...
             ?opentelemetry.exporters.otlp.OtlpHttpLogRecordExporter, ...
