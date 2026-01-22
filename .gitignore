@@ -5,3 +5,4 @@ build
 *.asv
 *.swp
 .vscode/settings.json
+examples/*/.env
