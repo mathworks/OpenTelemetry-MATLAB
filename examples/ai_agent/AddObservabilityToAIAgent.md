@@ -218,7 +218,7 @@ function [observation, argValues] = executeTool(toolCall,toolRegistry)
 
 
     % Validate tool call
-    argValues = evaluateToolCall(toolCall, toolRegistry);
+    argValues = validateToolCall(toolCall, toolRegistry);
 
 
     % Execute tool
@@ -274,10 +274,10 @@ User: What is the smallest root of x^2+2x-3=0?
 [Thought] I will solve the quadratic equation x^2 + 2x - 3 = 0 to find its roots.
 [Action] Calling tool 'solveQuadraticEquation' with args: "{\"a\":1,\"b\":2,\"c\":-3}"
 [Observation] Result from tool 'solveQuadraticEquation': ["-3","1"]
-[Thought] I will find the smallest real number from the roots -3 and 1.
+[Thought] I will determine the smallest root from the roots -3 and 1.
 [Action] Calling tool 'smallestRealNumber' with args: "{\"x1\":\"-3\",\"x2\":\"1\"}"
 [Observation] Result from tool 'smallestRealNumber': -3
-[Thought] I will provide the final answer, which is the smallest root -3.
+[Thought] I will provide the final answer as the smallest root, which is -3.
 ```
 
 End the top\-level OpenTelemetry span and clear its scope. In functions, spans end implicitly at the end of the functions when the span variables run out of scope. In scripts, spans have to be ended explicitly.
@@ -405,12 +405,12 @@ end
 end
 ```
 
-## Evaluate Tool Calls
+## Validate Tool Calls
 
-The `evaluateToolCall` function evaluates tool calls identified by the LLM. LLMs can hallucinate tool calls or make errors about the parameters that the tools need. Therefore, first validate the tool name and parameters by comparing them to the `toolRegistry` dictionary. 
+The validateToolCall function validates tool calls identified by the LLM. LLMs can hallucinate tool calls or make errors about the parameters that the tools need. Therefore, validate the tool name and parameters by comparing them to the `toolRegistry` dictionary. 
 
 ```matlab
-function argValues = evaluateToolCall(toolCall,toolRegistry)
+function argValues = validateToolCall(toolCall,toolRegistry)
 
 
 % Validate tool name
