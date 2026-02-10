@@ -10,6 +10,8 @@ The following is a trace that shows the workflow in this example. For more infor
 
 ![image_0.png](AddObservabilityToAIAgent_media/image_0.png)
 
+ *Screenshot taken from Jaeger. Used with permission from the Jaeger project. This way to* [*jaegertracing.io*](https://www.jaegertracing.io)*.*
+
 # Prerequisites
 
 This example requires the following add\-on packages to be installed in MATLAB. Use the Add\-on Explorer to download and install them.
@@ -20,8 +22,8 @@ This example requires the following add\-on packages to be installed in MATLAB. 
 In addition, the following softwares are necessary to collect the generated telemetry data. 
 
 - [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
-- A tracing backend (for example, [Jaeger](https://www.jaegertracing.io/))
-- A metrics backend (for example, [Prometheus](https://prometheus.io/))
+- A tracing backend. For example, Jaeger ([https://www.jaegertracing.io/](https://www.jaegertracing.io/))
+- A metrics backend. For example, Prometheus [(https://prometheus.io/](http://(https//prometheus.io/))
 
 The OpenTelemetry Collector is a component that uses configurable pipelines to ingest telemetry data in different formats, transform it, and send it to one or more backends. It decouples the instrumented applications from the backends and therefore enables changes to how the telemetry data is processed and where it is sent to without modifying application code. It also handles the complexities of data transmission across networks and retry logic. For details about how to configure the OpenTelemetry Collector, see the documentation at [https://opentelemetry.io/docs/collector/configuration/](https://opentelemetry.io/docs/collector/configuration/).
 
@@ -271,13 +273,13 @@ agentResponse = runReActAgent(userQuery,toolRegistry);
 
 ```matlabTextOutput
 User: What is the smallest root of x^2+2x-3=0?
-[Thought] I will solve the quadratic equation x^2 + 2x - 3 = 0 to find its roots.
+[Thought] I will solve the quadratic equation x^2 + 2x - 3 = 0 to find its roots. Then I will determine the smallest root.
 [Action] Calling tool 'solveQuadraticEquation' with args: "{\"a\":1,\"b\":2,\"c\":-3}"
 [Observation] Result from tool 'solveQuadraticEquation': ["-3","1"]
-[Thought] I will determine the smallest root from the roots -3 and 1.
+[Thought] I will determine the smallest real number from the roots -3 and 1.
 [Action] Calling tool 'smallestRealNumber' with args: "{\"x1\":\"-3\",\"x2\":\"1\"}"
 [Observation] Result from tool 'smallestRealNumber': -3
-[Thought] I will provide the final answer as the smallest root, which is -3.
+[Thought] I will provide the final answer, which is the smallest root -3.
 ```
 
 End the top\-level OpenTelemetry span and clear its scope. In functions, spans end implicitly at the end of the functions when the span variables run out of scope. In scripts, spans have to be ended explicitly.
@@ -304,6 +306,8 @@ Visualize the generated trace in your tracing backend. For example, the followin
 ![image_2.png](AddObservabilityToAIAgent_media/image_2.png)
 
 ![image_3.png](AddObservabilityToAIAgent_media/image_3.png)
+
+ *Screenshots taken from Jaeger. Used with permission from the Jaeger project. This way to* [*jaegertracing.io*](https://www.jaegertracing.io)*.*
 
 # Helper Functions
 
