@@ -1,31 +1,33 @@
-# Add OpenTelemetry Observability to an AI Agent
+# Add OpenTelemetry Observability to AI Agent
 
-This example shows how to add OpenTelemetry observability to an AI Agent. Observability enables monitoring of the requests sent to the agent, which can help with troubleshooting and optimization. In this example, [OpenTelemetry](https://opentelemetry.io/) is used to capture telemetry data including traces and metrics. OpenTelemetry is an open\-source observability framework that provides a standard way to generate, collect, and export telemetry data without vendor lock\-in.
+This example shows how to add OpenTelemetry observability to an AI Agent. 
 
-The original example being instrumented is taken from the[ "Solve Simple Math Problem Using AI Agent"](https://github.com/matlab-deep-learning/llms-with-matlab/blob/main/examples/SolveSimpleMathProblemUsingAIAgent.md) example in the ["Large Language Models (LLMs) with MATLAB"](https://github.com/matlab-deep-learning/llms-with-matlab) package. It shows how to build an AI agent to find the smallest root of a quadratic equation. 
+*AI agents* are programs that autonomously plan and execute workflows. Typically, agents use large language models (LLMs) to process user queries and identify actions that need to be taken, also known as *tool calls*. The agent then executes the tool calls that the LLM has identified and returns the result to the LLM. Then, the LLM generates an answer or executes more tool calls.
 
-AI agents are programs that autonomously plan and execute workflows. Typically, agents use large language models (LLMs) to process user queries and identify actions that need to be taken, also known as *tool calls*. The agent then executes the tool calls that the LLM has identified and returns the result to the LLM. Then, the LLM generates an answer or executes more tool calls.
+This agent in this example is based on the [Solve Simple Math Problem Using AI Agent](https://github.com/matlab-deep-learning/llms-with-matlab/blob/main/examples/SolveSimpleMathProblemUsingAIAgent.md) example in the [Large Language Models (LLMs) with MATLAB](https://github.com/matlab-deep-learning/llms-with-matlab) add\-on. The agent finds the smallest root of a quadratic equation. 
 
-The following is a trace that shows the workflow in this example. For more information about tracing, see this[ introduction](https://opentelemetry.io/docs/concepts/signals/traces/) in the OpenTelemetry website. 
+*Observability* lets you monitor the requests sent to the agent, which can help with troubleshooting and optimization. This example uses [OpenTelemetry](https://opentelemetry.io/) to capture telemetry data including traces and metrics. OpenTelemetry is an open\-source observability framework that provides a standardized way to generate, collect, and export telemetry data.
 
-![image_0.png](AddObservabilityToAIAgent_media/image_0.png)
+This image shows a trace of the workflow in this example. For more information about tracing, see this[ introduction](https://opentelemetry.io/docs/concepts/signals/traces/) in the OpenTelemetry website. 
+
+![image_0.png](./AddObservabilityToAIAgent_media/image_0.png)
 
  *Screenshot taken from Jaeger. Used with permission from the Jaeger project. This way to* [*jaegertracing.io*](https://www.jaegertracing.io)*.*
 
 # Prerequisites
 
-This example requires the following add\-on packages to be installed in MATLAB. Use the Add\-on Explorer to download and install them.
+This example uses these add\-ons:
 
-- [Large Language Models (LLMs) with MATLAB](https://github.com/matlab-deep-learning/llms-with-matlab)
-- [MATLAB Interface to OpenTelemetry](https://github.com/mathworks/OpenTelemetry-MATLAB)
+- Large Language Models (LLMs) with MATLAB
+- MATLAB Interface to OpenTelemetry
 
-In addition, the following softwares are necessary to collect the generated telemetry data. 
+Download and install the add\-ons by using the Add\-on Explorer.
 
-- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
-- A tracing backend. For example, Jaeger ([https://www.jaegertracing.io/](https://www.jaegertracing.io/))
-- A metrics backend. For example, Prometheus [(https://prometheus.io/](http://(https//prometheus.io/))
+In addition, the example uses these external code packages:
 
-The OpenTelemetry Collector is a component that uses configurable pipelines to ingest telemetry data in different formats, transform it, and send it to one or more backends. It decouples the instrumented applications from the backends and therefore enables changes to how the telemetry data is processed and where it is sent to without modifying application code. It also handles the complexities of data transmission across networks and retry logic. For details about how to configure the OpenTelemetry Collector, see the documentation at [https://opentelemetry.io/docs/collector/configuration/](https://opentelemetry.io/docs/collector/configuration/).
+- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/). OpenTelemetry Collector is a component that uses configurable pipelines to ingest telemetry data in different formats, transform it, and send it to one or more backends. It decouples the instrumented applications from the backends and therefore enables changes to how the telemetry data is processed and where it is sent to without modifying application code. It also handles the complexities of data transmission across networks and retry logic. For details about how to configure the OpenTelemetry Collector, see the documentation at [https://opentelemetry.io/docs/collector/configuration/](https://opentelemetry.io/docs/collector/configuration/).
+- A tracing backend. For example, Jaeger ([https://www.jaegertracing.io/](https://www.jaegertracing.io/)).
+- A metrics backend. For example, Prometheus [(https://prometheus.io/](http://(https//prometheus.io/)).
 
 Before proceeding, check both required add\-on packages are installed. 
 
@@ -35,7 +37,9 @@ checkRequiredPackages
 
 # Initialize OpenTelemetry
 
-OpenTelemetry needs to be initialized and configured before it can be used. This needs to be done only once in a MATLAB session. The following initialization code sets the service name as an attribute. Otherwise, it uses default configurations.
+First, initialize and configure OpenTelemetry. You only need to do this once during your MATLAB® session. 
+
+The following initialization code sets the service name as an attribute. Otherwise, it uses default configurations.
 
 ```matlab
 function initializeOTel
@@ -56,9 +60,9 @@ runOnce(@initializeOTel);
 
 This example uses the OpenAI® API, which requires an OpenAI API key. For information on how to obtain an OpenAI API key, as well as pricing, terms and conditions of use, and information about available models, see the OpenAI documentation at [https://platform.openai.com/docs/overview](https://platform.openai.com/docs/overview).
 
-To connect to the OpenAI API from MATLAB® using LLMs with MATLAB, specify the OpenAI API key as an environment variable and save it to a file called ".env".
+To connect to the OpenAI API from MATLAB using LLMs with MATLAB, specify the OpenAI API key as an environment variable and save it to a file called ".env".
 
-![image_1.png](AddObservabilityToAIAgent_media/image_1.png)
+![image_1.png](./AddObservabilityToAIAgent_media/image_1.png)
 
 To connect to OpenAI, the ".env" file must be on the search path. Load the environment file using the [`loadenv`](https://www.mathworks.com/help/matlab/ref/loadenv.html) function.
 
@@ -68,7 +72,7 @@ loadenv(".env")
 
 # Capture Details of LLM Interactions
 
-To build observability into AI Agent workflow, capture inputs, outputs, properties, and metadata of interactions with the OpenAI LLM. Start an OpenTelemetry span for each interaction, and then record LLM inputs, outputs and other data as attributes of the span. OpenTelemetry metrics can be used to aggregate quantities across multiple calls to the LLM, such as the total number of LLM calls and the total number of tokens. 
+To build observability into an AI Agent workflow, capture inputs, outputs, properties, and metadata of interactions with the LLM. Start an OpenTelemetry span for each interaction, and then record LLM inputs, outputs and other data as attributes of the span. OpenTelemetry metrics can be used to aggregate quantities across multiple calls to the LLM, such as the total number of LLM calls and the total number of tokens. 
 
 ## Query Pricing
 
@@ -98,7 +102,7 @@ end
 
 ## Capture Details of Agent Creation
 
-At agent creation, it is useful to record agent name and description, the underlying LLM model and any system prompt sent to the LLM. 
+When you create the agent, record the agent name and description, the underlying LLM model, as well as any system prompt sent to the LLM.
 
 ```matlab
 function llm = createAgent(modelName, systemPrompt, tools)
@@ -108,7 +112,7 @@ function llm = createAgent(modelName, systemPrompt, tools)
     scopeCreateAgent = makeCurrent(spCreateAgent);   
 
 
-    llm = openAIChat(systemPrompt,ModelName=modelName, Tools=tools);
+    llm = openAIChat(systemPrompt, ModelName=modelName, Tools=tools);
 
 
     % Capture OpenTelemetry span attributes related to the chat
@@ -128,17 +132,17 @@ end
 
 ## Capture Details of Agent Requests
 
-For each LLM request, record the request input and output, the number of tokens, the associated costs, and the tools defined. Other properties including response ID and status, hyperparameters such as temperature, Top P, and stop sequences are also useful. For aggregated quantities such as total requests, tokens and costs, define metric instruments for tracking them.
+For each LLM request, record the request input and output, the number of tokens, the associated costs, and the defined tools. You can also record other properties including response ID and status, hyperparameters such as temperature, Top P, and stop sequences. To track aggregated quantities such as total requests, tokens and costs, define metric instruments.
 
 ```matlab
-function [thought,completeOutput] = invokeAgent(llm, history,toolChoice, tools, inputRate, outputRate)
+function [thought, completeOutput] = invokeAgent(llm, history, toolChoice, tools, inputRate, outputRate)
     % Start OpenTelemetry span
     trInvokeAgent = opentelemetry.trace.getTracer("AddObservabilityToAIAgent");
     spInvokeAgent = startSpan(trInvokeAgent, "invokeAgent");
     scopeInvokeAgent = makeCurrent(spInvokeAgent); 
 
 
-    [thought,completeOutput,response] = generate(llm,history,ToolChoice=toolChoice);
+    [thought, completeOutput, response] = generate(llm, history, ToolChoice=toolChoice);
 
 
     % Capture OpenTelemetry span attributes related to the response
@@ -248,9 +252,9 @@ function [observation, argValues] = executeTool(toolCall,toolRegistry)
 end
 ```
 
-# Solve Math Problem
+# Run Agent
 
-After the code is instrumented, proceed to start the agent. First, start a top\-level OpenTelemetry span to track the entire workflow.
+After you instrumented the code, start the agent. First, start a top\-level OpenTelemetry span to track the entire workflow.
 
 ```matlab
 tr = opentelemetry.trace.getTracer("AddObservabilityToAIAgent");
@@ -258,28 +262,33 @@ sp = startSpan(tr, "AddObservabilityToAIAgent");
 scope = makeCurrent(sp); 
 ```
 
-Create a tool registry, which is passed to the agent to define what tools it can use.
+Create a tool registry using the `registerToolRegistry` function, which is defined at the bottom of this example. In this example, the tools include a function to solve a quadratic equation, as well as a function to determine the smallest real number of a list of two arbitrary numbers.
 
 ```matlab
 toolRegistry = registerToolRegistry;
 ```
 
-Define the query to solve a simple math problem. Answer the query using the agent.
+Define the query to solve a simple math problem.
 
 ```matlab
 userQuery = "What is the smallest root of x^2+2x-3=0?";
+```
+
+Answer the query using the agent. Pass the tool registry to the agent to define what tools it can use.
+
+```matlab
 agentResponse = runReActAgent(userQuery,toolRegistry);
 ```
 
 ```matlabTextOutput
 User: What is the smallest root of x^2+2x-3=0?
-[Thought] I will solve the quadratic equation x^2 + 2x - 3 = 0 to find its roots. Then I will determine the smallest root.
+[Thought] I will find the roots of the quadratic equation x^2 + 2x - 3 = 0.
 [Action] Calling tool 'solveQuadraticEquation' with args: "{\"a\":1,\"b\":2,\"c\":-3}"
 [Observation] Result from tool 'solveQuadraticEquation': ["-3","1"]
-[Thought] I will determine the smallest real number from the roots -3 and 1.
+[Thought] I will determine the smallest root from the roots -3 and 1.
 [Action] Calling tool 'smallestRealNumber' with args: "{\"x1\":\"-3\",\"x2\":\"1\"}"
 [Observation] Result from tool 'smallestRealNumber': -3
-[Thought] I will provide the final answer, which is the smallest root -3.
+[Thought] I will return the smallest root, which is -3, as the final answer.
 ```
 
 End the top\-level OpenTelemetry span and clear its scope. In functions, spans end implicitly at the end of the functions when the span variables run out of scope. In scripts, spans have to be ended explicitly.
@@ -301,17 +310,22 @@ The smallest root of the equation x^2 + 2x - 3 = 0 is -3.
 
 # Visualize Trace
 
-Visualize the generated trace in your tracing backend. For example, the following shows the trace in Jaeger. It shows every request sent to the LLM, every tool call, the order they happen, and the time they take. For every LLM request, it also shows the input and output, the hyperparameters used, the number of input and output tokens, and the costs incurred.
+Visualize the generated trace in your tracing backend. For example, the following images show the trace in Jaeger. 
 
-![image_2.png](AddObservabilityToAIAgent_media/image_2.png)
+The images show every request sent to the LLM, every tool call, the order they happen, and the time they take. For every LLM request, they also show the input and output, the hyperparameters used, the number of input and output tokens, and the costs incurred.
 
-![image_3.png](AddObservabilityToAIAgent_media/image_3.png)
+![image_2.png](./AddObservabilityToAIAgent_media/image_2.png)
+
+![image_3.png](./AddObservabilityToAIAgent_media/image_3.png)
 
  *Screenshots taken from Jaeger. Used with permission from the Jaeger project. This way to* [*jaegertracing.io*](https://www.jaegertracing.io)*.*
 
-# Helper Functions
+# Supporting Functions
 
 ## Check Required Packages
+
+The `checkRequiredPackages` function checks both required add\-on packages are installed.
+
 ```matlab
 function checkRequiredPackages
 installed = matlab.addons.installedAddons;
@@ -411,7 +425,7 @@ end
 
 ## Validate Tool Calls
 
-The validateToolCall function validates tool calls identified by the LLM. LLMs can hallucinate tool calls or make errors about the parameters that the tools need. Therefore, validate the tool name and parameters by comparing them to the `toolRegistry` dictionary. 
+The `validateToolCall` function validates tool calls identified by the LLM. LLMs can hallucinate tool calls or make errors about the parameters that the tools need. Therefore, validate the tool name and parameters by comparing them to the `toolRegistry` dictionary. 
 
 ```matlab
 function argValues = validateToolCall(toolCall,toolRegistry)
@@ -446,7 +460,10 @@ argValues = arrayfun(@(fieldName) args.(fieldName),requiredArgs,UniformOutput=fa
 end
 ```
 
-## Tool for Computing Roots of Second\-Order Polynomial
+## Tool 1: Solve Quadratic Equation
+
+The `solveQuadraticEquation` function computes the roots of a second\-order polynomial.
+
 ```matlab
 function strR = solveQuadraticEquation(a,b,c)
 % Start OpenTelemetry span
@@ -460,7 +477,10 @@ strR = string(r);
 end
 ```
 
-## Tool for Finding Smallest Real Number
+## Tool 2: Determine Smallest Real Number
+
+The `smallestRealNumber` function computes the smallest real number from a list of two arbitrary numbers.
+
 ```matlab
 function xMin = smallestRealNumber(strX1,strX2)
 % Start OpenTelemetry span
@@ -516,7 +536,7 @@ end
 
 ## Run Once
 
-Helper to ensure the input function is only run once.
+The `runOnce` function ensures the input function is only run once. This allows you to rerun the script multiple times without re\-initializing OpenTelemetry.
 
 ```matlab
 function runOnce(fh)
@@ -529,5 +549,7 @@ end
 ```
 
 # References
-<a id="M_4aeb"></a>
-\[1\] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. "ReAct: Synergizing Reasoning and Acting in Language Models". ArXiv, 10 March 2023. [https://doi.org/10.48550/arXiv.2210.03629](https://doi.org/10.48550/arXiv.2210.03629).
+
+\[1\] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. "ReAct: Synergizing Reasoning and Acting in Language Models". ArXiv, 10 March 2023. [https://doi.org/10.48550/arXiv.2210.03629.](https://doi.org/10.48550/arXiv.2210.03629.)
+
+*Copyright 2026 The MathWorks, Inc.*
