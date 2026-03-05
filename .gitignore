@@ -4,4 +4,8 @@ build
 # Autosave files
 *.asv
 *.swp
+
 .vscode/settings.json
+.env
+examples/ai_agent/*.png
+examples/ai_agent/mlx-script/*.png
