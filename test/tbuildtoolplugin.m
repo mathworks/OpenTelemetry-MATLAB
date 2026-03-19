@@ -29,11 +29,11 @@ classdef tbuildtoolplugin < matlab.unittest.TestCase
         end
 
         function onlyTestIfgRPCIsInstalled(testCase)
+            % Do not run if gRPC is not installed
             testCase.assumeTrue(logical(exist("opentelemetry.exporters.otlp.OtlpGrpcSpanExporter", "class")), ...
                 "Otlp gRPC exporter must be installed.");
-        end
-        
-        function createBuildRunner(testCase)
+
+            % Set up build runner
             plugin = matlab.buildtool.plugins.OpenTelemetryPlugin();
             testCase.BuildRunner = matlab.buildtool.BuildRunner.withNoPlugins();
             testCase.BuildRunner.addPlugin(plugin);
