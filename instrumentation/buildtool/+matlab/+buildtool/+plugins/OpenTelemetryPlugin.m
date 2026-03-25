@@ -12,7 +12,7 @@ classdef OpenTelemetryPlugin < matlab.buildtool.plugins.BuildRunnerPlugin
             p = gcp("nocreate");
             if ~isempty(p)
                 warning("opentelemetry:buildtool:OpenTelemetryPlugin:NoParallelEmit", ...
-                    "Tasks run on parallel workers will not emit telemetry data");
+                    "Tasks executed on parallel workers do not emit telemetry data.");
             end
 
             % Configure by attaching to span if passed in via environment
