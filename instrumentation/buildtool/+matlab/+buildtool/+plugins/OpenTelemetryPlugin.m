@@ -4,6 +4,17 @@ classdef OpenTelemetryPlugin < matlab.buildtool.plugins.BuildRunnerPlugin
 
     methods(Access = protected)
         function runBuild(plugin, pluginData)
+            % Warn users that tasks on workers will not emit telemetry data
+            % if a pool is open. 
+            % 
+            % Imperfect detection of parallel builds but
+            % the impact of a false positive is very low
+            p = gcp("nocreate");
+            if ~isempty(p)
+                warning("opentelemetry:buildtool:OpenTelemetryPlugin:NoParallelEmit", ...
+                    "Tasks executed on parallel workers do not emit telemetry data.");
+            end
+
             % Configure by attaching to span if passed in via environment
             % variable, and propagating baggage
             configureOTel();
@@ -56,10 +67,6 @@ classdef OpenTelemetryPlugin < matlab.buildtool.plugins.BuildRunnerPlugin
         end
 
         function runTask(plugin, pluginData)
-            % TODO:
-            %  - buildtool.task.outputs
-            %  - buildtool.task.inputs
-
             % Definitions
             task = pluginData.TaskGraph.Tasks;
             taskName = pluginData.Name;
