@@ -9,10 +9,12 @@ classdef OpenTelemetryPlugin < matlab.buildtool.plugins.BuildRunnerPlugin
             % 
             % Imperfect detection of parallel builds but
             % the impact of a false positive is very low
-            p = gcp("nocreate");
-            if ~isempty(p)
-                warning("opentelemetry:buildtool:OpenTelemetryPlugin:NoParallelEmit", ...
-                    "Tasks executed on parallel workers do not emit telemetry data.");
+            if matlab.internal.parallel.isPCTInstalled && matlab.internal.parallel.isPCTLicensed
+                p = gcp("nocreate");
+                if ~isempty(p)
+                    warning("opentelemetry:buildtool:OpenTelemetryPlugin:NoParallelEmit", ...
+                        "Tasks executed on parallel workers do not emit telemetry data.");
+                end
             end
 
             % Configure by attaching to span if passed in via environment
