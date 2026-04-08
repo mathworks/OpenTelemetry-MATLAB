@@ -256,6 +256,9 @@ classdef texamples < matlab.unittest.TestCase
         function testWebread(testCase)
             % testWebread: webread_example in examples/webread folder
 
+            % filter test on MacOS-15-Intel
+            macIntel = ismac && contains(getenv("OPENTELEMETRY_MAC_VERSION"),"intel");
+            testCase.assumeFalse(macIntel,"Filtered test due to failures launching CppServer on macos-15-intel")
             % use default location to look for server, filter out if not
             % found
             serverfolder = fullfile(fileparts(mfilename('fullpath')), "..", "build", "examples", "webread");

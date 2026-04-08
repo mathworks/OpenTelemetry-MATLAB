@@ -97,6 +97,7 @@ jobs:
         needs: get_version
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+            OPENTELEMETRY_MAC_VERSION: "${{ matrix.os }}"
         steps:
             - name: Download OpenTelemetry-Matlab source
               uses: actions/checkout@v3
