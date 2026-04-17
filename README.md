@@ -26,6 +26,13 @@ Installation instructions
 3. In the Current Folder browser, navigate to the .mltbx file.
 4. Right click on the .mltbx file and select "Install".
 
+### Installing With MATLAB Command Window
+Paste this into the MATLAB Command window:
+```matlab
+websave(fullfile(tempdir,"otel.mltbx"),"https://github.com/mathworks/OpenTelemetry-MATLAB/releases/latest/download/otel-matlab.mltbx");
+matlab.addons.install(fullfile(tempdir,"otel.mltbx"));
+```
+
 ### Building From Source
 Before proceeding, ensure that the below products are installed:
 * [MATLAB](https://www.mathworks.com/products/matlab.html)
