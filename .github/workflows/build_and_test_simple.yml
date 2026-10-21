@@ -1,4 +1,4 @@
-# Simplified build-and-test without gRPC exporter, run when pushed to any branches other than main or release branches
+# Simplified build-and-test without gRPC exporter, run when pushed to any branches other than main or release branches 
 name: "Build and Run Tests Simple"
 on: 
     workflow_dispatch:
