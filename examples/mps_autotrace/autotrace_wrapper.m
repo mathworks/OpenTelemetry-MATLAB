@@ -6,7 +6,7 @@ function yf = autotrace_wrapper(varargin)
 % Example:
 %   yf = autotrace_wrapper("myfun", arg1, arg2, ...)
 
-% Copyright 2024 The MathWorks, Inc.
+% Copyright 2026 The MathWorks, Inc.
 
 % validate inputs
 if nargin < 1
@@ -19,13 +19,13 @@ if ~(ischar(func) || isStringScalar(func))
 end
 
 % convert input func to handle
-fh = str2func(char(func));
+fh = str2func(func);
 
 % remaining arguments to pass to the traced function
 args = varargin(2:end);
 
 % create tracer name 
-tn = ['autotrace_' char(func)];
+tn = "autotrace_" + func;
 
 % configure tracer provider
 resource = dictionary("service.name", "OpenTelemetry-Matlab_examples");
@@ -36,8 +36,4 @@ setTracerProvider(tp);
 at = opentelemetry.autoinstrument.AutoTrace(fh, TracerName=tn);
 
 % run the example
-if isempty(args)
-    yf = beginTrace(at);
-else
-    yf = beginTrace(at, args{:});
-end
+yf = beginTrace(at, args{:});

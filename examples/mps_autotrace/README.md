@@ -12,7 +12,10 @@ To run the same call with autotracing, call *autotrace_wrapper* with the functio
 curl http://localhost:9910/MyFunction/autotrace_wrapper -H "Content-Type: application/json" -X POST -d "{'nargout':1,'rhs':['my_function', 3, 2, 1, 'linear']}"
 ```
 
-
+## Required Products
+- MATLAB (R2022b or newer)
+- MATLAB Compiler SDK
+- MATLAB Production Server
 
 ## Testing the Example
 1. Start an instance of [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).

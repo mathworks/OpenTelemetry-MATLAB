@@ -1,6 +1,9 @@
 function result = my_function(x,y,z,mode)
 % Combine three numbers into one value according to mode.
 % mode: 'equal' | 'linear' | 'custom'
+
+% Copyright 2026 The MathWorks, Inc.
+
 values = [x, y, z];
 
 w = get_weights(mode, values);      
