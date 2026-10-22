@@ -44,7 +44,7 @@ jobs:
                 name: otel-matlab-ubuntu.tar.gz
                 path: ./otel-matlab-ubuntu.tar.gz
     build-windows:
-        runs-on: windows-latest
+        runs-on: windows-2022
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:
@@ -148,7 +148,7 @@ jobs:
                 name: otel-matlab-nogrpc-ubuntu.tar.gz
                 path: ./otel-matlab-nogrpc-ubuntu.tar.gz
     nogrpc-windows:   # without gRPC exporter
-        runs-on: windows-latest
+        runs-on: windows-2022
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
         steps:

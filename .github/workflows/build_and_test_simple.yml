@@ -57,7 +57,7 @@ jobs:
               with:
                  select-by-folder: opentelemetry-matlab/test
     build-and-run-tests-windows:
-        runs-on: windows-latest
+        runs-on: windows-2022
         needs: get_version
         env:
             OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
