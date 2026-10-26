@@ -6,27 +6,20 @@ function github_example()
 runOnce(@initTracer);
 
 %% Parse TRACEPARENT
-traceparent = getenv("TRACEPARENT");
-traceparent = strtrim(traceparent);
+traceparent = strtrim(string(getenv("TRACEPARENT")));
 assert(strlength(traceparent) > 0, "TRACEPARENT environment variable is not set.");
 
 % Format: <version>-<traceId>-<spanId>-<traceFlags>
 parts = split(traceparent, "-");
-traceIdHex    = char(parts(2));   % 32 hex chars
-spanIdHex     = char(parts(3));   % 16 hex chars
-traceFlagsHex = char(parts(4));   %  2 hex chars
-
-% take care of little endian
-[~,~,endian] = computer;
-if isequal(endian, 'L')
-    traceIdHexHi = bigEndianToLittleEndian(traceIdHex(1:16));
-    traceIdHexLo = bigEndianToLittleEndian(traceIdHex(17:32));
-    spanIdHex = bigEndianToLittleEndian(spanIdHex);
-end
+assert(numel(parts) == 4, "TRACEPARENT is not in the expected format.");
+traceIdHex    = parts(2);   % 32 hex chars
+spanIdHex     = parts(3);   % 16 hex chars
+traceFlagsHex = parts(4);   %  2 hex chars
+issampled = bitand(hex2dec(traceFlagsHex), 1) == 1;
 
 %% Build parent SpanContext
-parentCtx = opentelemetry.trace.SpanContext(string(traceIdHexHi) + string(traceIdHexLo), ...
-    string(spanIdHex));
+% IDs are passed as hex strings in W3C byte order; no endianness conversion needed
+parentCtx = opentelemetry.trace.SpanContext(traceIdHex, spanIdHex, IsSampled=issampled);
 parentscope = makeCurrent(parentCtx);
 
 %% Create tracer
@@ -97,18 +90,6 @@ span1.endSpan();
 clear("scope1");
 
 fprintf("github_example complete. Trace ID: %s\n", traceIdHex);
-end
-
-function val = hexToUint64(hexstr)
-% HEXTOUINT64  Convert a 16-character hex string to uint64 without
-%   precision loss. Splits into two 8-char (32-bit) halves.
-hi  = uint64(hex2dec(hexstr(1:8)));
-lo  = uint64(hex2dec(hexstr(9:16)));
-val = bitor(bitshift(hi, 32), lo);
-end
-
-function outbytes = bigEndianToLittleEndian(inbytes)
-outbytes= reshape(fliplr(reshape(inbytes, 2, [])), 1, []);
 end
 
 function initTracer
