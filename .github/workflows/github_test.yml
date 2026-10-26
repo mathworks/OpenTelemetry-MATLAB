@@ -1,0 +1,55 @@
+# Build OpenTelemetry-Matlab on Linux and run the GitHub example, with the workflow
+# itself instrumented to emit OpenTelemetry spans. The MATLAB example picks up the
+# TRACEPARENT environment variable set by the instrumentation so that the MATLAB spans
+# and the GitHub workflow spans form a single trace.
+name: "GitHub Workflow Tracing Test"
+on:
+    workflow_dispatch:
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MLM_LICENSE_TOKEN }}
+jobs:
+    build-and-run-github-example-ubuntu:
+        runs-on: ubuntu-22.04
+        env:
+            OPENTELEMETRY_MATLAB_INSTALL: "${{ github.workspace }}/otel_matlab_install"
+        steps:
+            # must be the first step so that all subsequent steps are captured as spans
+            - name: Instrument job
+              uses: plengauer/Thoth/actions/instrument/job@v5
+              env:
+                OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+                OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+                OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+              with:
+                cache: 'false'
+            - name: Download OpenTelemetry-Matlab source
+              uses: actions/checkout@v3
+              with:
+                path: opentelemetry-matlab
+            - name: Install ninja-build
+              run: sudo apt-get install ninja-build
+            - name: Install MATLAB
+              uses: matlab-actions/setup-matlab@v2
+              with:
+                release: R2025a
+            - name: Build OpenTelemetry-Matlab
+              working-directory: opentelemetry-matlab
+              run: |
+                  cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.OPENTELEMETRY_MATLAB_INSTALL }}
+                  cmake --build build --config Release --target install
+            # Run MATLAB in a shell step (rather than via matlab-actions/run-command) so that
+            # it inherits the TRACEPARENT environment variable injected by the instrumentation.
+            # The OTLP HTTP exporter in MATLAB reads the endpoint and headers from the
+            # OTEL_EXPORTER_OTLP_* environment variables.
+            - name: Run GitHub example
+              env:
+                 # Add the installation directory to the MATLAB Search Path by
+                 # setting the MATLABPATH environment variable.
+                 MATLABPATH: "${{ env.OPENTELEMETRY_MATLAB_INSTALL }}:${{ github.workspace }}/opentelemetry-matlab/examples/github"
+                 OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+                 OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+                 OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+              run: |
+                  echo "TRACEPARENT=$TRACEPARENT"
+                  # shut down the tracer provider at the end to flush all spans before MATLAB exits
+                  matlab-batch "github_example; opentelemetry.sdk.common.Cleanup.shutdown(opentelemetry.trace.Provider.getTracerProvider());"
