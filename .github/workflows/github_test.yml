@@ -23,9 +23,9 @@ jobs:
               env:
                 OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
                 OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
-                OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
-                OTEL_SHELL_CONFIG_MUTE_INTERNALS: "true" 
-                OTEL_SHELL_CONFIG_MUTE_BUILTINS: "true"
+                OTEL_EXPORTER_OTLP_PROTOCOL: 'http/protobuf'
+                OTEL_SHELL_CONFIG_MUTE_INTERNALS: 'TRUE' 
+                OTEL_SHELL_CONFIG_MUTE_BUILTINS: 'TRUE'
               with:
                 cache: 'false'
             # source is only needed for the example
@@ -52,7 +52,7 @@ jobs:
                  MATLABPATH: "${{ github.workspace }}/opentelemetry-matlab/examples/github"
                  OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
                  OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
-                 OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+                 OTEL_EXPORTER_OTLP_PROTOCOL: 'http/protobuf'
               run: |
                   echo "TRACEPARENT=$TRACEPARENT"
                   # install the toolbox, run the example, then shut down the tracer provider
